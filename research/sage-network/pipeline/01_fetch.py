@@ -216,6 +216,9 @@ def _walk_shape(nd, title, out, types=None, seen=None):
         return
     if ch and isinstance(ch[0], dict):
         for sub in ch:
+            if not isinstance(sub, dict) or not isinstance(sub.get('chapters'), (int, list)):
+                name = sub.get('title') if isinstance(sub, dict) else sub
+                raise MissingPartShape(f'{title}: the part {name!r} has no usable chapter list')
             sub = dict(sub, _named=True)
             _walk_shape(sub, sub.get('title') or title, out, types, seen)
         return
@@ -323,7 +326,7 @@ def fetch_work(corpus, title):
                 # Known and recorded, never silent: this edition has no text for the unit.
                 reason = doc.get('error') or ('the edition has no text for this unit' if vs else 'the reply holds no version')
                 with _lock:
-                    absences.append({'corpus': corpus, 'work': work, 'witness': ed, 'unit': unit, 'ref': ref, 'reason': reason})
+                    absences.append({'corpus': corpus, 'title': title, 'work': work, 'witness': ed, 'unit': unit, 'ref': ref, 'reason': reason})
                 continue
             rec = {
                 'corpus': corpus, 'work': work, 'witness': ed, 'unit': unit, 'ref': ref,
@@ -377,17 +380,13 @@ def main():
                          'any work that would yield nothing')
     ap.add_argument('--workers', type=int, default=6)
     a = ap.parse_args()
-    jobs = []
-    for label, path, _, _why in corpora.CORPORA:
-        if a.corpus and a.corpus != label:
-            continue
-        ws = works_in(path)
-        if a.work:
-            ws = [w for w in ws if w in a.work]
-        if a.limit:
-            ws = ws[:a.limit]
-        print(f'{label}: {len(ws)} works')
-        jobs += [(label, w) for w in ws]
+    jobs, unmatched, counts = plan_jobs(a.corpus, a.work, a.limit)
+    for label, n in counts:
+        print(f'{label}: {n} works')
+    if unmatched or not jobs:
+        print('nothing to do for: ' + (', '.join(unmatched) if unmatched else (a.corpus or 'every corpus'))
+              + ' (no such corpus or work title)')
+        sys.exit(1)
     if a.list:
         for label, w in jobs:
             print('  ', label, '|', w)
@@ -420,12 +419,7 @@ def main():
     with cf.ThreadPoolExecutor(max_workers=a.workers) as ex:
         list(ex.map(guarded, jobs))
     print(f'\nmanifest: {write_manifest():,} units on disk')
-    with open(os.path.join(DATA, 'fetch-failures.json'), 'w') as f:
-        json.dump(failures, f, ensure_ascii=False, indent=1)
-    with open(os.path.join(DATA, 'fetch-absences.json'), 'w') as f:
-        json.dump(absences, f, ensure_ascii=False, indent=1)
-    with open(os.path.join(DATA, 'fetch-index-exceptions.json'), 'w') as f:
-        json.dump(index_exceptions, f, ensure_ascii=False, indent=1)
+    failures, absences_all, exceptions_all = record_run(DATA, {w for _, w in jobs}, failures, absences, index_exceptions)
     if index_exceptions:
         print(f'{len(index_exceptions)} work(s) were fetched without an index by recorded exception '
               '(fetch-index-exceptions.json)')
@@ -433,10 +427,61 @@ def main():
         print(f'{len(failures)} work(s) FAILED and are listed in fetch-failures.json:')
         for x in failures:
             print('  ', x['corpus'], '|', x['work'], '|', x['error'])
-    if absences:
-        print(f'{len(absences)} unit(s) have no text in an edition and are listed in fetch-absences.json; '
-              'the snapshot is not complete for them')
-    sys.exit(exit_status(failures, absences))
+    if absences_all:
+        print(f'{len(absences_all)} unit(s) in this snapshot have no text in an edition and are listed in '
+              'fetch-absences.json; the snapshot is not complete for them')
+    sys.exit(exit_status(failures, absences_all))
+
+
+def merge_records(path, new, titles_run, still_missing=lambda r: True):
+    """Earlier runs' records for the same snapshot, plus this run's.
+
+    A run of some works must not erase what earlier runs recorded about other
+    works. A record is dropped only when this run did its work again, or (for
+    an absence) when the unit has since been saved.
+    """
+    try:
+        with open(path) as f:
+            old = json.load(f)
+    except FileNotFoundError:
+        old = []
+    if not isinstance(old, list):
+        raise ValueError(f'{path} is not a list of records')
+    kept = [r for r in old if r.get('title', r.get('work')) not in titles_run and still_missing(r)]
+    return kept + new
+
+
+def record_run(data, titles_run, failures, absences_new, exceptions_new):
+    """Write the snapshot's failure, absence and index-exception records; return them merged."""
+    out = []
+    for name, new, keep in (('fetch-failures.json', failures, lambda r: True),
+                            ('fetch-absences.json', absences_new,
+                             lambda r: not have(unit_path(r['corpus'], r['work'], r['witness'], r['unit']))),
+                            ('fetch-index-exceptions.json', exceptions_new, lambda r: True)):
+        path = os.path.join(data, name)
+        merged = merge_records(path, new, titles_run, keep)
+        with open(path + '.part', 'w') as f:
+            json.dump(merged, f, ensure_ascii=False, indent=1)
+        os.replace(path + '.part', path)
+        out.append(merged)
+    return out
+
+
+def plan_jobs(corpus=None, works=(), limit=0, discover=None):
+    """(jobs, requested titles that matched nothing, works per corpus)."""
+    discover = discover or works_in
+    jobs, counts = [], []
+    for label, path, _, _why in corpora.CORPORA:
+        if corpus and corpus != label:
+            continue
+        ws = discover(path)
+        if works:
+            ws = [w for w in ws if w in works]
+        if limit:
+            ws = ws[:limit]
+        counts.append((label, len(ws)))
+        jobs += [(label, w) for w in ws]
+    return jobs, sorted(set(works) - {w for _, w in jobs}), counts
 
 
 def probe_work(job):
@@ -450,7 +495,7 @@ def probe_work(job):
 def check_status(rows):
     """Rows that need a look, and the exit status: 1 when any work has an error, no unit or no edition."""
     bad = [r for r in rows if r[3] or not r[1] or not r[2]]
-    return bad, (1 if bad else 0)
+    return bad, (1 if bad or not rows else 0)          # checking nothing is not a pass
 
 
 def exit_status(failures, absences):

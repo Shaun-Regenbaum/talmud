@@ -1,0 +1,4395 @@
+{
+  "title": "Sifra",
+  "categories": ["Midrash", "Halakhah"],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": ["Integer"],
+        "sectionNames": ["Paragraph"],
+        "match_templates": [{ "term_slugs": ["braita-drabbi-yishmael"] }],
+        "titles": [
+          { "primary": true, "lang": "he", "text": "ברייתא דרבי ישמעאל" },
+          { "text": "Baraita DeRabbi Yishmael", "lang": "en", "primary": true }
+        ],
+        "key": "Braita d'Rabbi Yishmael"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "sixth"] },
+              { "term_slugs": ["sixth"] }
+            ],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 6" },
+              { "primary": true, "lang": "he", "text": "פרשה ו" }
+            ],
+            "key": "Section 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 7" },
+              { "primary": true, "lang": "he", "text": "פרשה ז" }
+            ],
+            "key": "Section 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 8" },
+              { "primary": true, "lang": "he", "text": "פרשה ח" }
+            ],
+            "key": "Section 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "tenth"] }, { "term_slugs": ["tenth"] }],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 10" },
+              { "primary": true, "lang": "he", "text": "פרק י" }
+            ],
+            "key": "Chapter 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "ninth"] },
+              { "term_slugs": ["ninth"] }
+            ],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 9" },
+              { "primary": true, "lang": "he", "text": "פרשה ט" }
+            ],
+            "key": "Section 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 11" },
+              { "primary": true, "lang": "he", "text": "פרק יא" }
+            ],
+            "key": "Chapter 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "tenth"] },
+              { "term_slugs": ["tenth"] }
+            ],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 10" },
+              { "primary": true, "lang": "he", "text": "פרשה י" }
+            ],
+            "key": "Section 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 12" },
+              { "primary": true, "lang": "he", "text": "פרק יב" }
+            ],
+            "key": "Chapter 12"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 11" },
+              { "primary": true, "lang": "he", "text": "פרשה יא" }
+            ],
+            "key": "Section 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "thirteenth"] },
+              { "term_slugs": ["thirteenth"] }
+            ],
+            "numeric_equivalent": 13,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 13" },
+              { "primary": true, "lang": "he", "text": "פרק יג" }
+            ],
+            "key": "Chapter 13"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 12" },
+              { "primary": true, "lang": "he", "text": "פרשה יב" }
+            ],
+            "key": "Section 12"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourteenth"] },
+              { "term_slugs": ["fourteenth"] }
+            ],
+            "numeric_equivalent": 14,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 14" },
+              { "primary": true, "lang": "he", "text": "פרק יד" }
+            ],
+            "key": "Chapter 14"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "thirteenth"] },
+              { "term_slugs": ["thirteenth"] }
+            ],
+            "numeric_equivalent": 13,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 13" },
+              { "primary": true, "lang": "he", "text": "פרשה יג" }
+            ],
+            "key": "Section 13"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fifteenth"] },
+              { "term_slugs": ["fifteenth"] }
+            ],
+            "numeric_equivalent": 15,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 15" },
+              { "primary": true, "lang": "he", "text": "פרק טו" }
+            ],
+            "key": "Chapter 15"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "sixteenth"] },
+              { "term_slugs": ["sixteenth"] }
+            ],
+            "numeric_equivalent": 16,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 16" },
+              { "primary": true, "lang": "he", "text": "פרק טז" }
+            ],
+            "key": "Chapter 16"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventeenth"] },
+              { "term_slugs": ["seventeenth"] }
+            ],
+            "numeric_equivalent": 17,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 17" },
+              { "primary": true, "lang": "he", "text": "פרק יז" }
+            ],
+            "key": "Chapter 17"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourteenth"] },
+              { "term_slugs": ["fourteenth"] }
+            ],
+            "numeric_equivalent": 14,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 14" },
+              { "primary": true, "lang": "he", "text": "פרשה יד" }
+            ],
+            "key": "Section 14"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighteenth"] },
+              { "term_slugs": ["eighteenth"] }
+            ],
+            "numeric_equivalent": 18,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 18" },
+              { "primary": true, "lang": "he", "text": "פרק יח" }
+            ],
+            "key": "Chapter 18"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "nineteenth"] },
+              { "term_slugs": ["nineteenth"] }
+            ],
+            "numeric_equivalent": 19,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 19" },
+              { "primary": true, "lang": "he", "text": "פרק יט" }
+            ],
+            "key": "Chapter 19"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twentieth"] },
+              { "term_slugs": ["twentieth"] }
+            ],
+            "numeric_equivalent": 20,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 20" },
+              { "primary": true, "lang": "he", "text": "פרק כ" }
+            ],
+            "key": "Chapter 20"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["vayikra-dibbura-dnedavah"] }],
+        "titles": [
+          { "primary": true, "lang": "he", "text": "ויקרא דבורא דנדבה" },
+          { "text": "Vayikra Dibbura DeNedavah", "lang": "en", "primary": true },
+          { "text": "Vayikra Dibbura d'Nedavah", "lang": "en" }
+        ],
+        "key": "Vayikra Dibbura d'Nedavah"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרשה א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "sixth"] },
+              { "term_slugs": ["sixth"] }
+            ],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 6" },
+              { "primary": true, "lang": "he", "text": "פרשה ו" }
+            ],
+            "key": "Section 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 7" },
+              { "primary": true, "lang": "he", "text": "פרשה ז" }
+            ],
+            "key": "Section 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "tenth"] }, { "term_slugs": ["tenth"] }],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 10" },
+              { "primary": true, "lang": "he", "text": "פרק י" }
+            ],
+            "key": "Chapter 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 11" },
+              { "primary": true, "lang": "he", "text": "פרק יא" }
+            ],
+            "key": "Chapter 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 8" },
+              { "primary": true, "lang": "he", "text": "פרשה ח" }
+            ],
+            "key": "Section 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 12" },
+              { "primary": true, "lang": "he", "text": "פרק יב" }
+            ],
+            "key": "Chapter 12"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "thirteenth"] },
+              { "term_slugs": ["thirteenth"] }
+            ],
+            "numeric_equivalent": 13,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 13" },
+              { "primary": true, "lang": "he", "text": "פרק יג" }
+            ],
+            "key": "Chapter 13"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "ninth"] },
+              { "term_slugs": ["ninth"] }
+            ],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 9" },
+              { "primary": true, "lang": "he", "text": "פרשה ט" }
+            ],
+            "key": "Section 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourteenth"] },
+              { "term_slugs": ["fourteenth"] }
+            ],
+            "numeric_equivalent": 14,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 14" },
+              { "primary": true, "lang": "he", "text": "פרק יד" }
+            ],
+            "key": "Chapter 14"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fifteenth"] },
+              { "term_slugs": ["fifteenth"] }
+            ],
+            "numeric_equivalent": 15,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 15" },
+              { "primary": true, "lang": "he", "text": "פרק טו" }
+            ],
+            "key": "Chapter 15"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "sixteenth"] },
+              { "term_slugs": ["sixteenth"] }
+            ],
+            "numeric_equivalent": 16,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 16" },
+              { "primary": true, "lang": "he", "text": "פרק טז" }
+            ],
+            "key": "Chapter 16"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventeenth"] },
+              { "term_slugs": ["seventeenth"] }
+            ],
+            "numeric_equivalent": 17,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 17" },
+              { "primary": true, "lang": "he", "text": "פרק יז" }
+            ],
+            "key": "Chapter 17"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "tenth"] },
+              { "term_slugs": ["tenth"] }
+            ],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 10" },
+              { "primary": true, "lang": "he", "text": "פרשה י" }
+            ],
+            "key": "Section 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighteenth"] },
+              { "term_slugs": ["eighteenth"] }
+            ],
+            "numeric_equivalent": 18,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 18" },
+              { "primary": true, "lang": "he", "text": "פרק יח" }
+            ],
+            "key": "Chapter 18"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "nineteenth"] },
+              { "term_slugs": ["nineteenth"] }
+            ],
+            "numeric_equivalent": 19,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 19" },
+              { "primary": true, "lang": "he", "text": "פרק יט" }
+            ],
+            "key": "Chapter 19"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 11" },
+              { "primary": true, "lang": "he", "text": "פרשה יא" }
+            ],
+            "key": "Section 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twentieth"] },
+              { "term_slugs": ["twentieth"] }
+            ],
+            "numeric_equivalent": 20,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 20" },
+              { "primary": true, "lang": "he", "text": "פרק כ" }
+            ],
+            "key": "Chapter 20"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 12" },
+              { "primary": true, "lang": "he", "text": "פרשה יב" }
+            ],
+            "key": "Section 12"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twenty-first"] },
+              { "term_slugs": ["twenty-first"] }
+            ],
+            "numeric_equivalent": 21,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 21" },
+              { "primary": true, "lang": "he", "text": "פרק כא" }
+            ],
+            "key": "Chapter 21"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twenty-second"] },
+              { "term_slugs": ["twenty-second"] }
+            ],
+            "numeric_equivalent": 22,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 22" },
+              { "primary": true, "lang": "he", "text": "פרק כב" }
+            ],
+            "key": "Chapter 22"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "thirteenth"] },
+              { "term_slugs": ["thirteenth"] }
+            ],
+            "numeric_equivalent": 13,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 13" },
+              { "primary": true, "lang": "he", "text": "פרשה יג" }
+            ],
+            "key": "Section 13"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twenty-third"] },
+              { "term_slugs": ["twenty-third"] }
+            ],
+            "numeric_equivalent": 23,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 23" },
+              { "primary": true, "lang": "he", "text": "פרק כג" }
+            ],
+            "key": "Chapter 23"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["vayikra-dibbura-dchovah"] }],
+        "titles": [
+          { "primary": true, "lang": "he", "text": "ויקרא דבורא דחובה" },
+          { "text": "Vayikra Dibbura DeChovah", "lang": "en", "primary": true }
+        ],
+        "key": "Vayikra Dibbura d'Chovah"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "tenth"] }, { "term_slugs": ["tenth"] }],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 10" },
+              { "primary": true, "lang": "he", "text": "פרק י" }
+            ],
+            "key": "Chapter 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "sixth"] },
+              { "term_slugs": ["sixth"] }
+            ],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 6" },
+              { "primary": true, "lang": "he", "text": "פרשה ו" }
+            ],
+            "key": "Section 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 11" },
+              { "primary": true, "lang": "he", "text": "פרק יא" }
+            ],
+            "key": "Chapter 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 7" },
+              { "primary": true, "lang": "he", "text": "פרשה ז" }
+            ],
+            "key": "Section 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 12" },
+              { "primary": true, "lang": "he", "text": "פרק יב" }
+            ],
+            "key": "Chapter 12"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 8" },
+              { "primary": true, "lang": "he", "text": "פרשה ח" }
+            ],
+            "key": "Section 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "thirteenth"] },
+              { "term_slugs": ["thirteenth"] }
+            ],
+            "numeric_equivalent": 13,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 13" },
+              { "primary": true, "lang": "he", "text": "פרק יג" }
+            ],
+            "key": "Chapter 13"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "ninth"] },
+              { "term_slugs": ["ninth"] }
+            ],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 9" },
+              { "primary": true, "lang": "he", "text": "פרשה ט" }
+            ],
+            "key": "Section 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourteenth"] },
+              { "term_slugs": ["fourteenth"] }
+            ],
+            "numeric_equivalent": 14,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 14" },
+              { "primary": true, "lang": "he", "text": "פרק יד" }
+            ],
+            "key": "Chapter 14"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fifteenth"] },
+              { "term_slugs": ["fifteenth"] }
+            ],
+            "numeric_equivalent": 15,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 15" },
+              { "primary": true, "lang": "he", "text": "פרק טו" }
+            ],
+            "key": "Chapter 15"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "tenth"] },
+              { "term_slugs": ["tenth"] }
+            ],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 10" },
+              { "primary": true, "lang": "he", "text": "פרשה י" }
+            ],
+            "key": "Section 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 11" },
+              { "primary": true, "lang": "he", "text": "פרשה יא" }
+            ],
+            "key": "Section 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "sixteenth"] },
+              { "term_slugs": ["sixteenth"] }
+            ],
+            "numeric_equivalent": 16,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 16" },
+              { "primary": true, "lang": "he", "text": "פרק טז" }
+            ],
+            "key": "Chapter 16"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventeenth"] },
+              { "term_slugs": ["seventeenth"] }
+            ],
+            "numeric_equivalent": 17,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 17" },
+              { "primary": true, "lang": "he", "text": "פרק יז" }
+            ],
+            "key": "Chapter 17"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighteenth"] },
+              { "term_slugs": ["eighteenth"] }
+            ],
+            "numeric_equivalent": 18,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 18" },
+              { "primary": true, "lang": "he", "text": "פרק יח" }
+            ],
+            "key": "Chapter 18"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["mechilta-dmiluim-1", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "he", "text": "מכילתא דמילואים א" },
+              { "text": "Mekhilta DeMiluim I", "lang": "en", "primary": true }
+            ],
+            "key": "Mechilta d'Miluim 1"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["tzav"] }],
+        "sharedTitle": "Tzav",
+        "key": "Tzav"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["mechilta-dmiluim-2", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "he", "text": "מכילתא דמילואים ב" },
+              { "text": "Mekhilta DeMiluim II", "lang": "en", "primary": true }
+            ],
+            "key": "Mechilta d'Miluim 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרשה א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "sixth"] },
+              { "term_slugs": ["sixth"] }
+            ],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 6" },
+              { "primary": true, "lang": "he", "text": "פרשה ו" }
+            ],
+            "key": "Section 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 7" },
+              { "primary": true, "lang": "he", "text": "פרשה ז" }
+            ],
+            "key": "Section 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 8" },
+              { "primary": true, "lang": "he", "text": "פרשה ח" }
+            ],
+            "key": "Section 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "tenth"] }, { "term_slugs": ["tenth"] }],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 10" },
+              { "primary": true, "lang": "he", "text": "פרק י" }
+            ],
+            "key": "Chapter 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "ninth"] },
+              { "term_slugs": ["ninth"] }
+            ],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 9" },
+              { "primary": true, "lang": "he", "text": "פרשה ט" }
+            ],
+            "key": "Section 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 11" },
+              { "primary": true, "lang": "he", "text": "פרק יא" }
+            ],
+            "key": "Chapter 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "tenth"] },
+              { "term_slugs": ["tenth"] }
+            ],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 10" },
+              { "primary": true, "lang": "he", "text": "פרשה י" }
+            ],
+            "key": "Section 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 12" },
+              { "primary": true, "lang": "he", "text": "פרק יב" }
+            ],
+            "key": "Chapter 12"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["shmini"] }],
+        "titles": [
+          { "primary": true, "lang": "en", "text": "Shemini" },
+          { "primary": true, "lang": "he", "text": "שמיני" }
+        ],
+        "key": "Shemini"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרשה א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["tazria-parashat-yoledet"] }],
+        "titles": [
+          { "primary": true, "lang": "en", "text": "Tazria Parashat Yoledet" },
+          { "primary": true, "lang": "he", "text": "תזריע פרשת יולדת" }
+        ],
+        "key": "Tazria Parashat Yoledet"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [],
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2*" },
+              { "primary": true, "lang": "he", "text": "פרק ב*" }
+            ],
+            "key": "Chapter 2*"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "tenth"] }, { "term_slugs": ["tenth"] }],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 10" },
+              { "primary": true, "lang": "he", "text": "פרק י" }
+            ],
+            "key": "Chapter 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 11" },
+              { "primary": true, "lang": "he", "text": "פרק יא" }
+            ],
+            "key": "Chapter 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 12" },
+              { "primary": true, "lang": "he", "text": "פרק יב" }
+            ],
+            "key": "Chapter 12"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "thirteenth"] },
+              { "term_slugs": ["thirteenth"] }
+            ],
+            "numeric_equivalent": 13,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 13" },
+              { "primary": true, "lang": "he", "text": "פרק יג" }
+            ],
+            "key": "Chapter 13"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourteenth"] },
+              { "term_slugs": ["fourteenth"] }
+            ],
+            "numeric_equivalent": 14,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 14" },
+              { "primary": true, "lang": "he", "text": "פרק יד" }
+            ],
+            "key": "Chapter 14"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fifteenth"] },
+              { "term_slugs": ["fifteenth"] }
+            ],
+            "numeric_equivalent": 15,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 15" },
+              { "primary": true, "lang": "he", "text": "פרק טו" }
+            ],
+            "key": "Chapter 15"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "sixteenth"] },
+              { "term_slugs": ["sixteenth"] }
+            ],
+            "numeric_equivalent": 16,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 16" },
+              { "primary": true, "lang": "he", "text": "פרק טז" }
+            ],
+            "key": "Chapter 16"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["tazria-parashat-negaim"] }],
+        "titles": [
+          { "primary": true, "lang": "he", "text": "תזריע פרשת נגעים" },
+          { "text": "Tazria Parashat Negaim", "lang": "en", "primary": true }
+        ],
+        "key": "Tazria Parashat Nega'im"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרשה א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "sixth"] },
+              { "term_slugs": ["sixth"] }
+            ],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 6" },
+              { "primary": true, "lang": "he", "text": "פרשה ו" }
+            ],
+            "key": "Section 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 7" },
+              { "primary": true, "lang": "he", "text": "פרשה ז" }
+            ],
+            "key": "Section 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["metzora"] }],
+        "sharedTitle": "Metzora",
+        "key": "Metzora"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרשה א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["metzora-parashat-zavim"] }],
+        "titles": [
+          { "primary": true, "lang": "en", "text": "Metzora Parashat Zavim" },
+          { "primary": true, "lang": "he", "text": "מצורע פרשת זבים" }
+        ],
+        "key": "Metzora Parashat Zavim"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרשה א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "sixth"] },
+              { "term_slugs": ["sixth"] }
+            ],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 6" },
+              { "primary": true, "lang": "he", "text": "פרשה ו" }
+            ],
+            "key": "Section 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "tenth"] }, { "term_slugs": ["tenth"] }],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 10" },
+              { "primary": true, "lang": "he", "text": "פרק י" }
+            ],
+            "key": "Chapter 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 7" },
+              { "primary": true, "lang": "he", "text": "פרשה ז" }
+            ],
+            "key": "Section 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 11" },
+              { "primary": true, "lang": "he", "text": "פרק יא" }
+            ],
+            "key": "Chapter 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 12" },
+              { "primary": true, "lang": "he", "text": "פרק יב" }
+            ],
+            "key": "Chapter 12"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 8" },
+              { "primary": true, "lang": "he", "text": "פרשה ח" }
+            ],
+            "key": "Section 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "thirteenth"] },
+              { "term_slugs": ["thirteenth"] }
+            ],
+            "numeric_equivalent": 13,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 13" },
+              { "primary": true, "lang": "he", "text": "פרק יג" }
+            ],
+            "key": "Chapter 13"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["achrei-mot"] }],
+        "titles": [
+          { "primary": true, "lang": "en", "text": "Acharei Mot" },
+          { "primary": true, "lang": "he", "text": "אחרי מות" }
+        ],
+        "key": "Acharei Mot"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרשה א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "tenth"] }, { "term_slugs": ["tenth"] }],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 10" },
+              { "primary": true, "lang": "he", "text": "פרק י" }
+            ],
+            "key": "Chapter 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 11" },
+              { "primary": true, "lang": "he", "text": "פרק יא" }
+            ],
+            "key": "Chapter 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 12" },
+              { "primary": true, "lang": "he", "text": "פרק יב" }
+            ],
+            "key": "Chapter 12"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["kedoshim"] }],
+        "sharedTitle": "Kedoshim",
+        "key": "Kedoshim"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרשה א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "sixth"] },
+              { "term_slugs": ["sixth"] }
+            ],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 6" },
+              { "primary": true, "lang": "he", "text": "פרשה ו" }
+            ],
+            "key": "Section 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 7" },
+              { "primary": true, "lang": "he", "text": "פרשה ז" }
+            ],
+            "key": "Section 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 8" },
+              { "primary": true, "lang": "he", "text": "פרשה ח" }
+            ],
+            "key": "Section 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "ninth"] },
+              { "term_slugs": ["ninth"] }
+            ],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 9" },
+              { "primary": true, "lang": "he", "text": "פרשה ט" }
+            ],
+            "key": "Section 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "tenth"] }, { "term_slugs": ["tenth"] }],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 10" },
+              { "primary": true, "lang": "he", "text": "פרק י" }
+            ],
+            "key": "Chapter 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 11" },
+              { "primary": true, "lang": "he", "text": "פרק יא" }
+            ],
+            "key": "Chapter 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "tenth"] },
+              { "term_slugs": ["tenth"] }
+            ],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 10" },
+              { "primary": true, "lang": "he", "text": "פרשה י" }
+            ],
+            "key": "Section 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 12" },
+              { "primary": true, "lang": "he", "text": "פרק יב" }
+            ],
+            "key": "Chapter 12"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "thirteenth"] },
+              { "term_slugs": ["thirteenth"] }
+            ],
+            "numeric_equivalent": 13,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 13" },
+              { "primary": true, "lang": "he", "text": "פרק יג" }
+            ],
+            "key": "Chapter 13"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 11" },
+              { "primary": true, "lang": "he", "text": "פרשה יא" }
+            ],
+            "key": "Section 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourteenth"] },
+              { "term_slugs": ["fourteenth"] }
+            ],
+            "numeric_equivalent": 14,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 14" },
+              { "primary": true, "lang": "he", "text": "פרק יד" }
+            ],
+            "key": "Chapter 14"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 12" },
+              { "primary": true, "lang": "he", "text": "פרשה יב" }
+            ],
+            "key": "Section 12"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fifteenth"] },
+              { "term_slugs": ["fifteenth"] }
+            ],
+            "numeric_equivalent": 15,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 15" },
+              { "primary": true, "lang": "he", "text": "פרק טו" }
+            ],
+            "key": "Chapter 15"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "sixteenth"] },
+              { "term_slugs": ["sixteenth"] }
+            ],
+            "numeric_equivalent": 16,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 16" },
+              { "primary": true, "lang": "he", "text": "פרק טז" }
+            ],
+            "key": "Chapter 16"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventeenth"] },
+              { "term_slugs": ["seventeenth"] }
+            ],
+            "numeric_equivalent": 17,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 17" },
+              { "primary": true, "lang": "he", "text": "פרק יז" }
+            ],
+            "key": "Chapter 17"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "thirteenth"] },
+              { "term_slugs": ["thirteenth"] }
+            ],
+            "numeric_equivalent": 13,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 13" },
+              { "primary": true, "lang": "he", "text": "פרשה יג" }
+            ],
+            "key": "Section 13"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighteenth"] },
+              { "term_slugs": ["eighteenth"] }
+            ],
+            "numeric_equivalent": 18,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 18" },
+              { "primary": true, "lang": "he", "text": "פרק יח" }
+            ],
+            "key": "Chapter 18"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourteenth"] },
+              { "term_slugs": ["fourteenth"] }
+            ],
+            "numeric_equivalent": 14,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 14" },
+              { "primary": true, "lang": "he", "text": "פרשה יד" }
+            ],
+            "key": "Section 14"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "nineteenth"] },
+              { "term_slugs": ["nineteenth"] }
+            ],
+            "numeric_equivalent": 19,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 19" },
+              { "primary": true, "lang": "he", "text": "פרק יט" }
+            ],
+            "key": "Chapter 19"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twentieth"] },
+              { "term_slugs": ["twentieth"] }
+            ],
+            "numeric_equivalent": 20,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 20" },
+              { "primary": true, "lang": "he", "text": "פרק כ" }
+            ],
+            "key": "Chapter 20"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["emor"] }],
+        "sharedTitle": "Emor",
+        "key": "Emor"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרשה א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "sixth"] },
+              { "term_slugs": ["sixth"] }
+            ],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 6" },
+              { "primary": true, "lang": "he", "text": "פרשה ו" }
+            ],
+            "key": "Section 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["behar"] }],
+        "sharedTitle": "Behar",
+        "key": "Behar"
+      },
+      {
+        "nodes": [
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "first"] },
+              { "term_slugs": ["first"] }
+            ],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 1" },
+              { "primary": true, "lang": "he", "text": "פרשה א" }
+            ],
+            "key": "Section 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "first"] }, { "term_slugs": ["first"] }],
+            "numeric_equivalent": 1,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 1" },
+              { "primary": true, "lang": "he", "text": "פרק א" }
+            ],
+            "key": "Chapter 1"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 2" },
+              { "primary": true, "lang": "he", "text": "פרק ב" }
+            ],
+            "key": "Chapter 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "third"] }, { "term_slugs": ["third"] }],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 3" },
+              { "primary": true, "lang": "he", "text": "פרק ג" }
+            ],
+            "key": "Chapter 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "second"] },
+              { "term_slugs": ["second"] }
+            ],
+            "numeric_equivalent": 2,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 2" },
+              { "primary": true, "lang": "he", "text": "פרשה ב" }
+            ],
+            "key": "Section 2"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 4" },
+              { "primary": true, "lang": "he", "text": "פרק ד" }
+            ],
+            "key": "Chapter 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "fifth"] }, { "term_slugs": ["fifth"] }],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 5" },
+              { "primary": true, "lang": "he", "text": "פרק ה" }
+            ],
+            "key": "Chapter 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "sixth"] }, { "term_slugs": ["sixth"] }],
+            "numeric_equivalent": 6,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 6" },
+              { "primary": true, "lang": "he", "text": "פרק ו" }
+            ],
+            "key": "Chapter 6"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "seventh"] },
+              { "term_slugs": ["seventh"] }
+            ],
+            "numeric_equivalent": 7,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 7" },
+              { "primary": true, "lang": "he", "text": "פרק ז" }
+            ],
+            "key": "Chapter 7"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eighth"] },
+              { "term_slugs": ["eighth"] }
+            ],
+            "numeric_equivalent": 8,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 8" },
+              { "primary": true, "lang": "he", "text": "פרק ח" }
+            ],
+            "key": "Chapter 8"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "third"] },
+              { "term_slugs": ["third"] }
+            ],
+            "numeric_equivalent": 3,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 3" },
+              { "primary": true, "lang": "he", "text": "פרשה ג" }
+            ],
+            "key": "Section 3"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "ninth"] }, { "term_slugs": ["ninth"] }],
+            "numeric_equivalent": 9,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 9" },
+              { "primary": true, "lang": "he", "text": "פרק ט" }
+            ],
+            "key": "Chapter 9"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fourth"] },
+              { "term_slugs": ["fourth"] }
+            ],
+            "numeric_equivalent": 4,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 4" },
+              { "primary": true, "lang": "he", "text": "פרשה ד" }
+            ],
+            "key": "Section 4"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [{ "term_slugs": ["perek", "tenth"] }, { "term_slugs": ["tenth"] }],
+            "numeric_equivalent": 10,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 10" },
+              { "primary": true, "lang": "he", "text": "פרק י" }
+            ],
+            "key": "Chapter 10"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "eleventh"] },
+              { "term_slugs": ["eleventh"] }
+            ],
+            "numeric_equivalent": 11,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 11" },
+              { "primary": true, "lang": "he", "text": "פרק יא" }
+            ],
+            "key": "Chapter 11"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["parasha", "fifth"] },
+              { "term_slugs": ["fifth"] }
+            ],
+            "numeric_equivalent": 5,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Section 5" },
+              { "primary": true, "lang": "he", "text": "פרשה ה" }
+            ],
+            "key": "Section 5"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "twelfth"] },
+              { "term_slugs": ["twelfth"] }
+            ],
+            "numeric_equivalent": 12,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 12" },
+              { "primary": true, "lang": "he", "text": "פרק יב" }
+            ],
+            "key": "Chapter 12"
+          },
+          {
+            "nodeType": "JaggedArrayNode",
+            "depth": 1,
+            "addressTypes": ["Integer"],
+            "sectionNames": ["Paragraph"],
+            "match_templates": [
+              { "term_slugs": ["perek", "thirteenth"] },
+              { "term_slugs": ["thirteenth"] }
+            ],
+            "numeric_equivalent": 13,
+            "titles": [
+              { "primary": true, "lang": "en", "text": "Chapter 13" },
+              { "primary": true, "lang": "he", "text": "פרק יג" }
+            ],
+            "key": "Chapter 13"
+          }
+        ],
+        "nodeType": "SchemaNode",
+        "match_templates": [{ "term_slugs": ["bechukotai"] }],
+        "sharedTitle": "Bechukotai",
+        "key": "Bechukotai"
+      }
+    ],
+    "nodeType": "SchemaNode",
+    "match_templates": [{ "term_slugs": ["sifra"] }],
+    "titles": [
+      { "text": "Sifra, Lev.", "lang": "en" },
+      { "text": "ספרא", "lang": "he", "primary": true },
+      { "text": "סיפרא", "lang": "he" },
+      { "text": "תורת כהנים", "lang": "he" },
+      { "text": "תו\"כ", "lang": "he" },
+      { "text": "ספרא דבי רב", "lang": "he" },
+      { "text": "תו״כ", "lang": "he" },
+      { "text": "Sifra", "lang": "en", "primary": true }
+    ],
+    "key": "Sifra"
+  },
+  "order": [20],
+  "authors": [],
+  "enDesc": "Sifra (“The Book”) is a halakhic (legal) midrash on the book of Leviticus, frequently quoted in the Talmud. Compiled in the early talmudic period, the identity of its compiler has been subject to debate since medieval times. Most of the work is written in the style of the school of Rabbi Akiva, while two sections — one about forbidden relations and the other on the dedication of the Mishkan — are written in the style of the school of Rabbi Yishmael.",
+  "heDesc": "ה\"ספרא\" ('ספר') הינו המדרש ההלכתי לספר ויקרא. המדרש מצוטט לעתים קרובות בתלמוד, והוא נלמד על ידי חכמי התלמוד לאחר לימוד המשנה. כמו ספר ויקרא עצמו, המדרש נקרא לעתים \"תורת כוהנים\", ובשתי פסקאות אף \"ספרא דבי רב\". זהותו של מחבר הספרא מצויה במחלוקת. הרמב\"ם, וכן מספר חוקרים מודרניים, טענו שהוא חובר בידי יהודה הנשיא, בעוד חוקרים אחרים מייחסים את כתיבתו לרבי חייא. הספרא קשור לבית מדרשו של ר' עקיבא, אך מצויים בו גם עקבות השפעתו של ר' יהודה הנשיא. הקשר שלו לבית מדרשו של ר' ישמעאל מפוקפק יותר, ובהקשר זה יש לשקול את השאלה האם פירושים מסוימים לפסוקי ספר ויקרא, המצויים בספרא, אינם מצויים שם בטעות. לעומת זאת, התוספות המאוחרות לפרשיית ה\"עריות\" מיוחסות באופן מובהק לבית מדרשו של ר' ישמעאל. לפי חלוקה ישנה, חולקה הספרא לתשעה \"דיבורים\" ו-80 פרשיות. כיום מחולק הטקסט ל-14 חלקים גדולים יותר, ובתוכם לתת-פרקי קטנים יותר.",
+  "enShortDesc": "Midrash on the book of Leviticus from the school of Rabbi Akiva.",
+  "heShortDesc": "מדרש על ספר ויקרא מבית מדרשו של רבי עקיבא.",
+  "pubDate": [1862],
+  "hasErrorMargin": true,
+  "compDate": [250, 350],
+  "compPlace": "Talmudic Israel/Babylon",
+  "pubPlace": "Vienna",
+  "era": "AH"
+}
