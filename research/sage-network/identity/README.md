@@ -75,3 +75,34 @@ kept for display and never matched.
 
 Registry generations are copied onto each candidate as stored metadata only. They are never this person's era.
 The output kind is `name_candidates`. Existing `identity_proposal` records and recipes are unchanged.
+
+## Prepare name_candidates records
+
+`storage/name_candidates_import.py` builds the records offline from checked inputs only:
+
+- a verified local export of the graph parent revision, whose record set must match its manifest;
+- for readings a source-reading store holds, that store's read-back file (`source-reading-store-readback-v1`), which
+  the store owner writes only after a full read-back rebuilds every passage from its R2 artifact;
+- root's release pins (`name-candidates-release-pins-v1`), in their own file. They name the graph revision and record
+  set, and for each read-back file the sha256 of its exact bytes, the store and database, revision, record set,
+  parent, export, the reviewed ownership manifest, the reviewed producer code, and that the store revision was found
+  verified. A read-back file is used only when its bytes match a pin; a file never pins itself.
+
+```sh
+python3 research/sage-network/storage/name_candidates_import.py prepare --graph parent.sqlite \
+  --revision sage-graph-... --pins release-pins.json --readback bavli-readback.json --output prepared
+python3 research/sage-network/storage/name_candidates_import.py check --graph parent.sqlite \
+  --revision sage-graph-... --pins release-pins.json --readback bavli-readback.json --changes prepared/changes.json
+```
+
+Every JSON input is read strictly: a repeated key or a non-finite number is refused. Every graph payload must match its
+hash. The read-back receipt must cover the passages (`passagesSha256`) and a verified revision. A read-back file that
+holds checked readings (`checked-source-store-v1`), or any field this version does not know, is refused whole: checked
+readings are typed, reviewed items and are never read as original reading rows.
+
+Each candidate cites the person, passage and source_reading rows as stored (store, revision, stored hash and format)
+and their rebuilt v1 hash. A reading the graph holds cannot also be cited from a store, since the graph copy wins. The
+check rebuilds every record from the same inputs and refuses any difference. It then checks a second time that no
+record is about a person a reviewed or human record decides, that no record is for a person older readings cover at
+every mention, and that every alias guard holds. Nothing is written to any database; the extend_d1 wiring follows the
+source-reading store change.
