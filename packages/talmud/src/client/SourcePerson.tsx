@@ -42,6 +42,14 @@ export function SourcePerson(props: {
       }
     },
   );
+  const profile = () => {
+    const value = person()?.conditionalProfile;
+    return value?.status === 'available' ? value : undefined;
+  };
+  const conditionalLabel = () =>
+    t('person.conditionalProfile', {
+      name: lang() === 'he' ? (profile()?.nameHe ?? '') : (profile()?.name ?? ''),
+    });
   return (
     <section
       class="source-person"
@@ -86,15 +94,45 @@ export function SourcePerson(props: {
                 )}
               </For>
             </Show>
+            <Show when={p().conditionalProfile?.status === 'unavailable'}>
+              <PersonStatus error onRetry={() => void refetch()}>
+                {t('person.profileUnavailable')}
+              </PersonStatus>
+            </Show>
+            <Show when={profile() && !p().era && (!p().generation || p().generation === 'unknown')}>
+              <p class="source-person-note">{conditionalLabel()}</p>
+            </Show>
             <PersonEra
-              reviewed={p().era}
-              generation={p().generation}
+              reviewed={p().era ?? profile()?.era}
+              generation={
+                p().generation && p().generation !== 'unknown'
+                  ? p().generation
+                  : profile()?.generation
+              }
+              uncertain={
+                !!profile() && !p().era && (!p().generation || p().generation === 'unknown')
+              }
               possible={p().possibleEra}
               revision={p().revision}
             />
             <section class="person-biography">
               <h4>{t('person.biography')}</h4>
-              <PersonStatus>{t('person.bioEmpty')}</PersonStatus>
+              <Show when={profile()}>
+                <p class="source-person-note">{conditionalLabel()}</p>
+              </Show>
+              <Show
+                when={profile()?.bio}
+                fallback={<PersonStatus>{t('person.bioEmpty')}</PersonStatus>}
+              >
+                <p>{profile()?.bio}</p>
+                <For each={profile()?.sources}>
+                  {(source) => (
+                    <a href={source.url} target="_blank" rel="noopener noreferrer">
+                      {source.title}
+                    </a>
+                  )}
+                </For>
+              </Show>
               <p>{lang() === 'he' ? p().summaryHe : p().summary}</p>
               <details class="person-passage">
                 <summary>{p().ref}</summary>
@@ -146,7 +184,11 @@ export function SourcePerson(props: {
               <h4>{t('person.places')}</h4>
               <Show
                 when={p().places?.length}
-                fallback={<PersonStatus>{t('person.placesEmpty')}</PersonStatus>}
+                fallback={
+                  <Show when={!profile()?.places.length}>
+                    <PersonStatus>{t('person.placesEmpty')}</PersonStatus>
+                  </Show>
+                }
               >
                 <RabbiTrajectoryMap
                   journeyControls
@@ -206,6 +248,23 @@ export function SourcePerson(props: {
                     </details>
                   )}
                 </For>
+              </Show>
+              <Show when={profile()?.places.length}>
+                <p class="source-person-note">
+                  {conditionalLabel()} {t('person.profilePlaces')}
+                </p>
+                <RabbiTrajectoryMap
+                  journeyControls
+                  data={{
+                    primaryStudyPlaces: [],
+                    movements: [],
+                    notablePlaces: (profile()?.places ?? []).map((place) => ({
+                      place,
+                      event: t('person.savedProfilePlace'),
+                    })),
+                  }}
+                  evidence={[]}
+                />
               </Show>
             </section>
           </>

@@ -1,3 +1,4 @@
+import type { ConditionalProfileResult } from './conditional-profile';
 import type { InitialReading } from './initial-readings';
 import type { PossibleEra } from './possible-era';
 
@@ -69,6 +70,7 @@ export interface ReviewedPlace {
   mapPlace: string | null;
 }
 export interface SourcePerson {
+  conditionalProfile?: ConditionalProfileResult;
   /** The source-reading store revisions this card was read with, and the store that held it. */
   sourceRevisions?: Record<'bavli' | 'other', string | null>;
   sourceStore?: 'bavli' | 'other';
