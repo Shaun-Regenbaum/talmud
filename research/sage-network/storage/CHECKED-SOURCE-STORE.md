@@ -30,9 +30,10 @@ hash, and the hash of the root approval file that approves it.
   that store. A store with none of the selection's readings is refused.
 - **At most one checked version of a raw queue result is stored.** A second one is refused. Replacing
   a version will need an explicit supersession, which this first format does not have.
-- **A store holds readings of one selection, for now.** The read-back rebuilds checked rows with one
-  selection, so a batch from a second selection is refused. A later release with another selection
-  needs multi-selection support first. Nothing is reused implicitly.
+- **A store keeps each reading's original selection.** A later batch can add another independently
+  pinned selection without changing earlier rows. Read-back requires every stored selection and its
+  approval files, including the parent's selections. Repeat `--checked-selection FILE SHA256` for each.
+  A stored selection hash never supplies its own authority, and an artifact cannot move between selections.
 - **The legacy graph check uses the newest graph only.** `prepare-checked` refuses a legacy graph copy
   that is not its newest verified revision, because an older copy could predate a human correction. It
   refuses any record ID the graph already holds. It also refuses any bundle whose exact raw queue result

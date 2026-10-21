@@ -266,9 +266,9 @@ def verify_store(export, manifest_path, artifacts, ownership_specs, parent_recei
     """Read a store export back after an import. Records new in this revision are rebuilt from their R2
     artifacts, downloaded again, and must equal the importer's rows. Records kept from the parent must be
     the parent's exact versions; the parent's own read-back receipt covers them. With `full`, every
-    passage is rebuilt, whatever its parent's receipt says. `checked` is root's checked release selection,
-    `dict(selection=TEXT, pin=SHA256 given separately, approvals={file hash: text})`, needed when the
-    revision holds checked readings."""
+    passage is rebuilt, whatever its parent's receipt says. `checked` lists root's checked selections,
+    each `dict(selection=TEXT, pin=SHA256 given separately, approvals={file hash: text})`. A single dict
+    remains supported. All stored selections are required, including selections inherited from the parent."""
     return _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full, checked)[0]
 
 
@@ -323,10 +323,12 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
     import checked_source_store
     allowed = KINDS | (checked_source_store.KINDS if contract == 2 else set())
     require(all(r['kind'] in allowed for r in found), 'Unexpected record kind in a source-reading store')
-    cases = None
-    if any(r['kind'] == 'checked_reading' for r in found):
-        require(isinstance(checked, dict), "Checked readings need root's pinned selection to be read back")
-        _, cases = checked_source_store.selected_cases(checked['selection'], checked['pin'], checked['approvals'])
+    selections = checked_source_store.selection_index(checked)
+    envelopes = [r for r in found if r['kind'] == 'checked_reading']
+    require({r['data']['selectionSha256'] for r in envelopes} <= set(selections),
+            "Checked readings need root's pinned selection for every stored selection")
+    raw_results = [r['data']['supersedes']['rawResultHash'] for r in envelopes]
+    require(len(raw_results) == len(set(raw_results)), 'Two checked versions of one raw result')
     checked_passages = {}
     runs = [r for r in found if r['kind'] == 'source_reading_run']
     for r in runs:
@@ -345,7 +347,9 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
             envelope = [r for r in group if r['kind'] == 'checked_reading']
             require(len(envelope) == 1, 'A checked reading needs exactly one envelope')
             data = envelope[0]['data']
-            require(data['selectionSha256'] == checked['pin'], 'Checked reading comes from another selection')
+            selection_pin = data['selectionSha256']
+            cases = selections[selection_pin]
+            require(data['jobId'] in cases, 'Checked reading is absent from its pinned selection')
             if not full and all(r['record_id'] in inherited for r in group):
                 continue  # unchanged since the parent, whose receipt covers it
             path = artifacts / (data['artifact']['sha256'] + '.json')
@@ -355,7 +359,7 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                     and len(raw) == data['artifact']['bytes'], 'Downloaded R2 file differs from its envelope: ' + path.name)
             pin = STORES[store]['ownershipManifestSha256']
             require(pin in indexes, 'Ownership manifest is not pinned for this check')
-            name, expected = checked_source_store.records(raw.decode(), cases[data['jobId']], indexes[pin], checked['pin'])
+            name, expected = checked_source_store.records(raw.decode(), cases[data['jobId']], indexes[pin], selection_pin)
             require(name == store and sorted(group, key=lambda r: r['record_id']) == sorted(expected, key=lambda r: r['record_id']),
                     'Stored checked reading differs from its approved artifact: ' + pid)
             bundles[pid] = data['artifact']['sha256']
@@ -544,12 +548,12 @@ def main():
         for name in ('--export', '--manifest', '--artifacts', '--receipt' if command == 'verify' else '--output'):
             p.add_argument(name, type=Path, required=True)
         p.add_argument('--ownership', nargs=2, action='append', required=True, metavar=('MANIFEST_JSON', 'REVIEWED_SHA256'))
-        p.add_argument('--checked-selection', nargs=2, metavar=('SELECTION_JSON', 'ROOT_SHA256'),
-                       help='Needed when the revision holds checked readings')
+        p.add_argument('--checked-selection', nargs=2, action='append', metavar=('SELECTION_JSON', 'ROOT_SHA256'),
+                       help='Repeat for every selection held by the revision, including inherited readings')
         if command == 'verify':
             p.add_argument('--parent-receipt', type=Path, help="The parent revision's read-back receipt, unless it is empty")
     args = parser.parse_args()
-    checked = (checked_inputs(Path(args.checked_selection[0]), args.checked_selection[1])
+    checked = ([checked_inputs(Path(path), pin) for path, pin in args.checked_selection]
                if getattr(args, 'checked_selection', None) and args.command in ('verify', 'readback') else None)
     if args.command == 'route':
         parts, receipt = route(json.loads(args.capture.read_text()))
