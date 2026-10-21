@@ -33,8 +33,11 @@ KIND = 'name_candidates'
 TITLES = ('רב', 'רבי', 'רבן', 'מר')
 PATRONYMIC = ('בר', 'בן', 'בריה', 'ברבי', 'בת')
 NOT_MATCHED = 'A first suggestion from the printed name only. Not a confirmed identity.'
-BINDING_FORMAT = ('rebuiltV1Sha256: the v1 row source_readings.records() rebuilds from the verified bundle. storedSha256: '
-                  'the stored D1 payload, set only by the importer after it replays the bundle and compares every anchor.')
+# The citation shape the source-reading store owner proposed (measure-v1/coordination-reply.txt). The matcher knows only
+# the rebuilt v1 hash; the importer fills store, revision, payloadSha256 and payloadFormat from the store it reads.
+BINDING_FORMAT = ('v1PayloadSha256: the v1 row source_readings.records() rebuilds from the verified bundle (the R2 artifact). '
+                  'store, revision, payloadSha256 and payloadFormat: the row exactly as stored, set only by the importer after it '
+                  'replays the bundle, reads that store at that revision and compares every anchor.')
 RULES = {
     'marks': 'Remove vowel points, cantillation and direction marks. Lookup only; anchors keep the original text.',
     'punctuation': "Turn punctuation and maqaf into spaces, the Hebrew geresh and gershayim into plain quote marks, and '' into \".",
@@ -337,7 +340,8 @@ def build_case(person_row, passage_row, reading_row, registry, duplicates, paren
     require(reading['kind'] == 'person' and reading['form'] in ('named', 'embedded_parent'), 'Not a named person: ' + key)
     sources = {s['source_id']: s for s in passage['sourceSegments']}
     mentions = [match_mention(m, sources[m['source_id']], registry) for m in person['mentions']]
-    bind = lambda row: dict(recordId=row['record_id'], rebuiltV1Sha256=digest(row['data']), storedSha256=None)
+    bind = lambda row: dict(recordId=row['record_id'], v1PayloadSha256=digest(row['data']), store=None, revision=None,
+                            payloadSha256=None, payloadFormat=None)
     base = dict(version=VERSION, personKey=key, passageId=passage['id'], sourceReadingId=person['sourceReadingId'], ref=passage['ref'],
                 bindings=dict(format=BINDING_FORMAT, person=bind(person_row), passage=bind(passage_row), sourceReading=bind(reading_row)),
                 readingLabel=person['label'], readingForm=reading['form'], readingReason=reading['reason'],

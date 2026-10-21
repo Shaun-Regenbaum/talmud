@@ -66,8 +66,8 @@ kept for display and never matched.
   and its occurrence key. An alias that must not name a father is refused after `בר`, `בן`, `ברבי` or `בריה ד`,
   including a ד the quote itself carries.
 - `envelope()` pins what an output depends on: the module's own bytes, every rule constant, the alias and duplicate
-  files and the registry snapshot. Each dependency hash says it is of the rebuilt v1 row; the stored hash is left
-  for the importer.
+  files and the registry snapshot. Each dependency carries its rebuilt v1 hash; the store, revision, stored hash and
+  stored format are left for the importer, which reads them from the store that holds the row.
 
 Registry generations are copied onto each candidate as stored metadata only. They are never this person's era.
 The output kind is `name_candidates`. Existing `identity_proposal` records and recipes are unchanged.

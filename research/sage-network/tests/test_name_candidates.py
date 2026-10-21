@@ -173,8 +173,9 @@ class NameCandidateTests(unittest.TestCase):
         # Each dependency says which form its hash is of; the stored hash is left for the importer.
         rows = {r['record_id']: r for r in self.groups[0]}
         for name, record_id in (('person', 'person:' + R001 + '/p1'), ('passage', 'passage:' + R001), ('sourceReading', 'source_reading:' + R001)):
-            self.assertEqual(case['bindings'][name], dict(recordId=record_id, rebuiltV1Sha256=nc.digest(rows[record_id]['data']), storedSha256=None))
-        self.assertIn('rebuiltV1Sha256', case['bindings']['format'])
+            self.assertEqual(case['bindings'][name], dict(recordId=record_id, v1PayloadSha256=nc.digest(rows[record_id]['data']), store=None,
+                                                          revision=None, payloadSha256=None, payloadFormat=None))
+        self.assertIn('v1PayloadSha256', case['bindings']['format'])
         self.assertEqual(case['candidates'][0]['payloadSha256'],
                          next(r[1] for r in REGISTRY['rows'] if r[0] == 'registry_person:rav-rami-bar-hama'))
 
