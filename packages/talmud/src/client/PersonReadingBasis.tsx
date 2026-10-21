@@ -9,6 +9,9 @@ export function PersonReadingBasis(props: { reading: InitialReading; pins?: Read
     <details class="person-passage">
       <summary>{t('initial.basis')}</summary>
       <p>{props.reading.reason}</p>
+      <Show when={props.reading.checked && !props.reading.checked.wholeReadingFullyChecked}>
+        <p>{t('checked.partial')}</p>
+      </Show>
       <For each={props.reading.reviewedPeople}>
         {(reviewed) => (
           <p>

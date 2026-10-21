@@ -1,3 +1,4 @@
+import { CHECKED_FORMAT } from '../lib/sage-graph/checked-readings';
 import { NO_STORE_REVISION } from '../lib/sage-graph/reading-pins';
 import { SOURCE_READING_STORE_FORMAT } from '../lib/sage-graph/source-reading-store';
 import type { Bindings } from './types';
@@ -46,7 +47,13 @@ function usable(name: SourceStoreName, row: { id: string; manifest_json: string 
       row.id.startsWith(`source-readings-${name}-`) &&
       manifest.storageFormat === 'shared-v1' &&
       manifest.sourceReadingStore?.name === name &&
-      manifest.sourceReadingStore?.recordFormat === SOURCE_READING_STORE_FORMAT
+      (manifest.sourceReadingStore?.recordFormats
+        ? Array.isArray(manifest.sourceReadingStore.recordFormats) &&
+          manifest.sourceReadingStore.importVersion === 'source-reading-stores-v2' &&
+          manifest.sourceReadingStore.recordFormats.length === 2 &&
+          manifest.sourceReadingStore.recordFormats[0] === SOURCE_READING_STORE_FORMAT &&
+          manifest.sourceReadingStore.recordFormats[1] === CHECKED_FORMAT
+        : manifest.sourceReadingStore?.recordFormat === SOURCE_READING_STORE_FORMAT)
     );
   } catch {
     return false;
