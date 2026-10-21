@@ -557,12 +557,14 @@ def cross_link(cases):
 
 CHECKED_BASIS = 'checked-reading'
 CHECKED_BINDING_FORMAT = ('A checked reading has no v1 rows, so v1PayloadSha256 is null. store, revision, payloadSha256 and '
-                          'payloadFormat: the checked_person and checked_reading rows exactly as stored, set only by the importer '
-                          'from a pinned read-back. artifact: the approved R2 artifact the rows were rebuilt from, pinned by root.')
+                          'payloadFormat: the checked_person, checked_reading, checked_ownership and checked_coverage rows exactly '
+                          'as stored, set only by the importer from a pinned read-back. artifact: the approved R2 artifact the rows '
+                          'were rebuilt from, pinned by root.')
 
 
 def checked_anchor(mention, source):
-    """A checked mention as the anchor match_mention checks: quote at its span, offsets, occurrence and key from the text."""
+    """A checked mention as the anchor match_mention checks: quote at its span, offsets, occurrence and key from the text.
+    primary means what it means for raw readings: the mention is in the reading's focal source."""
     require(source['text'][mention['start']:mention['end']] == mention['quote'] and mention['sourceSha256'] == source['sha256'] ==
             sha(source['text']), 'Checked mention is not at its span in the approved artifact: ' + mention['quote'])
     _, raw_start, _, _ = source_unit(source)
@@ -573,7 +575,7 @@ def checked_anchor(mention, source):
     return dict(quote=mention['quote'], start=mention['start'], end=mention['end'], occurrence=occurrence,
                 occurrenceKey=occurrence_key(source, mention['start'], mention['end']), source_id=mention['sourceId'],
                 segmentId=mention['segmentId'], edition=mention['edition'], ref=source['ref'], source_sha256=mention['sourceSha256'],
-                primary=True)
+                primary=source['provenance'].get('focal') is True)
 
 
 def build_checked_case(person_row, reading, registry, duplicates, parent):
@@ -606,6 +608,7 @@ def build_checked_case(person_row, reading, registry, duplicates, parent):
     base = dict(version=VERSION, basis=CHECKED_BASIS, personKey=key, passageId=pid, sourceReadingId='checked_reading:' + pid,
                 ref=reading['row']['ref'],
                 bindings=dict(format=CHECKED_BINDING_FORMAT, person=empty(person_row['record_id']), reading=empty(reading['row']['record_id']),
+                              ownership=empty('checked_ownership:' + pid), coverage=empty('checked_coverage:' + pid),
                               artifact=dict(sha256=rd['artifact']['sha256'], bytes=rd['artifact']['bytes'])),
                 checkedDecision={k: person['decision'][k] for k in ('id', 'action', 'beforeHash', 'reviewHashes')},
                 coverage=[coverage[sid] for sid in sorted({a['source_id'] for a in looked}) if sid in coverage],
