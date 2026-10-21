@@ -56,10 +56,12 @@ def checked_store(bundles=None, split=False):
         artifacts.mkdir()
         for body in texts.values():
             (artifacts / (checked.sha(body) + '.json')).write_text(body)
-        f = stores.readback(case.root / f'{label}.sql', case.root / f'{label}.json', artifacts, [store_tests.OWNERSHIP], inputs)
+        args = (case.root / f'{label}.sql', case.root / f'{label}.json', artifacts, [store_tests.OWNERSHIP], inputs)
+        f = stores.readback(*args, checked_rows=True)
+        plain = stores.readback(*args)
     finally:
         case.doCleanups()
-    return dict(file=raw_tests.file_bytes(f), selections=[x['selection'].encode() for x in inputs],
+    return dict(file=raw_tests.file_bytes(f), plain=raw_tests.file_bytes(plain), selections=[x['selection'].encode() for x in inputs],
                 artifacts={checked.sha(body): body.encode() for body in texts.values()})
 
 
@@ -140,6 +142,15 @@ class CheckedNameCandidateTests(unittest.TestCase):
         store = store or STORE
         return imp.validate_changes(changes, rows, manifest, [store['file']], pins_for(manifest, store), raw_tests.ALIASES,
                                     raw_tests.DUPLICATES, OWNERSHIP, checked_selections=store['selections'], artifacts=store['artifacts'])
+
+    def test_a_plain_read_back_keeps_its_format_and_is_refused(self):
+        plain, f = json.loads(STORE['plain']), json.loads(STORE['file'])
+        self.assertEqual({pid: set(p) for pid, p in plain['checkedPassages'].items()}, {pid: {'artifactSha256', 'jobId', 'stored'} for pid in f['checkedPassages']})
+        self.assertEqual(plain['checkedPassages'], {pid: {k: v for k, v in p.items() if k != 'rows'} for pid, p in f['checkedPassages'].items()})
+        self.assertEqual({k: v for k, v in plain['readBack'].items() if k != 'checkedPassagesSha256'},
+                         {k: v for k, v in f['readBack'].items() if k != 'checkedPassagesSha256'})
+        with self.assertRaisesRegex(ValueError, 'needs its stored rows'):
+            self.build(dict(STORE, file=STORE['plain']))
 
     def test_the_read_back_carries_the_stored_rows(self):
         f = json.loads(STORE['file'])
