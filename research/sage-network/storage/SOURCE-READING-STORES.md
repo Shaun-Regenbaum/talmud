@@ -64,6 +64,9 @@ No app deploy is needed for a data release. The app reads the newest verified re
    It rebuilds every passage in the revision, so it needs every artifact, not only this release's. For each
    passage it lists every stored row with its hash exactly as in D1, and the v1 rows rebuilt from R2 with
    their v1 payload hashes. Rows come in record-ID order. Its format is `source-reading-store-readback-v1`.
+   For checked readings it lists each stored row's ID, kind and hash. With `--with-checked-rows` it also carries
+   the checked reading, person, ownership, coverage and decision rows themselves, which the name_candidates
+   importer needs. The receipt's `checkedPassagesSha256` then covers them. Without the flag the file is unchanged.
 7. **Repeat steps 5 and 6 in production.**
 
 The importer refuses to mix the two kinds of data. Graph changes cannot go into a store. Compact rows
