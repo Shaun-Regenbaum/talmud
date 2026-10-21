@@ -222,6 +222,10 @@ def readback(export, manifest_path, artifacts, ownership_specs):
     """Every passage of a store revision, as stored and as the v1 importer rebuilds it, for consumers that
     cite stored rows. Every passage is rebuilt from its R2 artifact first; nothing is written otherwise."""
     receipt, passages = _read_back(export, manifest_path, artifacts, ownership_specs, None, True)
+    # A consumer cites a published revision, never one still loading.
+    require(receipt['revisionState'] == 'verified', 'Only a verified revision can be read back for citing')
+    # The receipt covers the rows too, so it cannot travel with edited ones.
+    receipt = dict(receipt, passagesSha256=digest(encode(passages)))
     return dict(version=READBACK_VERSION, store=receipt['store'], revision=receipt['revision'],
                 parentRevision=receipt['parentRevision'], recordSetSha256=receipt['recordSetSha256'],
                 readBack=receipt, readBackSha256=digest(encode(receipt)), complete=True, passages=passages)
@@ -245,6 +249,7 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
         members = lambda revision: dict(db.execute(
             'SELECT record_id,version_id FROM sage_graph_revision_members WHERE revision_id=?', (revision,)))
         mine, inherited = members(manifest['revision']), {}
+        state = db.execute('SELECT state FROM sage_graph_revisions WHERE id=?', (manifest['revision'],)).fetchone()[0]
         parent = manifest.get('parentRevision')
         if parent:
             inherited = members(parent)
@@ -308,7 +313,7 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                    parentRevision=parent, passages=len(by_passage), passagesChecked=len(bundles),
                    passagesFromParent=len(by_passage) - len(bundles),
                    countsByKind=dict(sorted(Counter(r['kind'] for r in found).items())),
-                   artifactsChecked=len(bundles), matchesImporter=True)
+                   artifactsChecked=len(bundles), matchesImporter=True, revisionState=state)
     return receipt, passages
 
 
