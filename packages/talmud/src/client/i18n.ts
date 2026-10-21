@@ -129,6 +129,11 @@ const CATALOG = {
     he: 'טווח משוער של הדור, לא שנות חיים.',
   },
   'person.biography': { en: 'Biography', he: 'ביוגרפיה' },
+  'person.profileBridgeReason': {
+    en: 'An earlier reading matches both exact name occurrences. The identity is still unconfirmed.',
+    he: 'קריאה קודמת תואמת לשני מופעי השם המדויקים. הזיהוי עדיין אינו מאושר.',
+  },
+  'person.profileProof': { en: 'View identity evidence', he: 'לראיות הזיהוי' },
   'person.conditionalProfile': {
     en: 'Possible match: {name}. These details apply if the match is correct.',
     he: 'זיהוי אפשרי: {name}. פרטים אלה נכונים אם הזיהוי נכון.',
