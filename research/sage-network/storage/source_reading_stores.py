@@ -17,6 +17,7 @@ Checks, in order:
   prepare  --store S --capture C --parent-db DB --parent-revision R --ownership M --ownership-hash H
            --legacy-db DB --legacy-revision R --output DIR
   verify   --export SQL --manifest M --artifacts DIR --ownership M H [--parent-receipt R0] --receipt R
+  readback --export SQL --manifest M --artifacts DIR --ownership M H --output FILE   every passage, stored and rebuilt
 """
 import copy
 import hashlib
@@ -37,6 +38,7 @@ from shared_records import FORMAT as SHARED_FORMAT, record_table  # noqa: E402
 from source_coverage import pinned_index, records as coverage_records  # noqa: E402
 
 VERSION = 'source-reading-stores-v1'
+READBACK_VERSION = 'source-reading-store-readback-v1'
 # Each store accepts only its reviewed ownership manifest, the same pins the source-binding release used.
 STORES = {
     'bavli': dict(database='talmud-source-readings-bavli', corpora=['bavli'], ownershipSource='full-bavli-tiles v1',
@@ -208,10 +210,24 @@ def route(capture):
     return out, receipt
 
 
-def verify_store(export, manifest_path, artifacts, ownership_specs, parent_receipt=None):
+def verify_store(export, manifest_path, artifacts, ownership_specs, parent_receipt=None, full=False):
     """Read a store export back after an import. Records new in this revision are rebuilt from their R2
     artifacts, downloaded again, and must equal the importer's rows. Records kept from the parent must be
-    the parent's exact versions; the parent's own read-back receipt covers them."""
+    the parent's exact versions; the parent's own read-back receipt covers them. With `full`, every
+    passage is rebuilt, whatever its parent's receipt says."""
+    return _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full)[0]
+
+
+def readback(export, manifest_path, artifacts, ownership_specs):
+    """Every passage of a store revision, as stored and as the v1 importer rebuilds it, for consumers that
+    cite stored rows. Every passage is rebuilt from its R2 artifact first; nothing is written otherwise."""
+    receipt, passages = _read_back(export, manifest_path, artifacts, ownership_specs, None, True)
+    return dict(version=READBACK_VERSION, store=receipt['store'], revision=receipt['revision'],
+                parentRevision=receipt['parentRevision'], recordSetSha256=receipt['recordSetSha256'],
+                readBack=receipt, readBackSha256=digest(encode(receipt)), complete=True, passages=passages)
+
+
+def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full):
     from verify_d1 import verify
     checked = verify(export, manifest_path)
     manifest = json.loads(manifest_path.read_text())
@@ -222,8 +238,10 @@ def verify_store(export, manifest_path, artifacts, ownership_specs, parent_recei
     indexes = {spec['expectedManifestSha256']: pinned_index(spec) for spec in ownership_specs}
     with tempfile.TemporaryDirectory() as temporary, closing(sqlite3.connect(Path(temporary) / 'store.sqlite')) as db:
         db.executescript(export.read_text())
-        found = [item(r) for r in db.execute(f'SELECT {COLUMNS} FROM {record_table(db)} WHERE revision_id=? ORDER BY record_id',
-                                             (manifest['revision'],))]
+        raw = list(db.execute(f'SELECT {COLUMNS} FROM {record_table(db)} WHERE revision_id=? ORDER BY record_id',
+                              (manifest['revision'],)))
+        found = [item(r) for r in raw]
+        hashes = {r[0]: r[8] for r in raw}
         members = lambda revision: dict(db.execute(
             'SELECT record_id,version_id FROM sage_graph_revision_members WHERE revision_id=?', (revision,)))
         mine, inherited = members(manifest['revision']), {}
@@ -234,7 +252,7 @@ def verify_store(export, manifest_path, artifacts, ownership_specs, parent_recei
                     'A store release cannot change or drop a parent record')
             parent_manifest = json.loads(db.execute('SELECT manifest_json FROM sage_graph_revisions WHERE id=?',
                                                     (parent,)).fetchone()[0])
-            if inherited:
+            if inherited and not full:
                 require(isinstance(parent_receipt, dict) and parent_receipt.get('revision') == parent
                         and parent_receipt.get('matchesImporter') is True
                         and parent_receipt.get('recordSetSha256') == parent_manifest['recordSetSha256'],
@@ -251,13 +269,13 @@ def verify_store(export, manifest_path, artifacts, ownership_specs, parent_recei
     for r in found:
         if r['kind'] != 'source_reading_run':
             by_passage.setdefault(r['passage_id'], []).append(r)
-    used, bundles = set(), {}
+    used, bundles, passages = set(), {}, {}
     for pid, group in by_passage.items():
         envelopes = [r for r in group if r['kind'] == 'source_reading']
         require(len(envelopes) == 1, 'A passage needs exactly one source_reading envelope')
         provenance = envelopes[0]['data']['provenance']
         used.add(provenance['inputProof']['manifestSha256'])
-        if all(r['record_id'] in inherited for r in group):
+        if not full and all(r['record_id'] in inherited for r in group):
             continue  # unchanged since the parent, whose receipt covers it
         path = artifacts / (provenance['artifactSha256'] + '.json')
         require(path.exists(), 'Missing downloaded R2 artifact: ' + path.name)
@@ -279,12 +297,19 @@ def verify_store(export, manifest_path, artifacts, ownership_specs, parent_recei
         require(sorted(expanded, key=lambda r: r['record_id']) == sorted(expected, key=lambda r: r['record_id']),
                 'Stored passage differs from the importer: ' + pid)
         bundles[pid] = provenance['artifactSha256']
+        stored = [dict(recordId=r['record_id'], kind=r['kind'], payloadSha256=hashes[r['record_id']],
+                       payloadFormat=r['data']['format']) for r in group]
+        rebuilt = [dict(row=r, v1PayloadSha256=digest(encode(r['data']))) for r in expanded]
+        require({s['recordId'] for s in stored} == {r['row']['record_id'] for r in rebuilt},
+                'Stored and rebuilt rows differ: ' + pid)
+        passages[pid] = dict(artifactSha256=provenance['artifactSha256'], stored=stored, v1=rebuilt)
     require({r['data']['manifestSha256'] for r in runs} == used, 'Run manifests differ from the readings that use them')
-    return dict(checked, store=store, database=STORES[store]['database'], recordSetSha256=manifest['recordSetSha256'],
-                parentRevision=parent, passages=len(by_passage), passagesChecked=len(bundles),
-                passagesFromParent=len(by_passage) - len(bundles),
-                countsByKind=dict(sorted(Counter(r['kind'] for r in found).items())),
-                artifactsChecked=len(bundles), matchesImporter=True)
+    receipt = dict(checked, store=store, database=STORES[store]['database'], recordSetSha256=manifest['recordSetSha256'],
+                   parentRevision=parent, passages=len(by_passage), passagesChecked=len(bundles),
+                   passagesFromParent=len(by_passage) - len(bundles),
+                   countsByKind=dict(sorted(Counter(r['kind'] for r in found).items())),
+                   artifactsChecked=len(bundles), matchesImporter=True)
+    return receipt, passages
 
 
 def _read_rows(path, revision, keys):
@@ -358,6 +383,10 @@ def main():
         p.add_argument(name, type=Path, required=True)
     p.add_argument('--ownership', nargs=2, action='append', required=True, metavar=('MANIFEST_JSON', 'REVIEWED_SHA256'))
     p.add_argument('--parent-receipt', type=Path, help="The parent revision's read-back receipt, unless it is empty")
+    p = sub.add_parser('readback')
+    for name in ('--export', '--manifest', '--artifacts', '--output'):
+        p.add_argument(name, type=Path, required=True)
+    p.add_argument('--ownership', nargs=2, action='append', required=True, metavar=('MANIFEST_JSON', 'REVIEWED_SHA256'))
     args = parser.parse_args()
     if args.command == 'route':
         parts, receipt = route(json.loads(args.capture.read_text()))
@@ -376,6 +405,11 @@ def main():
         ownership = dict(manifest=json.loads(args.ownership.read_text()), expectedManifestSha256=args.ownership_hash)
         result = prepare(args.store, json.loads(args.capture.read_text()), args.parent_db, args.parent_revision,
                          ownership, args.legacy_db, args.legacy_revision, args.output)
+    elif args.command == 'readback':
+        specs = [dict(manifest=json.loads(Path(m).read_text()), expectedManifestSha256=h) for m, h in args.ownership]
+        result = readback(args.export, args.manifest, args.artifacts, specs)
+        args.output.write_text(json.dumps(result, ensure_ascii=False) + '\n')
+        result = {k: result[k] for k in ('store', 'revision', 'recordSetSha256', 'readBackSha256')}
     else:
         specs = [dict(manifest=json.loads(Path(m).read_text()), expectedManifestSha256=h) for m, h in args.ownership]
         parent = json.loads(args.parent_receipt.read_text()) if args.parent_receipt else None

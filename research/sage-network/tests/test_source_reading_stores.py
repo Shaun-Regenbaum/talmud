@@ -305,6 +305,23 @@ class SourceReadingStoreTests(unittest.TestCase):
             stores.verify_store(self.root / 'second.sql', self.root / 'second.json', folder, [self.ownership])
         second = stores.verify_store(self.root / 'second.sql', self.root / 'second.json', folder, [self.ownership], receipt)
         self.assertEqual((second['passagesChecked'], second['passagesFromParent']), (1, 1))
+        # The read-back file rebuilds every passage, so it needs every artifact, the parent's too.
+        with self.assertRaisesRegex(ValueError, 'Missing downloaded R2 artifact'):
+            stores.readback(self.root / 'second.sql', self.root / 'second.json', folder, [self.ownership])
+        file = stores.readback(self.root / 'second.sql', self.root / 'second.json', self.artifacts(), [self.ownership])
+        self.assertEqual((file['version'], file['complete'], file['readBack']['passagesChecked']),
+                         ('source-reading-store-readback-v1', True, 2))
+        self.assertEqual(file['readBackSha256'], stores.digest(stores.encode(file['readBack'])))
+        expected = importer.changes_for(self.bundles, 'x', self.inputs, None, self.ownership)['records']
+        for pid, passage in file['passages'].items():
+            # Rows come in record-ID order, as stored.
+            by_id = lambda rows: sorted(rows, key=lambda r: r['record_id'])
+            self.assertEqual([r['row'] for r in passage['v1']], by_id(r for r in expected if r['passage_id'] == pid))
+            for row in passage['v1']:
+                self.assertEqual(row['v1PayloadSha256'], stores.digest(stores.encode(row['row']['data'])))
+            stored = {s['recordId']: s for s in passage['stored']}
+            self.assertEqual(set(stored), {r['row']['record_id'] for r in passage['v1']})
+            self.assertEqual({s['payloadFormat'] for s in stored.values()}, {'source-reading-store-v2'})
         # A release built on the first revision, now that the second is newer, is refused.
         (self.root / 'now.sql').write_text('\n'.join(self.db.iterdump()))
         (self.root / 'now.json').write_text((self.root / 'first.json').read_text())
