@@ -179,8 +179,60 @@ class CheckedStoreTests(unittest.TestCase):
         held = next(d for d in bundle['plan']['decisions'] if d['kind'] == 'connection' and d['action'] == 'hold')
         held['reason'] += ' (reviewed again)'
         selection, approvals, texts = release_inputs([approve(bundle)])
-        with self.assertRaisesRegex(ValueError, 'another checked selection'):
+        with self.assertRaisesRegex(ValueError, 'already stored'):
             self.changes(first['sourceReadingStore'], first['revision'], existing, selection, approvals, texts)
+
+    def test_second_selection_preserves_first_and_full_readback_needs_both(self):
+        # Split the two actual captured readings into separate test-only release selections.
+        upgraded = self.upgraded()
+        inputs, artifacts = [], self.root / 'artifacts'
+        artifacts.mkdir()
+        current, label = upgraded, 'upgraded'
+        first_rows = None
+        for i, bundle in enumerate(self.bundles):
+            selection, approvals, texts = release_inputs([bundle])
+            pin = checked.sha(selection)
+            inputs.append(dict(selection=selection, pin=pin, approvals=approvals))
+            existing = {r[0]: stores.item(r) for r in self.db.execute(
+                f'SELECT {stores.COLUMNS} FROM sage_graph_all_records WHERE revision_id=?', (current['revision'],))}
+            changes = self.changes(current['sourceReadingStore'], current['revision'], existing, selection, approvals, texts)
+            next_label = 'batch-' + str(i)
+            current = self.release(self.extend(changes, label, next_label, checked_selections=[pin]), next_label)
+            label = next_label
+            actual = {r[0]: r for r in self.db.execute(
+                f'SELECT {stores.COLUMNS} FROM sage_graph_all_records WHERE revision_id=?', (current['revision'],))}
+            if first_rows is None:
+                first_rows = actual
+            else:
+                self.assertTrue(all(actual[k] == row for k, row in first_rows.items()))
+            for body in texts.values():
+                (artifacts / (checked.sha(body) + '.json')).write_text(body)
+        args = (self.root / (label + '.sql'), self.root / (label + '.json'), artifacts, [OWNERSHIP])
+        replay = stores.readback(*args, checked=inputs)
+        self.assertEqual((replay['readBack']['passagesChecked'], len(replay['checkedPassages'])), (2, 2))
+        for missing in (inputs[:1], inputs[1:]):
+            with self.assertRaisesRegex(ValueError, 'pinned selection'):
+                stores.readback(*args, checked=missing)
+        with self.assertRaisesRegex(ValueError, 'supplied twice'):
+            stores.readback(*args, checked=inputs + inputs[:1])
+        altered = copy.deepcopy(inputs)
+        key = next(iter(altered[0]['approvals']))
+        altered[0]['approvals'][key] += ' '
+        with self.assertRaisesRegex(ValueError, 'Root approval file differs'):
+            stores.readback(*args, checked=altered)
+        # A different selection cannot re-home an already stored artifact, even if its case is identical.
+        original = json.loads(inputs[0]['selection'])
+        original['note'] += ' Repeated selection metadata for refusal test.'
+        selection = text(original)
+        with self.assertRaisesRegex(ValueError, 'Existing checked record differs'):
+            self.changes(current['sourceReadingStore'], current['revision'],
+                         {k: stores.item(r) for k, r in actual.items()}, selection, inputs[0]['approvals'],
+                         {self.bundles[0]['job']['job_id']: text(self.bundles[0])})
+        # Full mode reopens inherited artifacts; an intact parent receipt cannot conceal a corrupted old bundle.
+        old_body = text(self.bundles[0])
+        (artifacts / (checked.sha(old_body) + '.json')).write_text(old_body + ' ')
+        with self.assertRaisesRegex(ValueError, 'Downloaded R2 file differs'):
+            stores.readback(*args, checked=inputs)
 
     def test_prepare_refuses_a_raw_result_the_legacy_graph_already_read(self):
         upgraded = self.upgraded()

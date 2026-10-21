@@ -177,3 +177,20 @@ Still to do, each needing its own approval:
    `source_reading_stores.py genesis --store S`. Then run one refused import and one refused
    activation, export the store, and confirm nothing was written.
 6. **Do the same in production.** Then import data releases one at a time, each exactly approved.
+
+## Add another checked selection
+
+A store can keep readings from several independently pinned selections. Import one new selection at a time with
+`prepare-checked` and the existing caller pin. Earlier rows keep their original selection hash and exact payloads.
+An existing raw result cannot gain a second checked version. An existing artifact cannot move to another selection.
+Those operations need a separately reviewed replacement process.
+
+For `verify` and `readback`, repeat `--checked-selection SELECTION_JSON ROOT_SHA256` for every selection represented
+in the store, including inherited readings. Every selection and its exact approval files are checked independently.
+A stored envelope chooses its case only within the caller-pinned selection it names. Missing or repeated selection
+inputs fail. Full readback opens every old and new artifact; a parent receipt never substitutes for an old artifact.
+The Python API accepts a list of selection input dictionaries; the original single dictionary still works.
+
+This changes neither ownership nor historical identity. Context-only mentions stay context-only. The newest legacy
+copy and human corrections retain their existing priority. No checked row, artifact format, model recipe or cache key
+changes for this extension.
