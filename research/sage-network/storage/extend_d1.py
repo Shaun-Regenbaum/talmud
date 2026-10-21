@@ -415,7 +415,7 @@ def validate_identity_assessment(key, row, data, rows, parent_keys, member):
             raise ValueError('Invalid assessment source URL: ' + key)
 
 
-def prepare(export, manifest_path, changes_path, output, *, shared=False):
+def prepare(export, manifest_path, changes_path, output, *, shared=False, checked_selections=()):
     parent = json.loads(manifest_path.read_text())
     verify(export, manifest_path)
     changes = json.loads(changes_path.read_text())
@@ -444,7 +444,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
                 raise ValueError('A source-reading store uses shared records')
             if db.execute(source_reading_stores.NEWEST).fetchone() != (parent['revision'],):
                 raise ValueError('A store release must extend the newest verified revision')
-            source_reading_stores.validate_changes(changes, rows, parent)
+            # The checked release selection's hash comes from the caller, never from the changes.
+            store_block = source_reading_stores.validate_changes(changes, rows, parent, checked_selections)
         era_batch = 'possibleEraPolicy' in changes
         if era_batch:
             possible_eras.validate_changes(changes, rows)
@@ -539,7 +540,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             key = item['record_id']
             if key in changed:
                 raise ValueError('Duplicate change: ' + key)
-            allowed = source_reading_stores.KINDS if store_batch else ALLOWED_KINDS | ({'possible_era'} if era_batch else set()) | ({source_bindings.KIND} if binding_batch else set()) | (source_readings.KINDS if source_batch else set())
+            allowed = source_reading_stores.STORE_KINDS if store_batch else ALLOWED_KINDS | ({'possible_era'} if era_batch else set()) | ({source_bindings.KIND} if binding_batch else set()) | (source_readings.KINDS if source_batch else set())
             if (not correcting and item['kind'] not in allowed) or not key.startswith(item['kind'] + ':'):
                 raise ValueError('Unsupported review kind: ' + key)
             old = rows.get(key)
@@ -758,7 +759,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
         if shared:
             manifest['storageFormat'] = shared_records.FORMAT
         if store_batch:
-            manifest['sourceReadingStore'] = parent['sourceReadingStore']
+            manifest['sourceReadingStore'] = store_block
         prefix = source_reading_stores.revision_prefix(parent['sourceReadingStore']['name']) if store_batch else 'sage-graph-'
         revision = prefix + digest(encode(manifest))[:20]
         if store_batch:
@@ -808,5 +809,8 @@ if __name__ == '__main__':
     for name in ['export', 'manifest', 'changes', 'output']:
         parser.add_argument(name, type=Path)
     parser.add_argument('--shared-records', action='store_true', help='Require migration 0003 and reuse immutable record versions')
+    parser.add_argument('--checked-selection', action='append', default=[], metavar='SHA256',
+                        help="The SHA-256 of root's checked release selection, given separately from the changes")
     args = parser.parse_args()
-    print(json.dumps(prepare(args.export, args.manifest, args.changes, args.output, shared=args.shared_records)))
+    print(json.dumps(prepare(args.export, args.manifest, args.changes, args.output, shared=args.shared_records,
+                             checked_selections=args.checked_selection)))
