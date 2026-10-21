@@ -63,7 +63,7 @@ const about = (d: ReturnType<typeof JSON.parse>, personKey: string) =>
   d.a?.personKey === personKey ||
   d.b?.personKey === personKey;
 
-function decisionScope(rows: EraRow[], personKey: string, candidate: string) {
+export function decisionScope(rows: EraRow[], personKey: string, candidate: string) {
   const [pid, local] = personKey.split('/');
   const payload = (r: LegacyRow) => JSON.parse(r.payload_json);
   const direct = (d: ReturnType<typeof JSON.parse>) => about(d, personKey);

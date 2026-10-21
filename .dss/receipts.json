@@ -2335,6 +2335,11 @@
       "reason": "Engineering instructions for running identity jobs and importing unaccepted proposals; no measured research findings.",
       "sha256": "a35de97cd30c20dc1cec7edd3f98d7faa22214bced190554b0b0969bcb1b1f07"
     },
+    "research/sage-network/storage/INDEX-IDENTITY-LINKS.md": {
+      "disposition": "excluded",
+      "reason": "Engineering contract and local release instructions for a source-bound identity bridge; not a research dataset or measured findings report",
+      "sha256": "114f5210b3b65f054908792e9ac4d1cf13fd2a2bc41672e02c199fd9b7d1ff13"
+    },
     "research/sage-network/storage/INITIAL-NAME-PLACEMENT.md": {
       "disposition": "excluded",
       "reason": "Engineering contract for immutable source bindings, reader placement validation and rollout prerequisites; no research findings or dataset.",
