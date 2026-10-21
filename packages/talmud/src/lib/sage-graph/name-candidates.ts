@@ -20,7 +20,7 @@ interface NameCandidates {
   passageId: string;
   status: 'tentative' | 'alternatives' | 'unresolved' | 'local_relative';
   suggestion: string | null;
-  candidates: { slug: string; name: string; nameHe: string }[];
+  candidates: { slug: string; name: string; nameHe: string; payloadSha256?: string }[];
   reason: string;
   accepted: boolean;
   historicalIdentityResolved: boolean;
@@ -101,6 +101,10 @@ export async function checkedNameSuggestion(
     payloadSha256: row.payload_sha256,
     personKey: key,
     status: data.status,
+    registrySha256:
+      data.status === 'tentative' && /^[a-f0-9]{64}$/.test(chosen?.payloadSha256 ?? '')
+        ? chosen!.payloadSha256
+        : undefined,
     reason: data.reason,
     candidate: data.status === 'tentative' ? entry(chosen!) : undefined,
     registryEntries:

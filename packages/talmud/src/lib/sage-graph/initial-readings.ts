@@ -72,6 +72,7 @@ export interface InitialRelationship {
 }
 /** A first registry lookup of a checked person's printed name, from the graph's name_candidates record. */
 export interface NameSuggestion {
+  registrySha256?: string;
   /** The name_candidates record, its stored payload hash and its person: the proof a later step must cite. */
   id: string;
   payloadSha256: string;
