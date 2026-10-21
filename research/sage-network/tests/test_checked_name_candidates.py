@@ -22,6 +22,7 @@ sys.path[:0] = [str(ROOT / 'storage'), str(ROOT / 'identity'), str(ROOT), str(Pa
 import checked_source_store as checked  # noqa: E402
 import name_candidates as nc  # noqa: E402
 import name_candidates_import as imp  # noqa: E402
+import shared_records  # noqa: E402
 import source_reading_stores as stores  # noqa: E402
 # Modules, not their classes, so their tests are not collected a second time here.
 import test_checked_source_store as store_tests  # noqa: E402
@@ -167,17 +168,26 @@ class CheckedNameCandidateTests(unittest.TestCase):
 
     def test_suggestions_for_checked_people(self):
         changes = self.build()
-        self.assertEqual(self.check(changes)['records'], 12)
+        self.assertEqual(self.check(changes)['records'], 11)
         data = {r['subject_id']: r['data'] for r in changes['records']}
         label = lambda key: data[key]['readingLabel']
         self.assertEqual(sorted((label(k), d['suggestion']) for k, d in data.items() if d['status'] == 'tentative'),
                          [('Rabbi Abba bar Memel', 'rebbi-abba-b-rebbi-mamal'), ('רב חייא בר אשי', 'rav-chiya-b-ashi'),
                           ('רב עמרם חסידא', 'rav-amram-chasida')])
-        self.assertEqual(Counter(d['status'] for d in data.values()), Counter(alternatives=7, tentative=3, local_relative=2))
+        self.assertEqual(Counter(d['status'] for d in data.values()), Counter(alternatives=6, tentative=3, local_relative=2))
         fathers = {label(k): [label(c) for c in d['namedInsidePatronymicOf']] for k, d in data.items() if d['status'] == 'local_relative'}
         self.assertEqual(fathers, {'אשי': ['רב חייא בר אשי'], 'Memel': ['Rabbi Abba bar Memel']})
-        self.assertEqual(sorted(h['reason'] for h in changes['held']),
+        self.assertEqual(sorted(h['reason'] for h in changes['held'] if 'statementBytes' not in h),
                          ['group/named is not matched to the registry', 'person/unnamed is not matched to the registry'])
+        # Sukkah 11a's bare "רב" lists all 140 registry entries it fits; its record is too large for one statement, so
+        # it is held whole with its reason, and its checked person stays as stored.
+        [rav] = [h for h in changes['held'] if 'statementBytes' in h]
+        f = json.loads(STORE['file'])
+        self.assertEqual((rav['printed'], rav['registryEntries'], rav['status'], rav['statementLimit']), (['רב', 'רב', 'דרב', 'רב'], 140, 'alternatives', 100_000))
+        self.assertGreater(rav['statementBytes'], 100_000)
+        self.assertIn('held whole, not stored or cut short', rav['reason'])
+        self.assertIn('checked_person:' + rav['personKey'], {s['recordId'] for p in f['checkedPassages'].values() for s in p['stored']})
+        self.assertNotIn(rav['personKey'], data)
         f = json.loads(STORE['file'])
         for record in changes['records']:
             d = record['data']
@@ -475,15 +485,27 @@ class CheckedNameCandidateTests(unittest.TestCase):
         with mock.patch.dict(imp.REVIEWED_OWNERSHIP, OWNERSHIP):
             with self.assertRaisesRegex(ValueError, 'A pinned checked selection is not given'):
                 release(STORE, 'no-selection')
-            # A bare "רב" fits 140 registry entries, and its record is too large for one database statement, so the
-            # whole batch is refused. Six such people in the real 57 hit this too.
-            with self.assertRaisesRegex(ValueError, 'exceeds the database statement limit'):
-                release(STORE, 'too-large', **inputs(STORE))
-            # Test only: Sukkah's bare "רב" has its printed names marked referential in the review plan, approved again.
-            store = checked_store(with_roles({('רב', i): 'referential_evidence' for i in range(4)}))
-            result = release(store, 'out', **inputs(store))
+            # The bare "רב" too large for one statement is held, so the rest of the batch fits.
+            result = release(STORE, 'out', **inputs(STORE))
         self.assertEqual(result['changedRecords'], 11)
         self.assertEqual(json.loads((root / 'out/manifest.json').read_text())['countsByKind']['name_candidates'], 11)
+        self.assertTrue(all(len(x.encode()) <= imp.STATEMENT_LIMIT for x in (root / 'out/import.sql').read_text().split(';\n')))
+
+    def test_only_a_bare_title_too_large_to_store_is_held(self):
+        changes = self.build()
+        # The importer measures exactly the statement the release hook writes for a record.
+        record = changes['records'][0]
+        payload = imp.d1_encode(record['data'])
+        row = (record['record_id'], record['kind'], record['passage_id'], record['ref'], record['subject_id'], record['object_id'],
+               record['authority'], record['decision'], nc.sha(payload), payload)
+        written = shared_records.statements(dict(revision='parent', storageFormat=shared_records.FORMAT), 'child', {row[0]: row}, {row[0]: row})
+        self.assertEqual(imp.statement_bytes(record), len(next(x for x in written if 'sage_graph_record_versions(' in x).encode()))
+        # Test only: a lower limit, so that names other than a bare title are too large too. Those are not held: the
+        # batch is refused, as root decided.
+        biggest = max((r for r in changes['records'] if not imp.bare_title(r['data'])), key=imp.statement_bytes)
+        with mock.patch.object(imp, 'STATEMENT_LIMIT', imp.statement_bytes(biggest) - 1):
+            with self.assertRaisesRegex(ValueError, 'too large for one database statement: ' + biggest['subject_id']):
+                self.build()
 
 if __name__ == '__main__':
     unittest.main()

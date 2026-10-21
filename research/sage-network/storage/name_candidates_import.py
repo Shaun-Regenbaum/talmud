@@ -49,7 +49,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'identity'))
 import name_candidates as nc  # noqa: E402
 from prepare_d1 import encode as d1_encode  # noqa: E402
-from shared_records import record_table  # noqa: E402
+from shared_records import COLUMNS as RECORD_COLUMNS, literal, record_table, version_hash  # noqa: E402
 
 VERSION = 'name-candidates-import-v1'
 READBACK = 'source-reading-store-readback-v1'
@@ -75,6 +75,9 @@ READING_KINDS = ('passage', 'person', 'claim', 'source_reading', 'source_reading
 COLUMNS = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
 DATA = Path(__file__).resolve().parents[3] / 'packages/talmud/src/lib/data'
 DESCRIPTION = 'Add first registry suggestions for people in checked source readings'
+# The release hook writes each new record as one statement, and refuses the batch if any statement is longer than this
+# (shared_records.statements). A record that would be longer cannot be stored whole.
+STATEMENT_LIMIT = 100_000
 
 
 def require(value, message):
@@ -368,8 +371,45 @@ def build(graph_rows, graph_manifest, readbacks, pins, he_aliases_bytes, duplica
     producer = dict(nc.envelope(registry, parent, he_aliases_bytes, duplicates_bytes), importer=VERSION,
                     importerFileSha256=nc.sha256_file(__file__), graphRecordSetSha256=graph_manifest['recordSetSha256'], sources=sources,
                     pinsSha256=d1_hash(pins), **({'checkedRulesSha256': nc.checked_rules_sha()} if checked else {}))
+    records, too_large = fit(cases, producer)
     return dict(version=VERSION, parentRevision=parent, description=DESCRIPTION, nameCandidateInputs=producer,
-                records=[nc.record(case, producer) for case in cases], held=held)
+                records=records, held=held + too_large)
+
+
+def statement_bytes(record):
+    """The length in bytes of the statement shared_records.statements writes for this new record's version."""
+    payload = d1_encode(record['data'])
+    row = (record['record_id'], record['kind'], record['passage_id'], record['ref'], record['subject_id'], record['object_id'],
+           record['authority'], record['decision'], hashlib.sha256(payload.encode()).hexdigest(), payload)
+    sha = version_hash(row)
+    return len((f'INSERT INTO sage_graph_record_versions(version_sha256,{RECORD_COLUMNS}) SELECT ' + ','.join(map(literal, (sha, *row)))
+                + ' WHERE NOT EXISTS (SELECT 1 FROM sage_graph_record_versions ' + f'WHERE version_sha256={literal(sha)});').encode())
+
+
+def bare_title(case):
+    """Every registry entry the case lists was matched by a bare title alone, as a printed "רב" or "רבי" is."""
+    forms = {h['form'] for c in case['candidates'] for h in c['matchedBy']}
+    return case['status'] == 'alternatives' and bool(forms) and forms <= set(nc.TITLES)
+
+
+def fit(cases, producer):
+    """Records for the cases, and the cases held because their record is too large to store. Root's decision
+    (2026-10-21): a bare title's list is held whole, with its reason, never cut short; the person it names stays as
+    stored. Any other record too large for one statement refuses the batch, as the hook would."""
+    records, held = [], []
+    for case in cases:
+        record = nc.record(case, producer)
+        size = statement_bytes(record)
+        if size <= STATEMENT_LIMIT:
+            records.append(record)
+            continue
+        require(bare_title(case), 'A name_candidates record is too large for one database statement: ' + case['personKey'])
+        held.append(dict(personKey=case['personKey'], reason=(
+            f'A bare title alone fits {len(case["candidates"])} registry entries. Its record would be {size:,} bytes, more than the '
+            f'{STATEMENT_LIMIT:,}-byte limit for one database statement, so it is held whole, not stored or cut short. '
+            'The person it names stays as stored.'), status=case['status'], printed=[m['quote'] for m in case['mentions']],
+            registryEntries=len(case['candidates']), statementBytes=size, statementLimit=STATEMENT_LIMIT))
+    return records, held
 
 
 def alias_guards_hold(mention, text):
@@ -392,6 +432,7 @@ def validate_changes(changes, graph_rows, graph_manifest, readbacks, pins, he_al
     expected = build(graph_rows, graph_manifest, readbacks, pins, he_aliases_bytes, duplicates_bytes, reviewed_ownership,
                      checked_selections=checked_selections, artifacts=artifacts)
     require(nc.encode(changes) == nc.encode(expected), 'Changes differ from a rebuild from the checked inputs')
+    require(all(statement_bytes(r) <= STATEMENT_LIMIT for r in changes['records']), 'A record is too large for one database statement')
     passages, checked, _, _ = readings(graph_rows, readbacks, pins, reviewed_ownership, checked_selections, artifacts)
     decisions = nc.Decisions(graph_rows)
     for record in changes['records']:
