@@ -82,6 +82,18 @@ describe('first registry suggestions on checked person cards', () => {
         d.bindings.reading.store = 'other';
       },
       (d: ReturnType<typeof JSON.parse>) => {
+        d.bindings.ownership.payloadSha256 = '0'.repeat(64);
+      },
+      (d: ReturnType<typeof JSON.parse>) => {
+        d.bindings.coverage.recordId = 'checked_coverage:other';
+      },
+      (d: ReturnType<typeof JSON.parse>) => {
+        d.mentions = null;
+      },
+      (d: ReturnType<typeof JSON.parse>) => {
+        d.candidates = {};
+      },
+      (d: ReturnType<typeof JSON.parse>) => {
         d.mentions[0].start += 1;
       },
       (d: ReturnType<typeof JSON.parse>) => {
@@ -89,6 +101,24 @@ describe('first registry suggestions on checked person cards', () => {
       },
     ])
       expect(await proposalFor(await edited(r, change))).toBeUndefined();
+    // A printed name of another person in the same reading is not this person's.
+    const passage = await decodeCheckedPassage(passageId, rowsOf(passageId));
+    const other = [...passage.allMentions.entries()]
+      .filter(([id]) => id !== localId)
+      .flatMap(([, ms]) => ms)
+      .find((m) => m.role === 'printed_name')!;
+    expect(
+      await proposalFor(
+        await edited(r, (d) => {
+          Object.assign(d.mentions[0], {
+            sourceId: other.source_id,
+            start: other.start,
+            end: other.end,
+            quote: other.quote,
+          });
+        }),
+      ),
+    ).toBeUndefined();
     // The checked person row changed after the suggestion was made: its hash no longer matches the citation.
     const copy = structuredClone(rowsOf(passageId));
     const person = copy.find((x) => x.record_id === `checked_person:${passageId}/${localId}`)!;
@@ -200,6 +230,22 @@ it('serves the suggestion on the existing checked person card', async () => {
     const without = await card(`${gid}-none`);
     expect(without.initialReading.checked).toBeTruthy();
     expect(without.initialReading.proposals).toBeUndefined();
+    // A suggestion lookup that fails leaves the checked card as it is.
+    const failing = binding(graph);
+    const prepare = failing.prepare;
+    failing.prepare = (sql: string) => {
+      const statement = prepare(sql);
+      const bind = statement.bind;
+      statement.bind = (...v: string[]) =>
+        v.some((x) => x.startsWith('name_candidates:'))
+          ? { ...bind(...v), first: () => Promise.reject(Error('test: lookup fails')) }
+          : bind(...v);
+      return statement;
+    };
+    env.SAGE_GRAPH_DB = failing;
+    const broken = await card(gid);
+    expect(broken.initialReading.checked).toBeTruthy();
+    expect(broken.initialReading.proposals).toBeUndefined();
   } finally {
     graph.close();
     bavli.close();

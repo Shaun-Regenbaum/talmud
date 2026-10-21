@@ -23,13 +23,13 @@ interface NameCandidates {
   accepted: boolean;
   historicalIdentityResolved: boolean;
   mentions: { sourceId: string; start: number; end: number; quote: string }[];
-  bindings: { person: Binding; reading: Binding };
+  bindings: { person: Binding; reading: Binding; ownership: Binding; coverage: Binding };
 }
 
 /**
  * The graph's first registry suggestion for one checked person, as a proposal on that person's card. It is shown only
- * when the record cites the exact checked rows this card was read from, in the same store, and only the printed names
- * on them. It never becomes an accepted identity: one exact full name shows as a possible identity, and a short name
+ * when the record cites the exact checked rows this card was read from (the person, and the reading's envelope,
+ * ownership and coverage), in the same store, and only that person's printed names. It never becomes an accepted identity: one exact full name shows as a possible identity, and a short name
  * lists the registry entries it fits.
  */
 export async function checkedNameProposal(
@@ -61,13 +61,17 @@ export async function checkedNameProposal(
     );
   };
   if (
+    !Array.isArray(data.mentions) ||
+    !Array.isArray(data.candidates) ||
     data.basis !== 'checked-reading' ||
     data.personKey !== key ||
     data.passageId !== passage.id ||
     data.accepted !== false ||
     data.historicalIdentityResolved !== false ||
     !cites(data.bindings?.person, `checked_person:${key}`) ||
-    !cites(data.bindings?.reading, `checked_reading:${passage.id}`)
+    !cites(data.bindings?.reading, `checked_reading:${passage.id}`) ||
+    !cites(data.bindings?.ownership, `checked_ownership:${passage.id}`) ||
+    !cites(data.bindings?.coverage, `checked_coverage:${passage.id}`)
   )
     return undefined;
   const printed = (passage.allMentions.get(localId) ?? []).filter((m) => m.role === 'printed_name');
