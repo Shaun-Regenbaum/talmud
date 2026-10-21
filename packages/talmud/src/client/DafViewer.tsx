@@ -22,7 +22,7 @@ import { DafRenderer } from '../lib/daf-render';
 import type { DafGeoModel } from '../lib/geographyModel';
 import { perakimOf, perekAt } from '../lib/perakim';
 import type { InitialPlacement } from '../lib/sage-graph/initial-placement';
-import { graphPins, readingPins } from '../lib/sage-graph/reading-pins';
+import { graphPins, type ReadingPins, readingPins } from '../lib/sage-graph/reading-pins';
 import type { TalmudPageData } from '../lib/sefref';
 import { clampAmud, dafRefHe, TRACTATE_OPTIONS } from '../lib/sefref';
 import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
@@ -69,6 +69,7 @@ import MarksRegistryPanel, {
   markStatuses,
 } from './MarksRegistryPanel';
 import { MobileShelf } from './MobileShelf';
+import { PagePins } from './pagePins';
 import './reader-controls.css';
 import RunTreeDock from './RunTreeDock';
 import { recordStage } from './rendererActivity';
@@ -3115,22 +3116,25 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   // we also light up daf highlights); otherwise pull the standalone entry
   // from the dataset via /api/rabbi/:slug. ALWAYS pushes so chains of
   // rabbi → cited-rabbi → ... can be unwound by the back chip.
+  /** The revisions this page shows: its graph revision, and the names' store revisions while they match it. */
+  const pagePins = createMemo((): ReadingPins | undefined => {
+    const graph = checkedGraph.loading ? undefined : checkedGraph();
+    if (!graph?.revision) return undefined;
+    const initial = initialNames.loading ? undefined : initialNames();
+    return initial?.ref === `${tractate()} ${page()}` &&
+      initial.revision === graph.revision &&
+      initial.pins
+      ? initial.pins
+      : graphPins(graph.revision);
+  });
   const openRabbiSlug = async (slug: string) => {
     const navigation = ++sidebarNavigation;
     clearCommentarySelection();
     if (/^(local|reading|proposal):/.test(slug)) {
       setActiveRabbi(null);
       setActivePlace(null);
-      const initial = initialNames();
-      pushSidebar({
-        kind: 'source-person',
-        id: slug,
-        // Before the page's names load, a card still reads the page's graph revision and no store.
-        pins:
-          initial?.ref === `${tractate()} ${page()}` && initial.pins
-            ? initial.pins
-            : graphPins(checkedGraph()?.revision),
-      });
+      // The card reads the page's revisions from PagePins, and nothing until the page has them.
+      pushSidebar({ kind: 'source-person', id: slug });
       setLastInteractedCard('argument');
       return;
     }
@@ -4186,36 +4190,45 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             }}
           >
             <Show when={sidebar() !== null}>
-              <ArgumentSidebar
-                content={sidebar()}
-                tractate={tractate()}
-                page={page()}
-                activeRabbi={activeRabbi()}
-                onClose={() => {
-                  setSidebar(null);
-                  setActiveRabbi(null);
-                  setArgumentMoveHighlight(null);
-                  if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
+              <PagePins.Provider
+                value={{
+                  required: true,
+                  pins: pagePins,
+                  loading: () => checkedGraph.loading,
+                  retry: () => void retryCheckedGraph(),
                 }}
-                onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
-                onPushRabbi={pushRabbi}
-                previousLabel={
-                  sidebarStack().length > 1
-                    ? sidebarLabel(sidebarStack()[sidebarStack().length - 2])
-                    : null
-                }
-                onBack={popSidebar}
-                dafRabbis={dafRabbis()}
-                dafRabbiNames={dafRabbiNames()}
-                glossaryTerms={glossaryTerms()}
-                onHighlightRange={setArgumentMoveHighlight}
-                onOpenRabbiSlug={openRabbiSlug}
-                generationByName={generationByName()}
-                dafSections={analysis()?.sections ?? []}
-                onOpenArgument={openArgument}
-                onFocusSection={focusOverviewSection}
-                geography={geographyExtras()}
-              />
+              >
+                <ArgumentSidebar
+                  content={sidebar()}
+                  tractate={tractate()}
+                  page={page()}
+                  activeRabbi={activeRabbi()}
+                  onClose={() => {
+                    setSidebar(null);
+                    setActiveRabbi(null);
+                    setArgumentMoveHighlight(null);
+                    if (activeCommentarySegIdx() === null) setLastInteractedCard(null);
+                  }}
+                  onHighlightRabbi={(name) => (name ? openRabbi(name) : setActiveRabbi(null))}
+                  onPushRabbi={pushRabbi}
+                  previousLabel={
+                    sidebarStack().length > 1
+                      ? sidebarLabel(sidebarStack()[sidebarStack().length - 2])
+                      : null
+                  }
+                  onBack={popSidebar}
+                  dafRabbis={dafRabbis()}
+                  dafRabbiNames={dafRabbiNames()}
+                  glossaryTerms={glossaryTerms()}
+                  onHighlightRange={setArgumentMoveHighlight}
+                  onOpenRabbiSlug={openRabbiSlug}
+                  generationByName={generationByName()}
+                  dafSections={analysis()?.sections ?? []}
+                  onOpenArgument={openArgument}
+                  onFocusSection={focusOverviewSection}
+                  geography={geographyExtras()}
+                />
+              </PagePins.Provider>
             </Show>
           </aside>
         </Show>

@@ -43,7 +43,10 @@ def v4_rows(bundle):
     assert result['jobHash'] == importer.digest(job) and result['manifestHash'] == importer.digest(bundle['config'])
     # The saved v2 check was built from this run's own answer: raw v4 answer -> derived v2 answer -> check.
     assert result['compiled']['raw']['answer'] == result['answer'] == json.loads(result['response']['choices'][0]['message']['content'])
-    assert result['compiled']['v2_check']['answer'] == result['compiled']['compile']['derived_v2_answer']
+    raw, compile_ = result['compiled']['raw'], result['compiled']['compile']
+    assert compile_['derived_from'] == raw['answer_sha256'] == importer.digest(raw['answer'])
+    assert compile_['derived_v2_answer_sha256'] == importer.digest(compile_['derived_v2_answer'])
+    assert result['compiled']['v2_check']['answer'] == compile_['derived_v2_answer']
     compiled = check_saved(job, result['compiled']['v2_check'])
     focal = next(s for s in job['sources'] if s['provenance'].get('focal') is True)
     with mock.patch.object(importer, 'checked_bundle', return_value=(compiled, focal)):

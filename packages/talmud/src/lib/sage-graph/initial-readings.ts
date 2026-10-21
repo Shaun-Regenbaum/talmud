@@ -129,7 +129,8 @@ export const NAME_PREFIX_LETTERS = 'ובלמשכד';
 /**
  * The occurrences of several readings, each shown once. Two occurrences from different readings join
  * only when the source words show they are the same name: the same span, or one quote is the other
- * with one attached prefix letter (ורבי יוחנן / רבי יוחנן). Nothing else joins, however much it
+ * with one attached prefix letter (ורבי יוחנן / רבי יוחנן) that the longer reading's own label leaves
+ * out. Nothing else joins, however much it
  * overlaps: one reading's father-only quote and another's full name of the son stay apart, even when
  * neither reading has both. One reading's own occurrences never join. A joined occurrence keeps every
  * reading's proposal and shows the shorter quote. An occurrence that overlaps another reading's
@@ -185,8 +186,13 @@ export function readingOccurrences(
   };
   const readingsOf = (g: number) =>
     new Set(items.flatMap((item, i) => (root(i) === g ? [...item.readings] : [])));
+  // Labels name a person as "רבי יוחנן", "Rabbi Akiva (ר\"ע)" or "רבה (Rabbah)"; compare without vowels.
+  const bare = (s: string) => s.replace(/\p{M}/gu, '').trim();
+  const names = (label: string) => [label, ...label.split(/[()]/)].map(bare).filter(Boolean);
   // The same name, by the source words: one quote is the other with one attached prefix letter,
-  // which in pointed text may carry its own vowel marks (וְרַבִּי / רַבִּי).
+  // which in pointed text may carry its own vowel marks (וְרַבִּי / רַבִּי). The longer reading must
+  // itself name the person without that letter, or the letter may belong to a different name, as in
+  // בבא and בא; those stay apart and contested.
   const prefixed = (long: Item, short: Item) => {
     const letters = Array.from(long.occurrence.quote);
     const width = Array.from(short.occurrence.quote).length;
@@ -198,7 +204,8 @@ export function readingOccurrences(
       prefix.length >= 1 &&
       NAME_PREFIX_LETTERS.includes(prefix[0]) &&
       prefix.slice(1).every((mark) => /\p{M}/u.test(mark)) &&
-      letters.slice(prefix.length).join('') === short.occurrence.quote
+      letters.slice(prefix.length).join('') === short.occurrence.quote &&
+      long.occurrence.people.every((p) => names(p.name).includes(bare(short.occurrence.quote)))
     );
   };
   for (const [i, a] of items.entries()) {

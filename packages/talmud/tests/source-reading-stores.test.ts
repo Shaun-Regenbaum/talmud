@@ -669,7 +669,7 @@ describe('real Hebrew names and duplicate readings', () => {
     const { source } = fixture.pieceKey;
     const text = Array.from(source.text);
     const at = (word: string) => Array.from(source.text.slice(0, source.text.indexOf(word))).length;
-    const reading = (passageId: string, quote: string) => {
+    const reading = (passageId: string, quote: string, label = quote) => {
       const start = at(quote);
       const mention = {
         occurrenceKey: `${passageId}:${start}`,
@@ -690,7 +690,7 @@ describe('real Hebrew names and duplicate readings', () => {
         people: [
           {
             id: 'p1',
-            label: quote,
+            label,
             named: 'name',
             mentions: [mention],
             reading: { reason: '', alternatives: [] },
@@ -704,8 +704,18 @@ describe('real Hebrew names and duplicate readings', () => {
       .map((w) => w.replace(/\p{P}/gu, ''))
       .find((w) => w.replace(/\p{M}/gu, '') === 'לירושלים')!;
     const name = Array.from(word).slice(2).join('');
-    const shown = readingOccurrences([reading('first', word), reading('second', name)], () => true);
+    // The first reading names the place without its prefix, so the two join.
+    const shown = readingOccurrences(
+      [reading('first', word, name.replace(/\p{M}/gu, '')), reading('second', name)],
+      () => true,
+    );
     expect(shown.map((o) => [o.quote, o.people.length])).toEqual([[name, 2]]);
+    // If the first reading names it with the letter, the letter may be part of another name: apart.
+    const apart = readingOccurrences([reading('first', word), reading('second', name)], () => true);
+    expect(apart.map((o) => [o.quote, o.overlapsOtherReading])).toEqual([
+      [word, true],
+      [name, true],
+    ]);
   });
 
   it('uses the same prefix letters as the reviewed prefix amendment', () => {

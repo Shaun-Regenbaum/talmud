@@ -165,7 +165,8 @@ Done on 2026-10-21, with root's approval:
 
 2. **The bindings `SOURCE_READINGS_BAVLI_DB` and `SOURCE_READINGS_OTHER_DB` are in
    `packages/talmud/wrangler.toml`,** for production and staging. They use the graph's migrations
-   directory.
+   directory, so any future graph migration also runs on both stores. Write graph migrations so they
+   are safe on a store too. `scripts/check-staging-config.mjs` allows exactly the two staging store IDs.
 3. **`release.yml` applies migrations 0001–0003 to them**, before each deploy, next to the graph's.
 
 Still to do, each needing its own approval:

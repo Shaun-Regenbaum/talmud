@@ -1,4 +1,5 @@
 import { fireEvent, render, waitFor } from '@solidjs/testing-library';
+import { createSignal } from 'solid-js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { SourcePerson, SourcePersonPage } from '../../src/client/SourcePerson';
 import {
@@ -48,6 +49,38 @@ async function rabbahCard() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('a person card opened from a page', () => {
+  it('reads nothing until the page has its revisions, then exactly those', async () => {
+    const card = await rabbahCard();
+    const fetch = vi.fn(async (_url: string) => new Response(JSON.stringify(card)));
+    vi.stubGlobal('fetch', fetch);
+    const [page, setPage] = createSignal<{ pins?: typeof pins; loading: boolean }>({
+      loading: true,
+    });
+    const retry = vi.fn();
+    const { container } = render(() => (
+      <SourcePerson
+        id={card.id}
+        pins={page().pins}
+        pinsRequired
+        pinsLoading={page().loading}
+        onRetryPins={retry}
+      />
+    ));
+    await waitFor(() => expect(container.textContent).toBeTruthy());
+    expect(fetch).not.toHaveBeenCalled();
+    // The page's graph failed: an error with a retry that reloads the page, still no read.
+    setPage({ loading: false });
+    const button = await waitFor(() => container.querySelector<HTMLButtonElement>('button')!);
+    fireEvent.click(button);
+    expect(retry).toHaveBeenCalledTimes(1);
+    expect(fetch).not.toHaveBeenCalled();
+    setPage({ loading: false, pins });
+    await waitFor(() => expect(container.querySelector('h2')?.textContent).toBe('רבה'));
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const url = new URL(String(fetch.mock.calls[0][0]), 'https://talmud.dev');
+    expect(Object.fromEntries(url.searchParams)).toEqual({ id: card.id, ...pins });
+  });
+
   it('refuses a link with only some of its pins and fetches nothing', async () => {
     const card = await rabbahCard();
     const fetch = vi.fn(async (_url: string) => new Response(JSON.stringify(card)));
