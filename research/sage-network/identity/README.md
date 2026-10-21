@@ -41,3 +41,37 @@ The existing records API can retrieve a review by passage:
 ```
 
 These records support the next source review. They do not add new confirmed connections or change the reader’s person links.
+
+## First registry suggestions for new source readings
+
+`name_candidates.py` looks up the name each new source reading prints, such as "רמי בר חמא", in the registry
+snapshot of the parent revision. It reads only the quoted name at its source span. The reader's English label is
+kept for display and never matched.
+
+- One registry entry with the exact full name gives a tentative suggestion. It is never accepted.
+- A short name ("רבי מאיר") gives alternatives, even when only one entry has it.
+- A registry name with a label such as "(2)", or a person listed in two rows, gives alternatives.
+- An abbreviation gives guesses only. Each guess names its list: first the site's `expandAbbreviations`, then
+  the matcher's own unreviewed list. Other readings stay possible.
+- If the source goes on with "בר", "בן" or "בריה" right after the quote, the quote may be cut short, and no
+  suggestion is made.
+- A father inside a patronymic stays a local relative. Generic actors are not matched.
+- Registry rows the site treats as non-sages (`nonSageTopics.ts`) are never candidates, and a quote that starts or
+  ends inside a longer word gives none (the anchor audit's whole-word rule).
+- A person is skipped only when older readings placed every one of its mentions at the same words and in the
+  same role. A father inside an older child's quote, or a quote printed twice, is only noted as possible.
+- A person that a reviewed or human record in the parent revision already decides is skipped. `Decisions` finds those
+  records with the era release's own scope (`possible_eras.scoped_rows`): by `personKey`, `case.personKey`,
+  `identityDecision.personKey`, `personKeys` or the a/b sides, by identity group, by subject or object, and through
+  the claims a human correction names. It also reads graph nodes, which list reviewed people in `personKeys`.
+- A decision about another person never decides this one. Decisions about older people at the same words are kept
+  on the case as review evidence (`olderDecisions`). Only full coverage at the same span and role skips a person.
+- Every anchor is checked against its source: the source hash, segment, edition, page, the nth match of the quote
+  and its occurrence key. An alias that must not name a father is refused after `בר`, `בן`, `ברבי` or `בריה ד`,
+  including a ד the quote itself carries.
+- `envelope()` pins what an output depends on: the module's own bytes, every rule constant, the alias and duplicate
+  files and the registry snapshot. Each dependency carries its rebuilt v1 hash; the store, revision, stored hash and
+  stored format are left for the importer, which reads them from the store that holds the row.
+
+Registry generations are copied onto each candidate as stored metadata only. They are never this person's era.
+The output kind is `name_candidates`. Existing `identity_proposal` records and recipes are unchanged.
