@@ -18,11 +18,13 @@ Each candidate cites the person, passage and source_reading rows exactly as stor
 format) together with the rebuilt v1 hash. The check rebuilds every record from the same inputs, refuses any
 difference, and re-checks human precedence, coverage at every mention and the alias guards on its own.
 
-The extend_d1 wiring waits until the source-reading store change (PR #802) lands, so the two do not edit the same
-lines.
+`release` hands a checked changes file to extend_d1.prepare() with root's pins and the read-back files, which runs the
+same check again on the parent export and writes import.sql, manifest.json and activate.sql. Nothing touches a database.
 Usage:
   name_candidates_import.py prepare --graph EXPORT.sqlite --revision R --pins PINS [--readback FILE ...] --output DIR
   name_candidates_import.py check --graph EXPORT.sqlite --revision R --pins PINS [--readback FILE ...] --changes CHANGES
+  name_candidates_import.py release --export PARENT.sql --manifest PARENT.json --pins PINS [--readback FILE ...]
+                                    --changes CHANGES --output DIR
 """
 import argparse
 import hashlib
@@ -278,17 +280,26 @@ def validate_changes(changes, graph_rows, graph_manifest, readbacks, pins, he_al
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('step', choices=['prepare', 'check'])
-    parser.add_argument('--graph', type=Path, required=True)
-    parser.add_argument('--revision', required=True)
+    parser.add_argument('step', choices=['prepare', 'check', 'release'])
+    parser.add_argument('--graph', type=Path)
+    parser.add_argument('--revision')
+    parser.add_argument('--export', type=Path, help='release: the verified parent export (SQL) extend_d1 reads')
+    parser.add_argument('--manifest', type=Path, help='release: the parent manifest')
     parser.add_argument('--pins', type=Path, required=True, help="Root's release pins; never generated from the inputs they pin")
     parser.add_argument('--readback', type=Path, action='append', default=[])
     parser.add_argument('--output', type=Path)
     parser.add_argument('--changes', type=Path)
     args = parser.parse_args()
-    rows, manifest = read_graph(args.graph, args.revision)
     readbacks = [p.read_bytes() for p in args.readback]
     pins = load_pins(args.pins.read_bytes())
+    if args.step == 'release':
+        from extend_d1 import prepare
+        require(args.export and args.manifest and args.changes and args.output, 'release needs --export, --manifest, --changes and --output')
+        print(json.dumps(prepare(args.export, args.manifest, args.changes, args.output, shared=True,
+                                 name_candidate_pins=pins, readbacks=readbacks)))
+        return
+    require(args.graph and args.revision, 'prepare and check need --graph and --revision')
+    rows, manifest = read_graph(args.graph, args.revision)
     aliases, duplicates = (DATA / 'rabbi-he-aliases.json').read_bytes(), (DATA / 'rabbi-duplicates.json').read_bytes()
     if args.step == 'prepare':
         require(args.output and not args.output.exists(), 'Give a new --output folder')

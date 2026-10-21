@@ -104,5 +104,18 @@ Each candidate cites the person, passage and source_reading rows as stored (stor
 and their rebuilt v1 hash. A reading the graph holds cannot also be cited from a store, since the graph copy wins. The
 check rebuilds every record from the same inputs and refuses any difference. It then checks a second time that no
 record is about a person a reviewed or human record decides, that no record is for a person older readings cover at
-every mention, and that every alias guard holds. Nothing is written to any database; the extend_d1 wiring follows the
-source-reading store change.
+every mention, and that every alias guard holds. Nothing is written to any database.
+
+`release` hands the checked changes file to `extend_d1.prepare()`, with root's pins and the read-back files as
+keyword-only arguments:
+
+```sh
+python3 research/sage-network/storage/name_candidates_import.py release --export parent.sql \
+  --manifest parent-manifest.json --pins release-pins.json --readback bavli-readback.json \
+  --changes prepared/changes.json --output d1
+```
+
+There, a batch marked by `nameCandidateInputs` goes into the graph only, never into a source-reading store. It needs the
+caller's pins and must read the same strictly, and `name_candidates_import.validate_changes` runs again on the parent
+export. A `name_candidates` record in any other batch is refused. The output is `import.sql`, `manifest.json` and
+`activate.sql`, as for any graph revision.

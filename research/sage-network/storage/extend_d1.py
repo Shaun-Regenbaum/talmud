@@ -22,7 +22,7 @@ import possible_eras
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "identity"))
 from prepare_scan import build as build_namesake_changes
 
-ALLOWED_KINDS = {'identity_assessment', 'identity_proposal', 'graph_node', 'registry_person', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry', 'name_reading'}
+ALLOWED_KINDS = {'identity_assessment', 'identity_proposal', 'graph_node', 'registry_person', 'source_identity', 'connection', 'name_occurrence', 'place_review', 'era_review', 'era_assessment', 'namesake_scan', 'namesake_registry', 'name_reading', 'name_candidates'}
 READING_KINDS = {'sage', 'biblical_person', 'other_human', 'deity', 'angel', 'supernatural', 'group', 'not_a_person'}
 READING_STATUSES = {'registry_candidate', 'local', 'unresolved', 'nonhuman', 'error'}
 
@@ -415,7 +415,7 @@ def validate_identity_assessment(key, row, data, rows, parent_keys, member):
             raise ValueError('Invalid assessment source URL: ' + key)
 
 
-def prepare(export, manifest_path, changes_path, output, *, shared=False):
+def prepare(export, manifest_path, changes_path, output, *, shared=False, name_candidate_pins=None, readbacks=()):
     parent = json.loads(manifest_path.read_text())
     verify(export, manifest_path)
     changes = json.loads(changes_path.read_text())
@@ -450,6 +450,21 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             possible_eras.validate_changes(changes, rows)
         elif any(item['kind'] == 'possible_era' or 'possible_era:' in json.dumps(item['data']) for item in changes['records']):
             raise ValueError('Possible eras cannot become identity or dating evidence')
+        # name_candidates go into the graph only. The importer rebuilds every record from this parent, root's pins and
+        # the read-back files, and refuses any difference. The pins come from the caller, never from the changes.
+        names_batch = 'nameCandidateInputs' in changes
+        if names_batch:
+            import name_candidates_import as names
+            if store_batch:
+                raise ValueError('name_candidates go into the graph, never into a source-reading store')
+            if name_candidate_pins is None:
+                raise ValueError("A name_candidates batch needs root's release pins")
+            if names.strict_json(changes_path.read_bytes()) != changes:
+                raise ValueError('The changes file does not read the same strictly')
+            names.validate_changes(changes, [rows[k] for k in sorted(rows)], parent, list(readbacks), name_candidate_pins,
+                                   (names.DATA / 'rabbi-he-aliases.json').read_bytes(), (names.DATA / 'rabbi-duplicates.json').read_bytes())
+        elif any(item['kind'] == 'name_candidates' for item in changes['records']):
+            raise ValueError('name_candidates records come only in a name_candidates batch')
         binding_batch = 'sourceBindingManifests' in changes
         if binding_batch:
             source_bindings.validate_changes(changes, rows)
@@ -554,7 +569,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             elif 'referenceCorrection' in item['data']:
                 # Only a reference correction, rebuilt from the parent and the frozen map, may write this field.
                 raise ValueError('referenceCorrection is reserved for a reference correction: ' + key)
-            elif source_batch or binding_batch or era_batch or store_batch:
+            elif source_batch or binding_batch or era_batch or store_batch or names_batch:
                 if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
                     raise ValueError('Source readings must be new proposals: ' + key)
             elif item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
@@ -587,8 +602,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False):
             return passage
 
         for key, row in changed.items():
-            if correcting or store_batch:
-                break  # every corrected or store record was rebuilt exactly above, from the parent and frozen inputs
+            if correcting or store_batch or names_batch:
+                break  # every corrected, store or name_candidates record was rebuilt exactly above, from the parent and frozen inputs
             data = json.loads(row[-1])
             if row[1] == 'identity_proposal':
                 identity_proposals.validate(data, payload('passage:' + row[2]))
