@@ -416,7 +416,7 @@ def validate_identity_assessment(key, row, data, rows, parent_keys, member):
 
 
 def prepare(export, manifest_path, changes_path, output, *, shared=False, checked_selections=(),
-            name_candidate_pins=None, readbacks=()):
+            name_candidate_pins=None, readbacks=(), index_identity_input=None):
     parent = json.loads(manifest_path.read_text())
     verify(export, manifest_path)
     changes = json.loads(changes_path.read_text())
@@ -467,6 +467,14 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False, checke
                                    (names.DATA / 'rabbi-he-aliases.json').read_bytes(), (names.DATA / 'rabbi-duplicates.json').read_bytes())
         elif any(item['kind'] == 'name_candidates' for item in changes['records']):
             raise ValueError('name_candidates records come only in a name_candidates batch')
+        index_batch = changes.get('version') == 'index-identity-link-v1'
+        if index_batch:
+            import index_identity_links
+            if store_batch or index_identity_input is None:
+                raise ValueError('Identity links require independent evidence pins and a graph parent')
+            index_identity_links.validate_changes(changes, *index_identity_input, rows)
+        elif any(item['kind'] == 'identity_link_evidence' for item in changes['records']):
+            raise ValueError('Identity links require exact evidence reconstruction')
         binding_batch = 'sourceBindingManifests' in changes
         if binding_batch:
             source_bindings.validate_changes(changes, rows)
@@ -556,7 +564,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False, checke
             key = item['record_id']
             if key in changed:
                 raise ValueError('Duplicate change: ' + key)
-            allowed = source_reading_stores.STORE_KINDS if store_batch else ALLOWED_KINDS | ({'possible_era'} if era_batch else set()) | ({source_bindings.KIND} if binding_batch else set()) | (source_readings.KINDS if source_batch else set())
+            allowed = source_reading_stores.STORE_KINDS if store_batch else ALLOWED_KINDS | ({'possible_era'} if era_batch else set()) | ({source_bindings.KIND} if binding_batch else set()) | (source_readings.KINDS if source_batch else set()) | ({'identity_link_evidence'} if index_batch else set())
             if (not correcting and item['kind'] not in allowed) or not key.startswith(item['kind'] + ':'):
                 raise ValueError('Unsupported review kind: ' + key)
             old = rows.get(key)
@@ -571,7 +579,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False, checke
             elif 'referenceCorrection' in item['data']:
                 # Only a reference correction, rebuilt from the parent and the frozen map, may write this field.
                 raise ValueError('referenceCorrection is reserved for a reference correction: ' + key)
-            elif source_batch or binding_batch or era_batch or store_batch or names_batch:
+            elif source_batch or binding_batch or era_batch or store_batch or names_batch or index_batch:
                 if old or item['authority'] != 'screening' or item.get('decision') != 'needs_review':
                     raise ValueError('Source readings must be new proposals: ' + key)
             elif item['kind'] in {'era_review', 'namesake_scan', 'namesake_registry', 'identity_proposal', 'name_reading'}:
@@ -604,7 +612,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False, checke
             return passage
 
         for key, row in changed.items():
-            if correcting or store_batch or names_batch:
+            if correcting or store_batch or names_batch or index_batch:
                 break  # every corrected, store or name_candidates record was rebuilt exactly above, from the parent and frozen inputs
             data = json.loads(row[-1])
             if row[1] == 'identity_proposal':
