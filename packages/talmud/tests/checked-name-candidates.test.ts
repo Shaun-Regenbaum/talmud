@@ -2,9 +2,11 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
+import bridgeFixture from '../../../research/sage-network/tests/fixtures/index-identity-link-yitzhak.json';
 import graphParent from '../../../research/sage-network/tests/fixtures/name-candidates-import-parent.json';
 import { decodeCheckedPassage } from '../src/lib/sage-graph/checked-readings';
 import { checkedNameSuggestion, LISTED_ENTRIES } from '../src/lib/sage-graph/name-candidates';
+import { POSSIBLE_ERA_SCOPE_SQL } from '../src/lib/sage-graph/possible-era';
 import { canonicalJson, type StoredRow, sha256 } from '../src/lib/sage-graph/source-reading-store';
 import type { SourcePerson } from '../src/lib/sage-graph/types';
 import { RABBI_PLACES } from '../src/worker/rabbi-places';
@@ -240,11 +242,14 @@ interface Statement {
   first: () => Promise<unknown>;
   all: () => Promise<{ results: unknown[]; success: boolean }>;
 }
-function binding(d: DatabaseSync) {
+function binding(d: DatabaseSync, failScope = false) {
   const statement = (sql: string, v: string[] = []): Statement => ({
     bind: (...a) => statement(sql, a),
     first: async () => d.prepare(sql).get(...v) ?? null,
-    all: async () => ({ results: d.prepare(sql).all(...v), success: true }),
+    all: async () =>
+      sql === POSSIBLE_ERA_SCOPE_SQL && failScope
+        ? { results: [], success: false }
+        : { results: d.prepare(sql).all(...v), success: true },
   });
   return { prepare: (sql: string) => statement(sql) };
 }
@@ -344,6 +349,81 @@ it('serves the suggestion on the existing checked person card', async () => {
     const broken = await card(gid);
     expect(broken.initialReading!.checked).toBeTruthy();
     expect(broken.initialReading!.nameSuggestion).toBeUndefined();
+  } finally {
+    graph.close();
+    bavli.close();
+    other.close();
+  }
+});
+
+it('serves the exact Yitzhak bridge without choosing from short-name alternatives', async () => {
+  const graph = db(),
+    bavli = db(),
+    other = db();
+  try {
+    const columns = [
+      'record_id',
+      'kind',
+      'passage_id',
+      'ref',
+      'subject_id',
+      'object_id',
+      'authority',
+      'decision',
+      'payload_sha256',
+      'payload_json',
+    ];
+    const graphRows = bridgeFixture.graphRows.map(
+      (r) => Object.fromEntries(columns.map((k, i) => [k, r[i]])) as unknown as StoredRow,
+    );
+    const key = bridgeFixture.artifact.personKey;
+    const store = fixture.stores.bavli;
+    const gid = 'sage-graph-yitzhak-bridge-test';
+    publish(graph, gid, {}, [...graphRows, bridgeFixture.linkRow as StoredRow]);
+    publish(graph, `${gid}-corrected`, {}, [
+      ...graphRows,
+      bridgeFixture.linkRow as StoredRow,
+      correctionAbout(key),
+    ]);
+    publish(
+      bavli,
+      store.revision,
+      { sourceReadingStore: store.block },
+      bridgeFixture.currentCheckedRows as StoredRow[],
+    );
+    publish(
+      other,
+      fixture.stores.other.revision,
+      { sourceReadingStore: fixture.stores.other.block },
+      [],
+    );
+    const card = async (revision: string, failScope = false) => {
+      const response = await sageGraph.request(
+        `/person?id=${encodeURIComponent(`reading:${key}`)}&revision=${revision}&bavliRevision=${store.revision}&otherRevision=${fixture.stores.other.revision}`,
+        {},
+        {
+          SAGE_GRAPH_DB: binding(graph, failScope),
+          SOURCE_READINGS_BAVLI_DB: binding(bavli),
+          SOURCE_READINGS_OTHER_DB: binding(other),
+        },
+      );
+      expect(response.status).toBe(200);
+      return (await response.json()) as SourcePerson;
+    };
+    const shown = await card(gid);
+    expect(shown.initialReading?.nameSuggestion?.candidate).toBeUndefined();
+    expect(shown.initialReading?.nameSuggestion?.registryEntries?.total).toBe(9);
+    expect(shown.conditionalProfile).toMatchObject({
+      status: 'available',
+      candidateId: 'rabbi-yitzhak-nappaha',
+      accepted: false,
+      places: ['Caesarea'],
+    });
+    expect(JSON.stringify(shown.initialReading)).toContain('יוחנן');
+    for (const withheld of [await card(`${gid}-corrected`), await card(gid, true)]) {
+      expect(withheld.conditionalProfile).toBeUndefined();
+      expect(withheld.initialReading?.checked).toBeTruthy();
+    }
   } finally {
     graph.close();
     bavli.close();
