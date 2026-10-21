@@ -58,8 +58,16 @@ kept for display and never matched.
 - A father inside a patronymic stays a local relative. Generic actors are not matched.
 - Registry rows the site treats as non-sages (`nonSageTopics.ts`) are never candidates, and a quote that starts or
   ends inside a longer word gives none (the anchor audit's whole-word rule).
-- A person already placed by an older reading at the same source position, or already decided by a human
-  correction or accepted identity, is skipped.
+- A person is skipped only when older readings placed every one of its mentions at the same words and in the
+  same role. A father inside an older child's quote, or a quote printed twice, is only noted as possible.
+- A person that an accepted identity or a human correction in the parent revision already decides is skipped. The
+  deciding records come from the parent itself (`settled_from_parent`), with their payload hashes.
+- Every anchor is checked against its source: the source hash, segment, edition, page, the nth match of the quote
+  and its occurrence key. An alias that must not name a father is refused after `בר`, `בן`, `ברבי` or `בריה ד`,
+  including a ד the quote itself carries.
+- `envelope()` pins what an output depends on: the module's own bytes, every rule constant, the alias and duplicate
+  files and the registry snapshot. Each dependency hash says it is of the rebuilt v1 row; the stored hash is left
+  for the importer.
 
 Registry generations are copied onto each candidate as stored metadata only. They are never this person's era.
 The output kind is `name_candidates`. Existing `identity_proposal` records and recipes are unchanged.

@@ -26,13 +26,15 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from ownership.tile_ownership import source_unit  # noqa: E402
+from ownership.tile_ownership import digest as tile_digest, source_unit  # noqa: E402
 
 VERSION = 'source-name-candidates-v1'
 KIND = 'name_candidates'
 TITLES = ('רב', 'רבי', 'רבן', 'מר')
 PATRONYMIC = ('בר', 'בן', 'בריה', 'ברבי', 'בת')
 NOT_MATCHED = 'A first suggestion from the printed name only. Not a confirmed identity.'
+BINDING_FORMAT = ('rebuiltV1Sha256: the v1 row source_readings.records() rebuilds from the verified bundle. storedSha256: '
+                  'the stored D1 payload, set only by the importer after it replays the bundle and compares every anchor.')
 RULES = {
     'marks': 'Remove vowel points, cantillation and direction marks. Lookup only; anchors keep the original text.',
     'punctuation': "Turn punctuation and maqaf into spaces, the Hebrew geresh and gershayim into plain quote marks, and '' into \".",
@@ -70,6 +72,10 @@ NON_SAGE_SLUGS = frozenset({'hallel', 'mordekhai', 'mordechai1', 'blessings', 'b
 # The anchor audit's whole-word rule (name-coverage-v18/anchor-audit/anchor_audit.py): a quote may follow only a
 # short attached prefix, and may not start after a quote mark or end inside a word.
 WORD_PREFIX = re.compile('[ודלבכמשה]{1,3}|א|אד|ואד|כד|מד')
+# The site's rule for an alias that must not name a father (HE_PATRONYMIC_PREFIX_RE in the worker), applied to the
+# text before the name plus any prefix letter the quote itself carries: X בריה דרב אמי names Rav Ami as a father.
+PATRONYMIC_BEFORE = re.compile(r'(?:^|\s)(?:בריה\s+ד|בר|בן|ברבי)\s*$')
+SETTLING = {('source_identity', 'accepted_registry_identity'), ('source_identity', 'accepted_local'), ('accepted_identity', 'accepted')}
 QUOTES = str.maketrans({'׳': "'", '’': "'", '‘': "'", '״': '"', '“': '"', '”': '"'})
 # Before a title two attached letters are safe (מדר' סימאי). Before an abbreviation only ו and one more,
 # so that an abbreviation such as מהר"ל is never cut down to ר"ל.
@@ -118,9 +124,9 @@ def strip_prefix(text):
         bare = ABBREVIATION_PREFIX.match(words[0])
         rest = words[0][bare.end():] if bare else None
         if rest in SITE_READINGS or rest in UNREVIEWED_READINGS:
-            return ' '.join([rest, *words[1:]]), True
+            return ' '.join([rest, *words[1:]]), words[0][:bare.end()]
     titled = TITLE_PREFIX.match(text)
-    return (text[titled.end():], True) if titled else (text, False)
+    return (text[titled.end():], titled.group(0)) if titled else (text, '')
 
 
 def readings(word, previous, following):
@@ -136,8 +142,8 @@ def readings(word, previous, following):
 def forms(quote, previous=None, following=None):
     """Every lookup form of a printed name, each with the rules and abbreviation readings that made it."""
     text, rules = clean(quote)
-    text, stripped = strip_prefix(text)
-    if stripped:
+    text, prefix = strip_prefix(text)
+    if prefix:
         rules = rules + ['attached-prefix']
     words = text.split()
     choices = []
@@ -154,7 +160,7 @@ def forms(quote, previous=None, following=None):
     for options in choices:
         out = [((name + ' ' + w).strip(), steps + extra, used + read) for name, steps, used in out for w, extra, read in options]
     unique = {encode([name, steps, used]): dict(name=name, rules=steps, readings=used) for name, steps, used in out}
-    return dict(text=text, abbreviated=any(is_abbreviation(w) for w in text.split()), forms=list(unique.values()))
+    return dict(text=text, prefix=prefix, abbreviated=any(is_abbreviation(w) for w in text.split()), forms=list(unique.values()))
 
 
 def registry_form(name):
@@ -226,6 +232,26 @@ def registry_index(rows, he_aliases):
                 registryRecordSetSha256=digest(snapshot), registryRecords=len(snapshot))
 
 
+def occurrence_key(source, start, end):
+    """source_readings.occurrence_key, restated so the matcher can check anchors without the reading importer."""
+    _, raw_start, _, segment_hash = source_unit(source)
+    return 'occ-' + tile_digest([source['edition'], source['provenance']['segment_id'], segment_hash, raw_start + start, raw_start + end])
+
+
+def nth_start(text, quote, occurrence):
+    """Where the reading compiler puts the occurrence-th match (it steps one character at a time, so matches may overlap)."""
+    starts, pos = [], 0
+    while (pos := text.find(quote, pos)) >= 0:
+        starts.append(pos)
+        pos += 1
+    return starts[occurrence - 1] if 0 < occurrence <= len(starts) else None
+
+
+def after_patronymic(text, start, prefix):
+    before = clean(text[:start])[0] + (' ' + prefix if prefix else '')
+    return bool(PATRONYMIC_BEFORE.search(before))
+
+
 def neighbours(segment_text, start, end):
     before = clean(segment_text[:start])[0].split()
     after = clean(segment_text[end:])[0].split()
@@ -234,18 +260,26 @@ def neighbours(segment_text, start, end):
 
 def match_mention(mention, source, registry):
     """One printed mention: its lookup forms, exact registry matches, guesses, and anything rejected."""
-    require(source['text'][mention['start']:mention['end']] == mention['quote'], 'Mention quote is not at its span: ' + mention['occurrenceKey'])
+    text, start, end = source['text'], mention['start'], mention['end']
+    require(text[start:end] == mention['quote'], 'Mention quote is not at its span: ' + mention['occurrenceKey'])
+    # Every copied anchor field must agree with the source itself; the matcher does not trust them as given.
+    require(mention['source_sha256'] == source['sha256'] == sha(text), 'Mention source hash differs: ' + mention['occurrenceKey'])
+    require((mention['segmentId'], mention['edition'], mention['ref']) == (source['provenance']['segment_id'], source['edition'], source['ref']),
+            'Mention source identity differs: ' + mention['occurrenceKey'])
+    require(nth_start(text, mention['quote'], mention['occurrence']) == start, 'Mention occurrence differs: ' + mention['occurrenceKey'])
+    require(mention['occurrenceKey'] == occurrence_key(source, start, end), 'Mention occurrence key differs: ' + mention['occurrenceKey'])
     _, raw_start, _, segment_sha = source_unit(source)
-    previous, following = neighbours(source['text'], mention['start'], mention['end'])
+    previous, following = neighbours(text, start, end)
     f = forms(mention['quote'], previous, following)
-    if not on_word_edges(source['text'], mention['start'], mention['end']):
+    whole = on_word_edges(text, start, end)
+    if not whole:
         # Kept with its anchor so a reviewer sees it, but nothing is looked up for a quote inside another word.
         f['forms'] = []
     word = f['text']
-    if (' ' not in word and not f['abbreviated'] and len(word) > 2 and word[0] in 'ודלבמשכה'
+    if (whole and f['forms'] and ' ' not in word and not f['abbreviated'] and len(word) > 2 and word[0] in 'ודלבמשכה'
             and not any(registry['index'].get(x['name']) for x in f['forms'])):
         # A one-word name is never more than a short name, so one retry without an attached letter is safe.
-        f['forms'].append(dict(name=word[1:], rules=f['forms'][0]['rules'] + ['attached-prefix'], readings=[]))
+        f['forms'].append(dict(name=word[1:], rules=f['forms'][0]['rules'] + ['attached-prefix'], readings=[], prefix=word[0]))
     found, guesses, rejected, notes = [], [], [], []
     if not f['forms']:
         notes.append(dict(rule='inside-a-word', note='The quote starts or ends inside a longer word, so it is not read as a name.'))
@@ -258,8 +292,8 @@ def match_mention(mention, source, registry):
             if guard and following in guard['notFollowedBy']:
                 rejected.append(dict(slug=hit['slug'], form=form['name'], reason=f'Alias guard: the next word is {following}.'))
                 continue
-            if guard and guard['notAfterPatronymic'] and previous in PATRONYMIC:
-                rejected.append(dict(slug=hit['slug'], form=form['name'], reason=f'Alias guard: the name follows {previous}, so it names a father.'))
+            if guard and guard['notAfterPatronymic'] and after_patronymic(text, start, form.get('prefix', f['prefix'])):
+                rejected.append(dict(slug=hit['slug'], form=form['name'], reason='Alias guard: the name follows a patronymic, so it names a father.'))
                 continue
             (guesses if form['readings'] else found).append(dict(hit, form=form['name'], rules=form['rules'], readings=form['readings']))
     name_shape = 'abbreviation' if f['abbreviated'] else shape(f['forms'][0]['name'] if f['forms'] else f['text'], False)
@@ -303,10 +337,9 @@ def build_case(person_row, passage_row, reading_row, registry, duplicates, paren
     require(reading['kind'] == 'person' and reading['form'] in ('named', 'embedded_parent'), 'Not a named person: ' + key)
     sources = {s['source_id']: s for s in passage['sourceSegments']}
     mentions = [match_mention(m, sources[m['source_id']], registry) for m in person['mentions']]
-    base = dict(version=VERSION, personKey=key, personRecordId=person_row['record_id'], personPayloadSha256=digest(person),
-                personPayloadFormat='source_readings.records v1 row', passageId=passage['id'], passageRecordId=passage_row['record_id'],
-                passagePayloadSha256=digest(passage), sourceReadingId=person['sourceReadingId'],
-                sourceReadingPayloadSha256=digest(reading_row['data']), ref=passage['ref'],
+    bind = lambda row: dict(recordId=row['record_id'], rebuiltV1Sha256=digest(row['data']), storedSha256=None)
+    base = dict(version=VERSION, personKey=key, passageId=passage['id'], sourceReadingId=person['sourceReadingId'], ref=passage['ref'],
+                bindings=dict(format=BINDING_FORMAT, person=bind(person_row), passage=bind(passage_row), sourceReading=bind(reading_row)),
                 readingLabel=person['label'], readingForm=reading['form'], readingReason=reading['reason'],
                 readingAlternatives=reading['alternatives'], parentRevision=parent, accepted=False,
                 historicalIdentityResolved=False, candidateMetadataVerified=False, note=NOT_MATCHED,
@@ -385,27 +418,60 @@ def older_occurrences(rows, bindings):
         if kind == 'passage':
             texts[passage_id] = data.get('source', {}).get('passage')
         elif kind == 'person' and data.get('named') in ('name', 'father_of_named') and data.get('quoteLocation') == 'passage':
-            people[passage_id].append((passage_id + '/' + data['id'], data['quote']))
+            people[passage_id].append((passage_id + '/' + data['id'], data['quote'], data['named']))
     spans = defaultdict(list)
     for b in bindings:
         text = texts.get(b['passageId'])
         if not isinstance(text, str) or sha(text) != b['sourceSha256']:
             continue
-        for key, quote in people[b['passageId']]:
+        for key, quote, role in people[b['passageId']]:
             places = [m.start() for m in re.finditer(re.escape(quote), text)] if quote else []
             for start in places:
                 spans[(b['edition'], b['segmentId'], b['sourceSha256'])].append(
-                    dict(personKey=key, start=start, end=start + len(quote), exact=len(places) == 1))
+                    dict(personKey=key, start=start, end=start + len(quote), role=role, printedOnce=len(places) == 1))
     return spans
 
 
-def prior_reading(mentions, spans):
-    exact, possible = set(), set()
+def prior_reading(mentions, form, spans):
+    """Per occurrence: older people at exactly the same span in the same role, and older people that only overlap.
+
+    An older father record quotes the whole patronymic, so a father inside it is only ever a possible match. Overlap is
+    support for a reviewer, never coverage.
+    """
+    role = {'named': 'name', 'embedded_parent': 'father_of_named'}[form]
+    covered, possible = {}, {}
     for m in mentions:
         for s in spans.get((m['edition'], m['segmentId'], m['segmentSha256']), []):
-            if s['start'] < m['segmentEnd'] and m['segmentStart'] < s['end']:
-                (exact if s['exact'] else possible).add(s['personKey'])
-    return sorted(exact), sorted(possible - exact)
+            same = s['printedOnce'] and s['role'] == role and (s['start'], s['end']) == (m['segmentStart'], m['segmentEnd'])
+            if same:
+                covered.setdefault(m['occurrenceKey'], set()).add(s['personKey'])
+            elif s['start'] < m['segmentEnd'] and m['segmentStart'] < s['end']:
+                possible.setdefault(m['occurrenceKey'], set()).add(s['personKey'])
+    listed = lambda d: [dict(occurrenceKey=k, olderPeople=sorted(v)) for k, v in sorted(d.items())]
+    return dict(covered=listed(covered), possible=listed(possible))
+
+
+def settled_from_parent(rows):
+    """People a human or an accepted identity already decides, from the parent records themselves.
+
+    rows: (record_id, kind, passage_id, ref, subject_id, object_id, authority, decision, payload_sha256, payload_json).
+    An accepted source_identity or accepted_identity decides its personKey. A human correction decides every local
+    person it names. Each person keeps the exact records and payload hashes that decide it.
+    """
+    out = defaultdict(list)
+    for record_id, kind, _, _, subject, obj, authority, decision, payload_sha, payload in rows:
+        require(sha(payload) == payload_sha, 'Parent payload hash differs: ' + record_id)
+        data = json.loads(payload)
+        keys = set()
+        if (kind, decision) in SETTLING and authority in ('source_review', 'user_correction') and data.get('personKey'):
+            keys.add(data['personKey'])
+        if authority == 'user_correction':
+            keys |= {x.removeprefix('local:') for x in (subject, obj, data.get('a'), data.get('b')) if isinstance(x, str) and x.startswith('local:')}
+            if data.get('personKey'):
+                keys.add(data['personKey'])
+        for key in keys:
+            out[key].append(dict(recordId=record_id, kind=kind, authority=authority, decision=decision, payloadSha256=payload_sha))
+    return {k: sorted(v, key=encode) for k, v in out.items()}
 
 
 def build(rows_by_passage, registry, duplicates, parent, spans=None, settled=None):
@@ -424,17 +490,17 @@ def build(rows_by_passage, registry, duplicates, parent, spans=None, settled=Non
                 skipped.append(dict(personKey=key, reason=f'{reading["kind"]}/{reading["form"]} is not matched to the registry'))
                 continue
             if key in (settled or {}):
+                require(all({'recordId', 'payloadSha256', 'authority', 'decision'} <= set(x) for x in settled[key]), 'Settlement needs its records')
                 skipped.append(dict(personKey=key, reason='A human correction or accepted identity already decides this person',
                                     settledBy=settled[key]))
                 continue
             case = build_case(row, passage, source_reading, registry, duplicates, parent)
-            exact, possible = prior_reading(case['mentions'], spans or {})
-            if exact:
-                covered = {m['occurrenceKey'] for m in case['mentions'] if prior_reading([m], spans)[0]}
-                skipped.append(dict(personKey=key, reason='An older reading already placed this name here', olderPeople=exact,
-                                    uncoveredOccurrences=sorted({m['occurrenceKey'] for m in case['mentions']} - covered)))
+            older = prior_reading(case['mentions'], reading['form'], spans or {})
+            if {x['occurrenceKey'] for x in older['covered']} == {m['occurrenceKey'] for m in case['mentions']}:
+                skipped.append(dict(personKey=key, reason='Older readings already placed every mention of this person, at the same words '
+                                    'and in the same role', olderReading=older))
                 continue
-            cases.append(dict(case, olderReadingMayCover=possible))
+            cases.append(dict(case, olderReading=older))
     by_occurrence = defaultdict(set)
     for c in cases:
         for m in c['mentions']:
@@ -445,12 +511,30 @@ def build(rows_by_passage, registry, duplicates, parent, spans=None, settled=Non
     return cases, skipped
 
 
-def record(case, rules_sha, registry_meta):
-    data = dict(case, matcher=dict(version=VERSION, rulesSha256=rules_sha), registry=registry_meta)
-    return dict(record_id=f'{KIND}:v1/{case["personKey"]}', kind=KIND, passage_id=case['passageId'], ref=case['ref'],
-                subject_id=case['personKey'], object_id=None, authority='screening', decision='needs_review', data=data)
-
-
 def rules_sha():
     return digest(dict(version=VERSION, rules=RULES, siteList=SITE_LIST, siteReadings=SITE_READINGS, siteMeir=SITE_MEIR,
-                       matcherList=MATCHER_LIST, unreviewedReadings=UNREVIEWED_READINGS, titles=TITLES, patronymic=PATRONYMIC))
+                       matcherList=MATCHER_LIST, unreviewedReadings=UNREVIEWED_READINGS, titles=TITLES, patronymic=PATRONYMIC,
+                       nonSageSlugs=sorted(NON_SAGE_SLUGS), wordPrefix=WORD_PREFIX.pattern, patronymicBefore=PATRONYMIC_BEFORE.pattern,
+                       titlePrefix=TITLE_PREFIX.pattern, abbreviationPrefix=ABBREVIATION_PREFIX.pattern, settling=sorted(SETTLING),
+                       quotes=sorted(QUOTES.items()), bindingFormat=BINDING_FORMAT))
+
+
+def sha256_bytes(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def sha256_file(path):
+    return sha256_bytes(Path(path).read_bytes())
+
+
+def envelope(registry, parent, he_aliases_bytes, duplicates_bytes):
+    """Everything an output depends on, so an importer can rebuild it exactly and refuse any difference."""
+    return dict(version=VERSION, rulesSha256=rules_sha(), matcherFileSha256=sha256_file(__file__),
+                heAliasesSha256=sha256_bytes(he_aliases_bytes), duplicatesSha256=sha256_bytes(duplicates_bytes),
+                parentRevision=parent, registryRecordSetSha256=registry['registryRecordSetSha256'], registryRecords=registry['registryRecords'])
+
+
+def record(case, producer):
+    data = dict(case, producer=producer)
+    return dict(record_id=f'{KIND}:v1/{case["personKey"]}', kind=KIND, passage_id=case['passageId'], ref=case['ref'],
+                subject_id=case['personKey'], object_id=None, authority='screening', decision='needs_review', data=data)

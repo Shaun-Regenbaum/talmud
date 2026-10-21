@@ -19,11 +19,37 @@ FIXTURES = Path(__file__).parent / 'fixtures'
 DATA = ROOT.parents[1] / 'packages/talmud/src/lib/data'
 READINGS = json.loads((FIXTURES / 'source-reading-real-v8.json').read_text())
 REGISTRY = json.loads((FIXTURES / 'name-candidates-registry.json').read_text())
+SETTLEMENT = json.loads((FIXTURES / 'name-candidates-settlement.json').read_text())
 ALIASES = json.loads((DATA / 'rabbi-he-aliases.json').read_text())
 DUPLICATES = json.loads((DATA / 'rabbi-duplicates.json').read_text())['duplicates']
 PARENT = 'sage-graph-8b0f4c2d379702e96afa'
 R001 = 'sr1-ad0865bdfd579608bb25441c125ae17d9a260b9555f181ce925cada5c4ae5ffc'
 R101 = 'sr1-8b3d9cdeb11d0f31cf3ee609ad9d6f403bbad4c618862bd33f176c6f0f328dea'
+
+
+def source_of(text, ref, segment):
+    return dict(text=text, sha256=nc.sha(text), edition='Wikisource Talmud Bavli', ref=ref, provenance=dict(segment_id=segment))
+
+
+def mention_at(source, quote, start):
+    """An anchor on real text, with every field computed the way the reading compiler computes it."""
+    occurrence = sum(1 for i in range(start + 1) if source['text'].startswith(quote, i))
+    return dict(quote=quote, start=start, end=start + len(quote), occurrence=occurrence, source_id='s1', primary=True,
+                occurrenceKey=nc.occurrence_key(source, start, start + len(quote)), segmentId=source['provenance']['segment_id'],
+                edition=source['edition'], ref=source['ref'], source_sha256=source['sha256'])
+
+
+def move_mention(rows, person_id, text, quote, start):
+    """Put one person's only mention onto new text in its own segment, recomputing every anchor field."""
+    passage = next(r for r in rows if r['kind'] == 'passage')
+    person = next(r for r in rows if r['kind'] == 'person' and r['data']['id'] == person_id)
+    m = person['data']['mentions'][0]
+    source = next(x for x in passage['data']['sourceSegments'] if x['source_id'] == m['source_id'])
+    others = [p for p in passage['data']['people'] if p['id'] != person_id for x in p['mentions'] if x['source_id'] == m['source_id']]
+    assert not others and len(person['data']['mentions']) == 1, 'the moved mention must be alone in its segment'
+    source.update(text=text, sha256=nc.sha(text))
+    fresh = mention_at(source, quote, start)
+    m.update({k: fresh[k] for k in ('quote', 'start', 'end', 'occurrence', 'occurrenceKey', 'source_sha256')})
 
 
 def approved():
@@ -134,12 +160,21 @@ class NameCandidateTests(unittest.TestCase):
         cases, _ = self.build()
         again, _ = self.build()
         case = cases[R001 + '/p1']
-        record = nc.record(case, nc.rules_sha(), dict(revision=PARENT, recordSetSha256=self.registry['registryRecordSetSha256']))
-        self.assertEqual(nc.encode(record), nc.encode(nc.record(again[R001 + '/p1'], nc.rules_sha(), record['data']['registry'])))
+        aliases, duplicates = (DATA / 'rabbi-he-aliases.json').read_bytes(), (DATA / 'rabbi-duplicates.json').read_bytes()
+        producer = nc.envelope(self.registry, PARENT, aliases, duplicates)
+        record = nc.record(case, producer)
+        self.assertEqual(nc.encode(record), nc.encode(nc.record(again[R001 + '/p1'], nc.envelope(self.registry, PARENT, aliases, duplicates))))
         self.assertEqual(record['record_id'], f'name_candidates:v1/{R001}/p1')
         self.assertEqual((record['kind'], record['authority'], record['decision']), ('name_candidates', 'screening', 'needs_review'))
-        person = next(r for r in self.groups[0] if r['record_id'] == 'person:' + R001 + '/p1')
-        self.assertEqual(case['personPayloadSha256'], nc.digest(person['data']))
+        # Everything the output depends on is pinned: the module itself, every rule constant, the alias and duplicate files.
+        self.assertEqual(producer['matcherFileSha256'], nc.sha256_file(Path(nc.__file__)))
+        self.assertEqual((producer['heAliasesSha256'], producer['duplicatesSha256']), (nc.sha256_bytes(aliases), nc.sha256_bytes(duplicates)))
+        self.assertEqual(producer['registryRecordSetSha256'], self.registry['registryRecordSetSha256'])
+        # Each dependency says which form its hash is of; the stored hash is left for the importer.
+        rows = {r['record_id']: r for r in self.groups[0]}
+        for name, record_id in (('person', 'person:' + R001 + '/p1'), ('passage', 'passage:' + R001), ('sourceReading', 'source_reading:' + R001)):
+            self.assertEqual(case['bindings'][name], dict(recordId=record_id, rebuiltV1Sha256=nc.digest(rows[record_id]['data']), storedSha256=None))
+        self.assertIn('rebuiltV1Sha256', case['bindings']['format'])
         self.assertEqual(case['candidates'][0]['payloadSha256'],
                          next(r[1] for r in REGISTRY['rows'] if r[0] == 'registry_person:rav-rami-bar-hama'))
 
@@ -158,11 +193,37 @@ class NameCandidateTests(unittest.TestCase):
         person['data']['mentions'][0]['quote'] = 'רמי בר חמה'
         with self.assertRaisesRegex(ValueError, 'not at its span'):
             self.build(groups)
+        # Anchor fields copied from the reading must agree with the source text itself.
+        for field, value, message in (('source_sha256', '0' * 64, 'source hash differs'), ('occurrenceKey', 'occ-' + '0' * 64, 'occurrence key differs'),
+                                      ('occurrence', 2, 'occurrence differs'), ('segmentId', 'bavli|Shabbat|153b|99|Wikisource Talmud Bavli', 'identity differs'),
+                                      ('ref', 'Shabbat 153b:99', 'identity differs')):
+            groups = copy.deepcopy(self.groups)
+            person = next(r for r in groups[0] if r['record_id'] == 'person:' + R001 + '/p1')
+            person['data']['mentions'][0][field] = value
+            with self.assertRaisesRegex(ValueError, message):
+                self.build(groups)
 
     def test_human_decision_wins(self):
-        cases, skipped = self.build(settled={R001 + '/p1': 'accepted_identity:example'})
+        rows = [tuple(r) for r in SETTLEMENT['rows']]
+        settled = nc.settled_from_parent(rows)
+        hashes = {r[0]: r[8] for r in rows}
+        self.assertEqual(sorted(settled), ['b000-p0/B', 'b008-p0/D', 'b042-p0/A', 'b042-p3/B', 'b042-p3/D'])
+        self.assertEqual([x['recordId'] for x in settled['b042-p3/D']], ['connection:b042-p3/review/marriage'])
+        self.assertEqual(settled['b042-p3/D'][0]['authority'], 'user_correction')
+        self.assertTrue(all(x['payloadSha256'] == hashes[x['recordId']] for v in settled.values() for x in v))
+        self.assertNotIn('b267-p9/A', settled, 'an identity assessment decides nothing')
+        broken = [list(r) for r in rows]
+        broken[0][9] = broken[0][9].replace('"', ' "', 1)
+        with self.assertRaisesRegex(ValueError, 'Parent payload hash differs'):
+            nc.settled_from_parent([tuple(r) for r in broken])
+        # No real decision names a new-reading person yet. For this test, Rami takes the decision records of the
+        # accepted identity b042-p0/A; the records themselves are real and unchanged.
+        cases, skipped = self.build(settled={R001 + '/p1': settled['b042-p0/A']})
         self.assertNotIn(R001 + '/p1', cases)
-        self.assertIn('human correction', next(s['reason'] for s in skipped if s['personKey'] == R001 + '/p1'))
+        skip = next(s for s in skipped if s['personKey'] == R001 + '/p1')
+        self.assertEqual(skip['settledBy'], settled['b042-p0/A'])
+        with self.assertRaisesRegex(ValueError, 'Settlement needs its records'):
+            self.build(settled={R001 + '/p1': [dict(recordId='accepted_identity:example')]})
 
     def test_older_reading_of_the_same_words(self):
         # Built for this test from reading 001's own context segment: an older passage holding exactly that
@@ -174,14 +235,29 @@ class NameCandidateTests(unittest.TestCase):
         binding = dict(passageId='old-p0', edition=source['edition'], segmentId=source['provenance']['segment_id'], sourceSha256=nc.sha(text))
         self.assertEqual(text.count('רמי בר חמא'), 1)
         cases, skipped = self.build(spans=nc.older_occurrences(old, [binding]))
+        # Rami: the same words, the same role, every mention. Skipped, with the older person named.
         self.assertNotIn(R001 + '/p1', cases)
-        self.assertEqual(next(s['olderPeople'] for s in skipped if s['personKey'] == R001 + '/p1'), ['old-p0/A'])
-        # The father inside the same printed name overlaps it, so it is covered as well.
-        self.assertNotIn(R001 + '/p5', cases)
-        # A quote printed twice has no single position: the case stays, flagged.
+        skip = next(s for s in skipped if s['personKey'] == R001 + '/p1')
+        self.assertEqual([x['olderPeople'] for x in skip['olderReading']['covered']], [['old-p0/A']])
+        # The father inside that name only overlaps the older child's quote. He stays, with the overlap noted.
+        father = cases[R001 + '/p5']
+        self.assertEqual((father['olderReading']['covered'], [x['olderPeople'] for x in father['olderReading']['possible']]), ([], [['old-p0/A']]))
+        # An older father record quotes the whole patronymic, so it never covers Rami himself.
+        old[1] = ('person:old-p0/A', 'person', 'old-p0', json.dumps(dict(id='A', named='father_of_named', quote='רמי בר חמא', quoteLocation='passage')))
+        cases, _ = self.build(spans=nc.older_occurrences(old, [binding]))
+        self.assertEqual(cases[R001 + '/p1']['olderReading']['covered'], [])
+        # Rava is printed in s2 and s3. An older reading of s2 alone covers one mention, so Rava stays.
+        old[1] = ('person:old-p0/A', 'person', 'old-p0', json.dumps(dict(id='A', named='name', quote='רבא', quoteLocation='passage')))
+        self.assertEqual(text.count('רבא'), 1)
+        cases, _ = self.build(spans=nc.older_occurrences(old, [binding]))
+        rava = cases[R001 + '/p2']
+        self.assertEqual(len(rava['olderReading']['covered']), 1)
+        self.assertEqual(len(rava['mentions']), 2)
+        # A quote printed twice has no single position: only possible.
         old[1] = ('person:old-p0/A', 'person', 'old-p0', json.dumps(dict(id='A', named='name', quote='ר', quoteLocation='passage')))
         cases, _ = self.build(spans=nc.older_occurrences(old, [binding]))
-        self.assertEqual(cases[R001 + '/p1']['olderReadingMayCover'], ['old-p0/A'])
+        self.assertEqual(cases[R001 + '/p1']['olderReading']['covered'], [])
+        self.assertIn(['old-p0/A'], [x['olderPeople'] for x in cases[R001 + '/p1']['olderReading']['possible']])
 
     def test_repeated_window_keeps_separate_people(self):
         # Built for this test: reading 001's own rows under a second reading ID, standing in for an
@@ -196,11 +272,8 @@ class NameCandidateTests(unittest.TestCase):
         # Real text of Eruvin 59b:13 (live record passage:b068-p0). The alias רב אמי names Rabbi Ami only when
         # no patronymic follows; here רב אמי בר אדא is someone else.
         text = 'בעי מיניה רב אמי בר אדא הרפנאה מרבה סולם מכאן ופתח מכאן מהו א"ל הכי אמר רב סולם תורת פתח עליו'
-        source = dict(text=text, sha256=nc.sha(text), provenance=dict(segment_id='bavli|Eruvin|59b|13|Wikisource Talmud Bavli'))
-        mention = dict(quote='רב אמי', start=10, end=16, occurrence=1, occurrenceKey='occ-test', source_id='s1',
-                       segmentId=source['provenance']['segment_id'], edition='Wikisource Talmud Bavli', ref='Eruvin 59b:13',
-                       source_sha256=source['sha256'], primary=True)
-        result = nc.match_mention(mention, source, self.registry)
+        source = source_of(text, 'Eruvin 59b:13', 'bavli|Eruvin|59b|13|Wikisource Talmud Bavli')
+        result = nc.match_mention(mention_at(source, 'רב אמי', 10), source, self.registry)
         self.assertEqual([h['slug'] for h in result['exact']], [])
         self.assertEqual([r['slug'] for r in result['rejected']], ['rabbi-ami'])
         self.assertEqual(result['notes'][0]['rule'], 'continues-with-patronymic')
@@ -208,17 +281,14 @@ class NameCandidateTests(unittest.TestCase):
     def test_one_word_name_retries_once_without_an_attached_letter(self):
         # Real text of Temurah 6a:14 (live record passage:b338-p8): דאביי ורבא, "of Abaye and Rava".
         text = 'אמר ליה רב אחא בריה דרבא לרב אשי והשתא דשנינן כל הני שינויי דאביי ורבא במאי פליגי'
-        source = dict(text=text, sha256=nc.sha(text), provenance=dict(segment_id='bavli|Temurah|6a|14|Wikisource Talmud Bavli'))
-        mention = dict(quote='ורבא', start=66, end=70, occurrence=1, occurrenceKey='occ-test', source_id='s1',
-                       segmentId=source['provenance']['segment_id'], edition='Wikisource Talmud Bavli', ref='Temurah 6a:14',
-                       source_sha256=source['sha256'], primary=True)
-        result = nc.match_mention(mention, source, self.registry)
+        source = source_of(text, 'Temurah 6a:14', 'bavli|Temurah|6a|14|Wikisource Talmud Bavli')
+        result = nc.match_mention(mention_at(source, 'ורבא', 66), source, self.registry)
         self.assertEqual([f['name'] for f in result['forms']], ['ורבא', 'רבא'])
         self.assertEqual(result['forms'][1]['rules'], ['attached-prefix'])
         self.assertEqual([h['slug'] for h in result['exact']], ['rava'])
         self.assertEqual(result['nameShape'], 'short', 'so it can never become a suggestion')
-        mention.update(quote='רבא', start=67)
-        self.assertEqual([f['name'] for f in nc.match_mention(mention, source, self.registry)['forms']], ['רבא'], 'no retry when the printed word fits')
+        self.assertEqual([f['name'] for f in nc.match_mention(mention_at(source, 'רבא', 67), source, self.registry)['forms']], ['רבא'],
+                         'no retry when the printed word fits')
 
     def test_quote_inside_a_longer_word_is_not_a_name(self):
         # Real text of Temurah 6a:14. רבא after an attached ד or ו is a whole word; בא at the end of רבא is not,
@@ -229,13 +299,31 @@ class NameCandidateTests(unittest.TestCase):
         self.assertTrue(nc.on_word_edges(text, *at('ורבא', 'ורבא')))
         self.assertFalse(nc.on_word_edges(text, *at('ורבא', 'בא')))
         self.assertFalse(nc.on_word_edges(text, *at('והשתא', 'שת')))
-        start, end = at('ורבא', 'בא')
-        source = dict(text=text, sha256=nc.sha(text), provenance=dict(segment_id='bavli|Temurah|6a|14|Wikisource Talmud Bavli'))
-        mention = dict(quote='בא', start=start, end=end, occurrence=1, occurrenceKey='occ-test', source_id='s1',
-                       segmentId=source['provenance']['segment_id'], edition='Wikisource Talmud Bavli', ref='Temurah 6a:14',
-                       source_sha256=source['sha256'], primary=True)
-        result = nc.match_mention(mention, source, self.registry)
+        source = source_of(text, 'Temurah 6a:14', 'bavli|Temurah|6a|14|Wikisource Talmud Bavli')
+        result = nc.match_mention(mention_at(source, 'בא', at('ורבא', 'בא')[0]), source, self.registry)
         self.assertEqual((result['forms'], result['exact'], result['notes'][0]['rule']), ([], [], 'inside-a-word'))
+        # A one-word quote inside a longer word must not reach the one-letter retry (it used to raise IndexError).
+        result = nc.match_mention(mention_at(source, 'שנינ', at('דשנינן', 'שנינ')[0]), source, self.registry)
+        self.assertEqual((result['forms'], result['exact'], result['notes'][0]['rule']), ([], [], 'inside-a-word'))
+
+    def test_father_guard_sees_an_attached_dalet(self):
+        # Real text of Kiddushin 60a:4 (live record passage:b235-p4): רב משרשיא בריה דרב אמי. Rav Ami here is a
+        # father, so the alias רב אמי for Rabbi Ami must not fire, whether or not the quote includes the ד.
+        text = ('עולא אמר רבי יוחנן אפי' + "'" + ' מאה תופסין בה וכן אמר ר' + "'" + ' אסי אמר רבי יוחנן אפילו מאה תופסין בה אמר ליה רב משרשיא '
+                'בריה דרב אמי לר' + "'" + ' אסי אסברה לך טעמא דרבי יוחנן שוו נפשיה כי שרגא דליבני דכל חד וחד רוחא לחבריה שבק')
+        self.assertEqual(nc.sha(text), '7bc15aacc7722b4e3e7f83edaeccfcf375cb3b71fe9529e79370c8836aa37fb2', 'the live passage text')
+        source = source_of(text, 'Kiddushin 60a:4', 'bavli|Kiddushin|60a|4|Wikisource Talmud Bavli')
+        at = text.index('דרב אמי')
+        for quote, start in (('רב אמי', at + 1), ('דרב אמי', at)):
+            result = nc.match_mention(mention_at(source, quote, start), source, self.registry)
+            self.assertEqual([h['slug'] for h in result['exact']], [], quote)
+            self.assertEqual([r['slug'] for r in result['rejected']], ['rabbi-ami'], quote)
+        # The same alias still fits where no patronymic comes before it: real text of Gittin 69a:9 (passage:b525-p3).
+        plain = source_of('אמר ליה רב אמי לרב אשי והאנן איפכא תנן ניטל הכבד ולא נשתייר הימנה כלום הריאה שניקבה או שחסרה אמר ליה כיון דמפומיה '
+                          'קאתי אימר איתמוחי איתמח', 'Gittin 69a:9', 'bavli|Gittin|69a|9|Wikisource Talmud Bavli')
+        self.assertEqual(plain['sha256'], 'fbc1407a02551827469c6354fb8cf6e152b32730cbe3db230bb712837dfc6b26', 'the live passage text')
+        result = nc.match_mention(mention_at(plain, 'רב אמי', 8), plain, self.registry)
+        self.assertEqual(([h['slug'] for h in result['exact']], result['rejected']), (['rabbi-ami'], []))
 
     def test_registry_rows_that_are_not_sages_are_never_candidates(self):
         ts = (DATA.parent / 'nonSageTopics.ts').read_text()
@@ -262,12 +350,7 @@ class NameCandidateTests(unittest.TestCase):
         # source goes on: רבא בריה דרבה בר רב הונא. Reading 101's Rabbi Meir is moved onto this text for the test.
         text = 'וכמה הוי בין יתר לקשת רבה בר רב הונא אמר אלפים אמה רבא בריה דרבה בר רב הונא אמר אפילו יתר מאלפים אמה'
         groups = copy.deepcopy(self.groups)
-        passage = next(r for r in groups[1] if r['kind'] == 'passage')
-        person = next(r for r in groups[1] if r['record_id'] == 'person:' + R101 + '/p3')
-        m = person['data']['mentions'][0]
-        source = next(s for s in passage['data']['sourceSegments'] if s['source_id'] == m['source_id'])
-        source.update(text=text, sha256=nc.sha(text))
-        m.update(quote='רבא בריה דרבה', start=51, end=64)
+        move_mention(groups[1], 'p3', text, 'רבא בריה דרבה', 51)
         case = self.build(groups)[0][R101 + '/p3']
         self.assertEqual(case['mentions'][0]['exact'][0]['slug'], 'rava-b-rabbah')
         self.assertEqual(case['mentions'][0]['notes'][0]['word'], 'בר')
@@ -278,14 +361,12 @@ class NameCandidateTests(unittest.TestCase):
         # Built for this test from reading 101's own rows: Rabbi Meir's printed name replaced by a full name
         # whose registry rows carry labels, with the segment text changed to match so the anchor holds.
         groups = copy.deepcopy(self.groups)
-        rows = groups[1]
-        passage = next(r for r in rows if r['kind'] == 'passage')
-        person = next(r for r in rows if r['record_id'] == 'person:' + R101 + '/p3')
+        person = next(r for r in groups[1] if r['record_id'] == 'person:' + R101 + '/p3')
         m = person['data']['mentions'][0]
-        source = next(s for s in passage['data']['sourceSegments'] if s['source_id'] == m['source_id'])
+        passage = next(r for r in groups[1] if r['kind'] == 'passage')
+        old = next(s for s in passage['data']['sourceSegments'] if s['source_id'] == m['source_id'])['text']
         name = 'רבן שמעון בן גמליאל'
-        source['text'] = source['text'][:m['start']] + name + source['text'][m['end']:]
-        m.update(quote=name, end=m['start'] + len(name))
+        move_mention(groups[1], 'p3', old[:m['start']] + name + old[m['end']:], name, m['start'])
         case = self.build(groups)[0][R101 + '/p3']
         self.assertEqual(case['status'], 'alternatives')
         self.assertIn('label (2)', case['reason'])

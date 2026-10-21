@@ -1,0 +1,78 @@
+{
+  "provenance": "Real records copied byte for byte from live revision sage-graph-8b0f4c2d379702e96afa: two accepted identities, an accepted local identity, a human correction naming two local people, and an identity assessment that decides nothing. Nothing edited.",
+  "revision": "sage-graph-8b0f4c2d379702e96afa",
+  "columns": [
+    "record_id",
+    "kind",
+    "passage_id",
+    "ref",
+    "subject_id",
+    "object_id",
+    "authority",
+    "decision",
+    "payload_sha256",
+    "payload_json"
+  ],
+  "rows": [
+    [
+      "accepted_identity:b042-p0/A",
+      "accepted_identity",
+      "b042-p0",
+      "Ketubot 22a:11",
+      "shmuel-(amora)",
+      null,
+      "source_review",
+      "accepted",
+      "83233e5d8c4eb87582418fb427211a5cfd24b41acb4c6c3aced86e1a7b505227",
+      "{\"generation\":\"amora-bavel-1\",\"generationBasis\":\"existing_registry\",\"identityDecision\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"בעא מיניה שמואל מרב אמרה טמאה אני וחזרה ואמרה טהורה אני מהו אמר ליה אף בזו אם נתנה\"}],\"occurrences\":[{\"end\":15,\"quote\":\"שמואל\",\"start\":10}],\"personKey\":\"b042-p0/A\",\"personSha256\":\"9e259521006bca1b03ed53a918f1f688f833325d01329d6d8f4d82b9bd00c57c\",\"reason\":\"The named Shmuel directly asks Rav a legal question. This is the Amora, not the biblical prophet.\",\"registrySlug\":\"shmuel-(amora)\",\"sourceSha256\":\"1fd05dd35b28827850858ad4b32f447524bb8f10bd3586848bfa7f9964aae6af\",\"status\":\"accepted\"},\"label\":\"Shmuel (Amora)\",\"personId\":\"shmuel-(amora)\",\"personKey\":\"b042-p0/A\"}"
+    ],
+    [
+      "connection:b042-p3/review/marriage",
+      "connection",
+      "b042-p3",
+      "Horayot 12b:13",
+      "local:b042-p3/D",
+      "local:b042-p3/B",
+      "user_correction",
+      "supported",
+      "43cb7fbd16e0115792bd73b2d8ff4e28ef5765dcb18f2aef20223f9533785c31",
+      "{\"a\":\"local:b042-p3/D\",\"b\":\"local:b042-p3/B\",\"claimIds\":[\"b042-p3/r2\"],\"decision\":\"supported\",\"evidence\":[{\"location\":\"passage\",\"quote\":\"ויהיב ליה ברתיה\"}],\"historicalIdentityResolved\":false,\"id\":\"b042-p3/review/marriage\",\"mode\":\"stated\",\"outcome\":\"established\",\"passageId\":\"b042-p3\",\"reason\":\"Giving him his daughter is the narrative marriage idiom, not a proposed or conditional marriage.\",\"ref\":\"Horayot 12b:13\",\"relation\":\"spouse_of\",\"sourcePersonKey\":\"b042-p3/D\",\"sourceRowSha256\":\"c7a11d0184f1821e6f746f87489d7031482d1cad5260ce5904e617f634389494\",\"sourceSha256\":\"6f2e80fd6369679f4dfddd811036b0a5e249c3e97b44f869ae26e3d3490d83b4\",\"targetPersonKey\":\"b042-p3/B\",\"type\":\"family\"}"
+    ],
+    [
+      "source_identity:b000-p0/B",
+      "source_identity",
+      "b000-p0",
+      "Sanhedrin 33a:6",
+      "rav-ashi",
+      null,
+      "source_review",
+      "accepted_registry_identity",
+      "7c6e97badbcd2eec9f09f9287708a6c9b2d0ec8aba8c77e7c011dd1a903203ad",
+      "{\"assessmentId\":\"identity_assessment:case-11d6afd1d3120fb4494d\",\"evidence\":[{\"location\":\"passage\",\"quote\":\"א\\\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\\\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\\\"ל אטו אנן קטלי קני באגמא אנן\"}],\"generationBasis\":\"existing_registry_not_new_dating\",\"historicalIdentityResolved\":true,\"personId\":\"rav-ashi\",\"personKey\":\"b000-p0/B\",\"proposalId\":\"identity_proposal:wide-v1-recovery/case-11d6afd1d3120fb4494d\",\"reason\":\"Rav Ashi and Ravina discuss rulings of earlier Rav and Shmuel. The exact name and later Babylonian discussion identify Rav Ashi, not Asi.\",\"sources\":[\"https://daat.ac.il/encyclopedia/value.asp?id1=52\",\"https://www.sefaria.org/Sanhedrin_33a.6\"],\"status\":\"accepted_registry_identity\"}"
+    ],
+    [
+      "source_identity:b008-p0/D",
+      "source_identity",
+      "b008-p0",
+      "Shabbat 116b:8",
+      "local:b008-p0/D",
+      null,
+      "source_review",
+      "accepted_local",
+      "952251036404b20519bceac21e019b421b4f8f55fd639411b0dfea49ac6cb139",
+      "{\"evidence\":[{\"location\":\"passage\",\"quote\":\"מאי בינייהו איכא בינייהו דמנח אפתורא דדהבא אי נמי יומא דאסתנא ורבי ישמעאל בנו של רבי יוחנן בן ברוקה האי פעל ה' למענהו מאי עביד ליה שלא יוציא את האימורין קודם הפשטת העור מ\\\"ט אמר רב הונא בריה דרב נתן משום נימין\"}],\"historicalIdentityResolved\":false,\"personId\":\"local:b008-p0/D\",\"personKey\":\"b008-p0/D\",\"reason\":\"He explains the ruling. This passage gives no conversation partner that would distinguish the proposed earlier and later people with this name.\",\"status\":\"accepted_passage_identity\"}"
+    ],
+    [
+      "identity_assessment:case-0005174a534e03f3852f",
+      "identity_assessment",
+      "b267-p9",
+      "Bava Metzia 15a:17",
+      "local:b267-p9/A",
+      "rav-hiyya-bar-avin",
+      "source_review",
+      "reviewed",
+      "7e097b34961d9583da95a8db1e80432a5069d192d10531ba890f1db900802651",
+      "{\"acceptedPersonId\":\"rav-hiyya-bar-avin\",\"alternativesConsidered\":[{\"candidateId\":\"rav-hiyya-bar-avin\",\"canonicalHe\":\"רב חייא בר אבין\",\"reason\":\"Registry Hebrew name matches the written given name and father.\",\"verdict\":\"supported\"},{\"candidateId\":\"full-registry-check\",\"reason\":\"Exhaustive lookup over all 1,352 registry people: strict Hebrew ['rav-hiyya-bar-avin'], loose Hebrew ['rav-hiyya-bar-avin'], given-name-and-father ['rav-hiyya-bar-avin']; shared English aliases with other people: none.\",\"verdict\":\"checked\"}],\"alternativesNotSupported\":7,\"caveats\":[\"Read by the first reader only. This occurrence was not second-read; 4 of 19 occurrences in its group were, with no disagreement in groups that were not rechecked.\",\"Its group had an audit difference, so the release reviewer reread every occurrence of the group in context before release.\",\"No external source was captured. Dating and interactions were not reviewed.\"],\"datingDecision\":\"not_reviewed\",\"evidence\":[{\"end\":19,\"location\":\"passage\",\"quote\":\"רב חייא בר אבין\",\"sourcePayloadSha256\":\"7014af726d1a9f8de5ef21fabeda3a2d1272a368812dd9c7d61b9f4a774c9c68\",\"start\":4,\"supports\":\"Target occurrence: To Rava on improvements in a gift.\"}],\"firstReaderReason\":null,\"generationDecision\":\"held\",\"generationReason\":\"Dating was not reviewed. Any generation shown comes from the existing registry and is not new dating.\",\"interactionDecision\":\"not_reviewed\",\"interactionNote\":\"This review decides who the person is. It does not decide whether an interaction happened.\",\"outcome\":\"accepted\",\"personKey\":\"b267-p9/A\",\"priorReaderDecisions\":{\"reader-v17-a\":{\"final\":{\"acceptedPersonId\":\"rav-hiyya-bar-avin\",\"decision\":\"accept\",\"fileSha256\":\"d04d8a9276f754e7d9544e31e1c73bf1d822a71be53ec8b57da14b6c1b325eae\"},\"initial\":{\"acceptedPersonId\":\"rav-hiyya-bar-avin\",\"decision\":\"accept\",\"fileSha256\":\"c4faa363d1d2e8628823306e205755ea9675244cdb729bb8777e8c2c102393d3\"},\"remainingUncertainty\":\"Pending independent audit. A full-name match plus this context; no external source was captured for this occurrence.\"}},\"proposalId\":\"identity_proposal:wide-v1-recovery/case-0005174a534e03f3852f\",\"proposalPayloadSha256\":\"0b1b9b44833756b93ee35867c66fd7a288575c1cb72b2018ec6f8376c37e1788\",\"proposedPersonId\":\"rav-hiyya-bar-avin\",\"reason\":\"To Rava on improvements in a gift. Group reasoning: Written name (Rav/Rabbi) Chiya bar Avin. The registry has one person with this name; its biography names Rav Huna, Rav Chisda, Rav Sheshet, Rava and R. Yochanan as his teachers or partners, his brother Rav Idi bar Avin, his father R. Avin the carpenter, his student Rav Nachman bar Yitzchak, and the Yerushalmi form R. Chiya bar Bun. Each occurrence fits that circle. The saved proposal names the same person; agreement is not evidence and did not change this judgment.\",\"referenceEvidence\":[],\"releaseDecision\":\"accept\",\"releaseReview\":{\"affectedGroupRecheck\":true,\"decidedBy\":\"release reviewer\",\"decision\":\"accept\",\"groupId\":\"G065\",\"markerStatus\":\"linked\",\"reason\":\"Read in full in the release recheck of this affected group; the first decision stands.\",\"releaseDecisionsSha256\":\"ba7a5626e230222a87b82435a3b7fd3a7d7311972b65294b251475433c78662a\",\"reviewer\":\"release-v17\",\"sourceUrlBinding\":\"single source URL for every captured edition of this unit\",\"sourceUrlIndexSha256\":\"4df777d9b3198c6491c05192e817ea308b44f2cb04826b66f747b8d49878ea7e\",\"spansNotLinked\":[]},\"remainingGaps\":[],\"reviewId\":\"reader-v17-a/case-0005174a534e03f3852f\",\"reviewScope\":{\"externalSources\":\"none captured; the decision rests on the passage text and the registry\",\"firstReading\":\"reader-v17-a\",\"groupAudited\":\"4 of 19 occurrences in its group\",\"independentSecondReading\":\"not for this occurrence\",\"releaseGroupRecheck\":true},\"reviewSha256\":\"d04d8a9276f754e7d9544e31e1c73bf1d822a71be53ec8b57da14b6c1b325eae\",\"reviewedAt\":\"2026-10-19T13:56:16Z\",\"reviewer\":\"reader-v17-a\",\"sources\":[\"https://www.sefaria.org/Bava%20Metzia%2015a\"]}"
+    ]
+  ]
+}
