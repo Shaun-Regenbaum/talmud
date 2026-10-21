@@ -171,14 +171,15 @@ class CheckedStoreTests(unittest.TestCase):
         (artifacts / name).write_text(self.texts[JOBS[0]] + ' ')
         with self.assertRaisesRegex(ValueError, 'Downloaded R2 file differs'):
             stores.verify_store(self.root / 'first.sql', self.root / 'first.json', artifacts, [OWNERSHIP], checked=inputs)
-        # A second checked version of the same raw result is refused.
+        # A second checked version of the same raw result comes in another selection, which is refused.
+        # (Within one selection a raw result can appear only once.)
         rows = self.db.execute(f'SELECT {stores.COLUMNS} FROM sage_graph_all_records WHERE revision_id=?', (first['revision'],))
         existing = {r[0]: stores.item(r) for r in rows}
         bundle = copy.deepcopy(self.bundles[0])
         held = next(d for d in bundle['plan']['decisions'] if d['kind'] == 'connection' and d['action'] == 'hold')
         held['reason'] += ' (reviewed again)'
         selection, approvals, texts = release_inputs([approve(bundle)])
-        with self.assertRaisesRegex(ValueError, 'already stored'):
+        with self.assertRaisesRegex(ValueError, 'another checked selection'):
             self.changes(first['sourceReadingStore'], first['revision'], existing, selection, approvals, texts)
 
     def test_prepare_refuses_a_raw_result_the_legacy_graph_already_read(self):
@@ -214,6 +215,12 @@ class CheckedStoreTests(unittest.TestCase):
         clean.commit()
         result = stores.prepare_checked(*args('prepared')[:6], self.root / 'clean.sqlite', LEGACY, self.root / 'prepared')
         self.assertEqual((result['readings'], result['rawResultsInLegacyGraph']), (2, 0))
+        # A graph copy that is not its newest verified revision could predate a human correction.
+        clean.execute("INSERT INTO sage_graph_revisions(id,manifest_json,state,created_at) VALUES "
+                      "('sage-graph-11111111111111111111','{}','verified','2999-01-01T00:00:00.000Z')")
+        clean.commit()
+        with self.assertRaisesRegex(ValueError, 'newest verified revision'):
+            stores.prepare_checked(*args('stale')[:6], self.root / 'clean.sqlite', LEGACY, self.root / 'stale')
 
     def test_an_edited_upgrade_or_store_block_is_refused(self):
         upgrade = stores.upgrade_changes(self.genesis['sourceReadingStore'], self.genesis['revision'])

@@ -225,6 +225,10 @@ def changes_for(block, selection_text, selection_pin, approval_texts, bundle_tex
     existing = existing or {}
     # At most one checked version of a raw queue result.
     held = {r['data']['supersedes']['rawResultHash']: r['record_id'] for r in existing.values() if r['kind'] == 'checked_reading'}
+    # This first format reads a store back with one selection, so a store holds readings of one selection.
+    # A later batch from another selection needs multi-selection support first; nothing is reused implicitly.
+    others = {r['data']['selectionSha256'] for r in existing.values() if r['kind'] == 'checked_reading'} - {selection_pin}
+    require(not others, 'This store holds readings of another checked selection; that needs multi-selection support')
     raws = [r['data']['supersedes']['rawResultHash'] for r in rows if r['kind'] == 'checked_reading']
     require(len(raws) == len(set(raws)), 'Two checked versions of one raw result')
     changed = []

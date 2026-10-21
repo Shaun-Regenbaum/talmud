@@ -446,6 +446,8 @@ def prepare(store, capture, parent_db, parent_revision, ownership, legacy_db, le
     # never hold a reading the graph already has, so a human correction there cannot be shadowed.
     legacy, overlap = _read_rows(legacy_db, legacy_revision, keys)
     require(not is_store(legacy), 'The legacy revision is a source-reading store')
+    # An older graph copy could predate a human correction, so only the newest verified one will do.
+    require(legacy['newest'], 'The legacy graph copy must be its newest verified revision')
     require(not overlap, 'The legacy graph already holds these records: ' + ', '.join(sorted(overlap)[:5]))
     changes = changes_for(store, bundles, parent_revision, inputs, ownership, legacy_revision,
                           {k: item(r) for k, r in existing.items()}, block)
@@ -477,6 +479,8 @@ def prepare_checked(store, selection_path, selection_pin, parent_db, parent_revi
     require(parent['newest'], 'A store release must extend the newest verified revision')
     legacy, overlap = _read_rows(legacy_db, legacy_revision, keys)
     require(not is_store(legacy), 'The legacy revision is a source-reading store')
+    # An older graph copy could predate a human correction, so only the newest verified one will do.
+    require(legacy['newest'], 'The legacy graph copy must be its newest verified revision')
     require(not overlap, 'The legacy graph already holds these records: ' + ', '.join(sorted(overlap)[:5]))
     # A graph reading of the same raw queue result may carry human corrections that a checked reading
     # would shadow. Until a reviewed mapping exists for that, such a bundle is refused.

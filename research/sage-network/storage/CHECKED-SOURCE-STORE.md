@@ -30,6 +30,14 @@ hash, and the hash of the root approval file that approves it.
   that store. A store with none of the selection's readings is refused.
 - **At most one checked version of a raw queue result is stored.** A second one is refused. Replacing
   a version will need an explicit supersession, which this first format does not have.
+- **A store holds readings of one selection, for now.** The read-back rebuilds checked rows with one
+  selection, so a batch from a second selection is refused. A later release with another selection
+  needs multi-selection support first. Nothing is reused implicitly.
+- **The legacy graph check uses the newest graph only.** `prepare-checked` refuses a legacy graph copy
+  that is not its newest verified revision, because an older copy could predate a human correction. It
+  refuses any record ID the graph already holds. It also refuses any bundle whose exact raw queue result
+  already has a reading in the graph, matched by `resultSha256`. The release uses the current graph
+  export and the exact `prepare-checked` output.
 
 ## The rows of one checked reading
 
