@@ -77,6 +77,21 @@ cannot go into the graph. A store revision can only extend a revision of the sam
 - **Revision IDs in responses.** `/initial` and `/person?id=reading:...` return `sourceRevisions`, the
   revision used for each store. A client can send these back to read the same data again. The graph
   revision is still `revision`.
+- **Cards read the page's revisions.** The reader sends the page's `revision` and `sourceRevisions` with
+  every person card it opens, and with every link inside a card, as `revision`, `bavliRevision` and
+  `otherRevision`. `none` means the page read no revision of that store, so the card skips it too. A
+  named revision that is not there is an error. The card shows it and never asks again without the
+  revision. `packages/talmud/src/lib/sage-graph/reading-pins.ts` holds this.
+- **Several readings of the same words are shown once.** Readings that quote the same span share one
+  occurrence. Readings that quote different spans of the same words also share one. For example, an
+  older reading quotes "אמר רב" and a newer one quotes "רב". Two occurrences join when they are in the
+  same source segment, come from different readings, and each overlaps the other more than anything
+  else in the other reading. One reading's own occurrences never join, so a son's name and the father
+  named inside it stay apart. A joined occurrence keeps every reading's proposal and shows the narrowest
+  quote.
+- **Nothing is chosen between readings.** A joined occurrence with people from two readings is never
+  linked on the page. Each person card shows and counts only its own reading's relationships, so a
+  second reading of a job never doubles a count.
 - **The graph copy wins.** If a passage is in both the graph and a store, the app uses the graph copy.
   The graph holds older readings and every human correction. Reviewed people at the same words still
   come from the graph.
@@ -100,8 +115,8 @@ cannot go into the graph. A store revision can only extend a revision of the sam
 ## Limits
 
 - **"The graph copy wins" works per reading.** A new reading of a job the graph already read is a
-  different reading, so it is shown beside the graph's. This is how the graph treats two readings of
-  one job today.
+  different reading. It is kept as its own proposal, and its occurrences are shown with the graph
+  reading's, once.
 - **No undo.** A verified revision cannot be switched off. To undo a release, publish a new revision.
   This is the same as for the graph.
 - **Split pieces.** No captured reading covers a split piece yet. The occurrence key for a piece is

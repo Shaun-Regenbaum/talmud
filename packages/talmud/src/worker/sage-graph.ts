@@ -5,10 +5,10 @@ import { initialPlacement } from '../lib/sage-graph/initial-placement';
 import {
   type InitialOccurrence,
   type InitialReading,
-  initialOccurrences,
   initialPerson,
   type ReadingClaim,
   type ReadingPerson,
+  readingOccurrences,
 } from '../lib/sage-graph/initial-readings';
 import { type LegacyPayload, type LegacyRow, legacyCards } from '../lib/sage-graph/legacy-readings';
 import {
@@ -559,6 +559,7 @@ sageGraph.get('/initial', async (c) => {
     }
   }
   const occurrences = new Map<string, InitialOccurrence>();
+  const pageReadings: { passageId: string; people: ReadingPerson[] }[] = [];
   const storedRows: LegacyRow[] = [];
   for (const passageId of readingSources.keys()) {
     const passage = readings.get(passageId)!;
@@ -567,16 +568,11 @@ sageGraph.get('/initial', async (c) => {
       const unit = JSON.parse(row.payload_json) as OwnedReadingUnit;
       if (onPage(unit.ref)) addSource(unit, passageId);
     }
-    for (const occurrence of initialOccurrences(passageId, passage.people)) {
-      if (!onPage(occurrence.ref)) continue;
-      const previous = occurrences.get(occurrence.key);
-      if (previous)
-        previous.people.push(
-          ...occurrence.people.filter((p) => !previous.people.some((old) => old.id === p.id)),
-        );
-      else occurrences.set(occurrence.key, occurrence);
-    }
+    pageReadings.push({ passageId, people: passage.people });
   }
+  // Several readings of the same words are shown once, and keep every reading's proposal.
+  for (const occurrence of readingOccurrences(pageReadings, onPage))
+    occurrences.set(occurrence.key, occurrence);
   const older = await db
     .prepare(
       `SELECT DISTINCT passage_id FROM sage_graph_all_records WHERE revision_id=? AND ((kind IN ('name_reading','identity_proposal') AND authority='screening' AND decision='needs_review') OR (kind='source_identity' AND authority IN ('source_review','user_correction') AND decision IN ('accepted_local','accepted_registry_identity'))) AND ${where} ORDER BY passage_id LIMIT 101`,

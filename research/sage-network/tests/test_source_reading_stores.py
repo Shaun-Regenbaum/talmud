@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'storage'))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -15,11 +16,51 @@ import source_reading_store as compact_store  # noqa: E402
 import source_reading_stores as stores  # noqa: E402
 from extend_d1 import prepare  # noqa: E402
 from ownership.tile_ownership import POLICY, VERSION, digest, source_unit  # noqa: E402
+from compact_source_v2.validate import check_saved  # noqa: E402
+from source_coverage import pinned_index, records as coverage_records  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 CAPTURE = json.loads((Path(__file__).parent / 'fixtures/source-reading-real-v8.json').read_text())
 LEGACY = 'sage-graph-' + '0' * 20
 APP_FIXTURE = ROOT / 'packages/talmud/tests/fixtures/source-reading-stores.json'
+STRONGER8 = json.loads((Path(__file__).parent / 'fixtures/source-reading-stronger8-real.json').read_text())
+
+
+def v4_bundles():
+    v4 = STRONGER8['v4']
+    shard = v4['manifest']['shards'][0]
+    return [dict(job=e['job'], config=v4['config'], result=v4['results'][e['job']['job_id']], amendment=None,
+                 inputProof=dict(manifest=v4['manifest'], file=shard['file'], sha256=shard['sha256'], index=e['index']))
+            for e in v4['jobs']]
+
+
+def v4_rows(bundle):
+    """v1 rows for one real compact-source-v4 result, for the app tests' Hebrew labels only. The importer
+    does not accept v4 runs. These rows come from the unchanged records() code, given the run's own
+    v2-checked compile (check_saved) in place of checked_bundle, after the saved result's hashes are checked."""
+    result, job = bundle['result'], bundle['job']
+    assert result['resultHash'] == importer.digest({k: v for k, v in result.items() if k != 'resultHash'})
+    assert result['jobHash'] == importer.digest(job) and result['manifestHash'] == importer.digest(bundle['config'])
+    compiled = check_saved(job, result['compiled']['v2_check'])
+    focal = next(s for s in job['sources'] if s['provenance'].get('focal') is True)
+    with mock.patch.object(importer, 'checked_bundle', return_value=(compiled, focal)):
+        return importer.records(bundle)
+
+
+def hebrew_rows():
+    """Two real readings of each of jobs 005 and 007: v4 with Hebrew labels, v2 with English labels."""
+    ownership = store_ownership(v4_bundles())  # both readings are of these same jobs
+    index = pinned_index(ownership)
+    out = {}
+    for name, bundles, build in (('v4', v4_bundles(), v4_rows), ('v2', STRONGER8['v2'], importer.records)):
+        rows = []
+        for bundle in bundles:
+            items = build(bundle)
+            rows += items + coverage_records(bundle['job'], items[0]['passage_id'], index)
+        compacted = compact_store.compact(rows)
+        assert compact_store.expand(compacted, {r['passage_id']: b for b in bundles for r in build(b)[:1]}) == rows
+        out[name] = dict(v1=[stored(r) for r in rows], stored=[stored(r) for r in compacted])
+    return out
 
 
 def store_ownership(bundles, source_version='full-bavli-tiles v1'):
@@ -69,7 +110,12 @@ def app_fixture():
         pieceKey=dict(source=truncated, start=start, end=start + len(name), quote=name,
                       truncated=dict(keptCodePoints=700, fullCodePoints=len(piece['text']), fullTextSha256=piece['sha256'],
                                      note='Test input only: the text is cut short. The key does not depend on the text.'),
-                      key=importer.occurrence_key(piece, start, start + len(name))))
+                      key=importer.occurrence_key(piece, start, start + len(name))),
+        hebrew=dict(provenance='Real results for jobs v18-bavli-005 and 007, from '
+                               'research/sage-network/tests/fixtures/source-reading-stronger8-real.json. v4 is the '
+                               'stronger8 compact-source-v4 run, read through v4_rows() because the importer does not '
+                               'accept v4 runs; v2 is the quality-210 run. Ownership covers these two jobs only.',
+                    **hebrew_rows()))
 
 
 def database(path=':memory:'):
@@ -299,6 +345,24 @@ class SourceReadingStoreTests(unittest.TestCase):
                         (json.loads(c['manifest.json'])['revision'],))
         with self.assertRaises(sqlite3.DatabaseError):
             self.db.executescript(c['activate.sql'])
+
+    def test_real_hebrew_readings_round_trip_and_keep_their_own_provenance(self):
+        rows = hebrew_rows()
+        v4 = [json.loads(r['payload_json']) for r in rows['v4']['v1'] if r['kind'] == 'person']
+        self.assertIn('רב יוסף', {p['label'] for p in v4})
+        self.assertTrue(all(p['label'] == p['quote'] for p in v4))
+        # Two readings of the same job: different reading IDs and artifacts, the same occurrence keys.
+        envelopes = {name: [json.loads(r['payload_json']) for r in rows[name]['v1'] if r['kind'] == 'source_reading']
+                     for name in rows}
+        self.assertFalse({e['passageId'] for e in envelopes['v4']} & {e['passageId'] for e in envelopes['v2']})
+        self.assertNotEqual({e['provenance']['artifactSha256'] for e in envelopes['v4']},
+                            {e['provenance']['artifactSha256'] for e in envelopes['v2']})
+        shared = set().union(*(e['occurrenceKeys'] for e in envelopes['v4'])) & set().union(*(e['occurrenceKeys'] for e in envelopes['v2']))
+        self.assertTrue(shared)
+        changed = copy.deepcopy(v4_bundles()[0])
+        changed['result']['compiled']['v2_check']['record']['people'][0]['label'] = 'רבא'
+        with self.assertRaises(AssertionError):
+            v4_rows(changed)
 
     def test_app_fixture_matches_the_current_rows(self):
         # Regenerate with: python tests/test_source_reading_stores.py --write-app-fixture, then biome format --write it.

@@ -1,3 +1,4 @@
+import { NO_STORE_REVISION } from '../lib/sage-graph/reading-pins';
 import { SOURCE_READING_STORE_FORMAT } from '../lib/sage-graph/source-reading-store';
 import type { Bindings } from './types';
 
@@ -52,7 +53,10 @@ function usable(name: SourceStoreName, row: { id: string; manifest_json: string 
   }
 }
 
-/** A requested revision must exist exactly; otherwise use the newest verified one. */
+/**
+ * A requested revision must exist exactly, or the request fails; it never falls back to the newest.
+ * `none` skips the store. With nothing requested, use the newest verified revision.
+ */
 export async function resolveSourceStores(
   env: Bindings,
   query: (name: string) => string | undefined,
@@ -65,6 +69,8 @@ export async function resolveSourceStores(
   for (const { name, binding, param } of SOURCE_STORES) {
     const requested = query(param);
     if (requested === '') return { error: 'Name a source reading revision', status: 404 };
+    // The page this request came from read no revision of this store, so neither does the request.
+    if (requested === NO_STORE_REVISION) continue;
     const db = env[binding];
     if (!db) {
       if (requested) return { error: 'Source reading store is not available', status: 404 };

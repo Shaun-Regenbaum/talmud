@@ -4,6 +4,12 @@ import { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { InitialOccurrence } from '../src/lib/sage-graph/initial-readings';
 import {
+  parseSourcePersonHash,
+  pinQuery,
+  readingPins,
+  sourcePersonHash,
+} from '../src/lib/sage-graph/reading-pins';
+import {
   canonicalJson,
   decodeStoredPassage,
   occurrenceKey,
@@ -76,10 +82,16 @@ describe('the compact store decoder', () => {
     await expect(
       decodeStoredPassage(pid, await edit('person', (d) => (d.format = 'source-reading-store-v1'))),
     ).rejects.toThrow('Not source-reading-store-v2 rows');
+    // Another real name from this passage, put where it does not stand.
+    const mentionsOf = (r: StoredRow) => JSON.parse(r.payload_json).mentions as unknown[][];
+    const persons = rows.filter((r) => r.kind === 'person');
+    const elsewhere = persons
+      .map((r) => mentionsOf(r)[0][4])
+      .find((quote) => quote !== mentionsOf(persons[0])[0][4]);
     await expect(
       decodeStoredPassage(
         pid,
-        await edit('person', (d) => ((d.mentions as unknown[][])[0][4] = 'רבה')),
+        await edit('person', (d) => ((d.mentions as unknown[][])[0][4] = elsewhere)),
       ),
     ).rejects.toThrow('does not match its source words');
     await expect(
@@ -476,5 +488,138 @@ describe('reading initial names from the source-reading stores', () => {
       `/person?id=${encodeURIComponent(`reading:${passages[1]}/p1`)}`,
     );
     expect(card.status).toBe(404);
+  });
+});
+
+// Real readings of jobs v18-bavli-005 (Eruvin 29a:15) and 007 (Niddah 41b:9): the stronger8 v4 run with
+// Hebrew labels, and the quality-210 v2 run of the same jobs with English labels. See fixture.hebrew.
+const hebrew = fixture.hebrew as Record<'v4' | 'v2', { v1: StoredRow[]; stored: StoredRow[] }>;
+type Placed = {
+  placement: {
+    sources: { key: string; text: string }[];
+    occurrences: (InitialOccurrence & { sourceKey: string; start: number; end: number })[];
+  };
+};
+/** Fresh databases for one test: graph rows and store rows, each as one verified revision. */
+function setUp(graphRows: StoredRow[], storeRows: StoredRow[]) {
+  for (const db of [graph, bavli]) db.close();
+  graph = database();
+  bavli = database();
+  publish(graph, GRAPH, {}, graphRows, '2026-10-20T00:00:00.000Z');
+  publish(bavli, BAVLI, block('bavli'), storeRows, '2026-10-20T00:00:01.000Z');
+  env = {
+    SAGE_GRAPH_DB: binding(graph),
+    SOURCE_READINGS_BAVLI_DB: binding(bavli),
+    SOURCE_READINGS_OTHER_DB: binding(other),
+  };
+}
+const withoutRevisions = <T extends { sourceRevisions?: unknown }>({
+  sourceRevisions: _,
+  ...rest
+}: T) => rest;
+
+describe('real Hebrew names and duplicate readings', () => {
+  for (const ref of ['Eruvin 29a', 'Niddah 41b']) {
+    it(`links real Hebrew names on ${ref} from a store as it does from the graph`, async () => {
+      setUp([], hebrew.v4.stored);
+      const url = `/initial?ref=${encodeURIComponent(ref)}&placement=v1`;
+      const fromStore = await get<Initial & Placed>(url);
+      expect(fromStore.status).toBe(200);
+      const placed = fromStore.body.placement.occurrences;
+      expect(placed.length).toBeGreaterThan(0);
+      for (const row of placed) {
+        const source = fromStore.body.placement.sources.find((s) => s.key === row.sourceKey)!;
+        expect(Array.from(source.text).slice(row.start, row.end).join('')).toBe(row.quote);
+        expect(row.people).toHaveLength(1);
+        expect(row.people[0].name).toMatch(/^[א-ת ]+$/);
+      }
+      setUp(hebrew.v4.v1, []);
+      const fromGraph = await get<Initial & Placed>(url);
+      expect(withoutRevisions(fromStore.body)).toEqual(withoutRevisions(fromGraph.body));
+    });
+  }
+
+  it('shows each occurrence once, keeps both readings as proposals and links neither', async () => {
+    for (const [graphRows, storeRows] of [
+      [hebrew.v2.v1, hebrew.v4.stored], // the older reading in the graph, the new one in a store
+      [
+        [],
+        [...hebrew.v2.stored, ...hebrew.v4.stored.filter((r) => r.kind !== 'source_reading_run')],
+      ],
+    ]) {
+      setUp(graphRows, storeRows);
+      const page = await get<Initial & Placed>('/initial?ref=Eruvin%2029a&placement=v1');
+      expect(page.status).toBe(200);
+      const keys = page.body.occurrences.map((o) => o.key);
+      expect(new Set(keys).size).toBe(keys.length);
+      const both = page.body.occurrences.filter(
+        (o) => new Set(o.people.map((p) => p.id.split('/')[0])).size === 2,
+      );
+      expect(both.length).toBeGreaterThan(0);
+      const units = page.body.sources.map((s) => s.unitKey);
+      expect(new Set(units).size).toBe(units.length);
+      expect(page.body.sources.some((s) => s.readingPassageIds.length === 2)).toBe(true);
+      // The older reading quotes phrases ("אמר רב"), the newer one names only ("רב"): shown once each.
+      const quotes = page.body.occurrences.map((o) => o.quote);
+      for (const phrase of [
+        'אמר רב',
+        'סבר רב יוסף למימר',
+        'אמר ליה רבה',
+        'רבי שמעון בן אלעזר אומר',
+      ])
+        expect(quotes).not.toContain(phrase);
+      // A son's name and the father named inside it are two occurrences, never one.
+      const son = page.body.occurrences.find((o) => o.quote === 'רבי שמעון בן אלעזר')!;
+      const father = page.body.occurrences.find((o) => o.quote === 'אלעזר')!;
+      expect(son.key).not.toBe(father.key);
+      expect([son.people.length, father.people.length]).toEqual([2, 2]);
+      // Two readings at the same words compete, so neither is linked: no identity is chosen.
+      for (const row of page.body.placement.occurrences)
+        expect(both.some((o) => o.key === row.key)).toBe(false);
+    }
+  });
+
+  it('counts relationships from one reading only, however many readings share the words', async () => {
+    setUp([], hebrew.v4.stored);
+    const page = await get<Initial>('/initial?ref=Eruvin%2029a:14');
+    const ids = [...new Set(page.body.occurrences.flatMap((o) => o.people.map((p) => p.id)))];
+    const cards = async () =>
+      Promise.all(
+        ids.map(
+          async (id) => (await get<SourcePerson>(`/person?id=${encodeURIComponent(id)}`)).body,
+        ),
+      );
+    const alone = await cards();
+    expect(alone.some((c) => c.initialReading!.relationships.length > 0)).toBe(true);
+    setUp(hebrew.v2.v1, hebrew.v4.stored);
+    const beside = await cards();
+    expect(beside.map((c) => c.initialReading)).toEqual(alone.map((c) => c.initialReading));
+  });
+
+  it('serves a card from the exact store revision its page read', async () => {
+    setUp([], hebrew.v4.stored);
+    const page = await get<Initial>('/initial?ref=Niddah%2041b');
+    const pins = readingPins(page.body.revision, page.body.sourceRevisions)!;
+    expect(pins).toEqual({ revision: GRAPH, bavliRevision: BAVLI, otherRevision: 'none' });
+    const id = page.body.occurrences[0].people[0].id;
+    // A newer release that no longer holds this reading.
+    publish(bavli, BAVLI_EMPTY, block('bavli'), run, '2026-10-21T00:00:00.000Z');
+    expect((await get(`/person?id=${encodeURIComponent(id)}`)).status).toBe(404);
+    const card = await get<SourcePerson>(`/person?id=${encodeURIComponent(id)}&${pinQuery(pins)}`);
+    expect(card.status).toBe(200);
+    expect(readingPins(card.body.revision, card.body.sourceRevisions)).toEqual(pins);
+    // A pinned revision that is not there is an error, never the newest.
+    const missing = pinQuery({ ...pins, bavliRevision: `${BAVLI}0` });
+    expect((await get(`/person?id=${encodeURIComponent(id)}&${missing}`)).status).toBe(404);
+    const graphMissing = pinQuery({ ...pins, revision: `${GRAPH}0` });
+    expect((await get(`/person?id=${encodeURIComponent(id)}&${graphMissing}`)).status).toBe(404);
+    // `none` means the page read no revision of that store, so neither does the card.
+    const none = pinQuery({ ...pins, bavliRevision: 'none' });
+    expect((await get(`/person?id=${encodeURIComponent(id)}&${none}`)).status).toBe(404);
+    const hash = sourcePersonHash(id, pins);
+    expect(parseSourcePersonHash(hash)).toEqual({ id, pins });
+    expect(
+      parseSourcePersonHash(`#source-person/${encodeURIComponent(id)}?revision=${GRAPH}`),
+    ).toEqual({ id });
   });
 });

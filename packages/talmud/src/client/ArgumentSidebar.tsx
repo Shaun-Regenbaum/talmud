@@ -1,3 +1,4 @@
+import type { ReadingPins } from '../lib/sage-graph/reading-pins';
 import { PersonConnections } from './PersonConnections';
 import { PersonEra } from './PersonEra';
 import { PersonStatus } from './PersonStatus';
@@ -237,7 +238,7 @@ export type SidebarContent =
   | { kind: 'yerushalmi'; parallel: YerushalmiParallel; index: number }
   | { kind: 'pesuk'; pasuk: Pasuk; index: number }
   | { kind: 'rabbi'; rabbi: IdentifiedRabbi }
-  | { kind: 'source-person'; id: string }
+  | { kind: 'source-person'; id: string; pins?: ReadingPins }
   | { kind: 'place'; place: PlaceInstance }
   | { kind: 'voice-group'; group: { name: string; nameHe: string; bio: string } }
   | { kind: 'rishonim'; instance: RishonimInstance; index: number }
@@ -4202,7 +4203,10 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               </Show>
 
               <Show when={c().kind === 'source-person'}>
-                <SourcePerson id={(c() as Extract<SidebarContent, { kind: 'source-person' }>).id} />
+                <SourcePerson
+                  id={(c() as Extract<SidebarContent, { kind: 'source-person' }>).id}
+                  pins={(c() as Extract<SidebarContent, { kind: 'source-person' }>).pins}
+                />
               </Show>
               <Show when={c().kind === 'voice-group'}>
                 <VoiceGroupBody

@@ -2,6 +2,7 @@ import { Button } from '@corpus/ui/Button';
 import { Input } from '@corpus/ui/Study';
 import { createResource, createSignal, For, Show } from 'solid-js';
 import type { InitialOccurrence } from '../lib/sage-graph/initial-readings';
+import { readingPins, sourcePersonHash } from '../lib/sage-graph/reading-pins';
 import { t } from './i18n';
 import { PersonStatus } from './PersonStatus';
 import './sourcePerson.css';
@@ -15,7 +16,13 @@ export function InitialReadingsPage() {
       try {
         const response = await fetch(`/api/sage-graph/initial?ref=${encodeURIComponent(value)}`);
         if (!response.ok) throw Error('Could not load readings');
-        return (await response.json()) as { revision: string; occurrences: InitialOccurrence[] };
+        const result = (await response.json()) as {
+          revision: string;
+          sourceRevisions?: Record<'bavli' | 'other', string | null>;
+          occurrences: InitialOccurrence[];
+        };
+        // Each card opened from this list reads the same revisions as the list.
+        return { ...result, pins: readingPins(result.revision, result.sourceRevisions) };
       } catch {
         return null;
       }
@@ -69,7 +76,7 @@ export function InitialReadingsPage() {
                   <For each={occurrence.people}>
                     {(person) => (
                       <p>
-                        <a href={`#source-person/${encodeURIComponent(person.id)}`}>
+                        <a href={sourcePersonHash(person.id, result().pins)}>
                           <bdi>{person.name}</bdi>
                         </a>
                       </p>

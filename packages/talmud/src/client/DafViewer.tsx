@@ -22,6 +22,7 @@ import { DafRenderer } from '../lib/daf-render';
 import type { DafGeoModel } from '../lib/geographyModel';
 import { perakimOf, perekAt } from '../lib/perakim';
 import type { InitialPlacement } from '../lib/sage-graph/initial-placement';
+import { readingPins } from '../lib/sage-graph/reading-pins';
 import type { TalmudPageData } from '../lib/sefref';
 import { clampAmud, dafRefHe, TRACTATE_OPTIONS } from '../lib/sefref';
 import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
@@ -458,11 +459,17 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
         if (!response.ok) return null;
         const result = (await response.json()) as {
           revision: string;
+          sourceRevisions?: Record<'bavli' | 'other', string | null>;
           placement?: InitialPlacement;
         };
+        // Cards opened from these names read the same graph and store revisions as the page.
         return result.revision === value.revision &&
           result.placement?.version === 'initial-name-placement-v1'
-          ? { ...value, placement: result.placement }
+          ? {
+              ...value,
+              placement: result.placement,
+              pins: readingPins(result.revision, result.sourceRevisions),
+            }
           : null;
       } catch {
         return null;
@@ -3114,7 +3121,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     if (/^(local|reading|proposal):/.test(slug)) {
       setActiveRabbi(null);
       setActivePlace(null);
-      pushSidebar({ kind: 'source-person', id: slug });
+      const initial = initialNames();
+      pushSidebar({
+        kind: 'source-person',
+        id: slug,
+        pins: initial?.ref === `${tractate()} ${page()}` ? initial.pins : undefined,
+      });
       setLastInteractedCard('argument');
       return;
     }

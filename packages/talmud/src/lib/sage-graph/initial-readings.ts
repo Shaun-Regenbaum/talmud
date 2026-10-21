@@ -117,6 +117,126 @@ export function initialOccurrences(
   return [...occurrences.values()];
 }
 
+/**
+ * The occurrences of several readings, each shown once. Readings of the same words share an
+ * occurrence key. Readings that quote different spans of the same words (one quotes "אמר רב", another
+ * "רב") are matched too: two occurrences in the same source segment from different readings join
+ * when each overlaps the other more than anything else in the other reading. One reading's own
+ * occurrences never join, so a son's name and the father named inside it stay apart. A joined
+ * occurrence keeps every reading's proposal and shows the narrowest quote. It chooses no identity:
+ * with people from two readings it competes, and placement leaves it unlinked.
+ */
+export function readingOccurrences(
+  readings: { passageId: string; people: ReadingPerson[] }[],
+  onPage: (ref: string) => boolean,
+): InitialOccurrence[] {
+  interface Item {
+    occurrence: InitialOccurrence;
+    segment: string;
+    start: number;
+    end: number;
+    readings: Set<string>;
+  }
+  const byKey = new Map<string, Item>();
+  for (const { passageId, people } of readings) {
+    for (const person of people) {
+      for (const anchor of person.mentions.filter((m) => m.published ?? m.primary)) {
+        if (!onPage(anchor.ref)) continue;
+        const item = byKey.get(anchor.occurrenceKey) ?? {
+          occurrence: {
+            key: anchor.occurrenceKey,
+            ref: anchor.ref,
+            quote: anchor.quote,
+            people: [],
+          },
+          segment: JSON.stringify([
+            anchor.edition,
+            anchor.segmentId ?? anchor.source_id,
+            anchor.segmentSha256 ?? anchor.source_sha256,
+          ]),
+          start: anchor.segmentStart ?? anchor.start,
+          end: anchor.segmentEnd ?? anchor.end,
+          readings: new Set<string>(),
+        };
+        item.readings.add(passageId);
+        const id = readingPersonId(passageId, person.id);
+        if (!item.occurrence.people.some((p) => p.id === id))
+          item.occurrence.people.push({ id, name: person.label });
+        byKey.set(anchor.occurrenceKey, item);
+      }
+    }
+  }
+  const items = [...byKey.values()];
+  const group = items.map((_, i) => i);
+  const root = (i: number) => {
+    let at = i;
+    while (group[at] !== at) at = group[at];
+    return at;
+  };
+  const members = (g: number) => items.filter((_, i) => root(i) === g);
+  const share = (a: Item, b: Item) => {
+    if (a.segment !== b.segment || a.end <= b.start || b.end <= a.start) return 0;
+    return (
+      (Math.min(a.end, b.end) - Math.max(a.start, b.start)) /
+      (Math.max(a.end, b.end) - Math.min(a.start, b.start))
+    );
+  };
+  // The one occurrence of the other reading that overlaps this one most; a tie matches nothing.
+  const best = (i: number, among: number[]) => {
+    const scored = among
+      .map((j) => ({ j, score: share(items[i], items[j]) }))
+      .filter((s) => s.score > 0)
+      .sort((x, y) => y.score - x.score);
+    return scored.length && (scored.length === 1 || scored[0].score > scored[1].score)
+      ? scored[0].j
+      : undefined;
+  };
+  const ids = [...new Set(readings.map((r) => r.passageId))].sort();
+  for (const [n, first] of ids.entries()) {
+    for (const second of ids.slice(n + 1)) {
+      const a = items.flatMap((item, i) => (item.readings.has(first) ? [i] : []));
+      const b = items.flatMap((item, i) =>
+        item.readings.has(second) && !item.readings.has(first) ? [i] : [],
+      );
+      for (const i of a) {
+        const j = best(i, b);
+        if (j === undefined || best(j, a) !== i) continue;
+        const [gi, gj] = [root(i), root(j)];
+        if (gi === gj) continue;
+        const left = members(gi).flatMap((m) => [...m.readings]);
+        const right = members(gj).flatMap((m) => [...m.readings]);
+        // Never join two occurrences of one reading.
+        if (left.some((r) => right.includes(r))) continue;
+        group[gj] = gi;
+      }
+    }
+  }
+  const out: InitialOccurrence[] = [];
+  const shownGroups = new Set<number>();
+  for (const [i] of items.entries()) {
+    const g = root(i);
+    if (shownGroups.has(g)) continue;
+    shownGroups.add(g);
+    const joined = members(g);
+    if (joined.length === 1) {
+      out.push(joined[0].occurrence);
+      continue;
+    }
+    const shown = [...joined].sort(
+      (x, y) =>
+        x.end - x.start - (y.end - y.start) ||
+        x.start - y.start ||
+        x.occurrence.key.localeCompare(y.occurrence.key),
+    )[0].occurrence;
+    const people = joined.flatMap((m) => m.occurrence.people);
+    out.push({
+      ...shown,
+      people: people.filter((p, k) => people.findIndex((q) => q.id === p.id) === k),
+    });
+  }
+  return out;
+}
+
 export function initialPerson(
   revision: string,
   passageId: string,

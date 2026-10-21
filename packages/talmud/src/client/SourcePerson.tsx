@@ -1,4 +1,10 @@
 import { createResource, createSignal, For, onCleanup, Show } from 'solid-js';
+import {
+  parseSourcePersonHash,
+  pinQuery,
+  type ReadingPins,
+  readingPins,
+} from '../lib/sage-graph/reading-pins';
 import type { SourcePerson as SourcePersonData } from '../lib/sage-graph/types';
 import { InitialInteractions } from './InitialInteractions';
 import { lang, t } from './i18n';
@@ -10,12 +16,20 @@ import RabbiTrajectoryMap from './RabbiTrajectoryMap';
 import { sefariaUrl } from './sageInteractions';
 import './sourcePerson.css';
 
-export function SourcePerson(props: { id: string; onPerson?: (id: string) => void }) {
+export function SourcePerson(props: {
+  id: string;
+  /** The revisions of the page this card was opened from. A missing revision is an error, never the newest. */
+  pins?: ReadingPins;
+  onPerson?: (id: string) => void;
+}) {
   const [person, { refetch }] = createResource(
-    () => props.id,
-    async (id) => {
+    () => ({ id: props.id, pins: props.pins }),
+    async ({ id, pins }) => {
       try {
-        const response = await fetch(`/api/sage-graph/person?id=${encodeURIComponent(id)}`);
+        const query = pinQuery(pins);
+        const response = await fetch(
+          `/api/sage-graph/person?id=${encodeURIComponent(id)}${query ? `&${query}` : ''}`,
+        );
         return response.ok ? ((await response.json()) as SourcePersonData) : null;
       } catch {
         return null;
@@ -85,16 +99,19 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
               </PersonStatus>
             </Show>
             <Show when={p().readingBasis}>
-              {(reading) => <PersonReadingBasis reading={reading()} />}
+              {(reading) => (
+                <PersonReadingBasis reading={reading()} pins={linkPins(p(), props.pins)} />
+              )}
             </Show>
             <Show when={p().initialReading}>
               {(reading) => (
                 <>
-                  <PersonReadingBasis reading={reading()} />
+                  <PersonReadingBasis reading={reading()} pins={linkPins(p(), props.pins)} />
                   <InitialInteractions
                     id={p().id}
                     name={lang() === 'he' ? p().nameHe : p().name}
                     reading={reading()}
+                    pins={linkPins(p(), props.pins)}
                   />
                 </>
               )}
@@ -180,21 +197,18 @@ export function SourcePerson(props: { id: string; onPerson?: (id: string) => voi
   );
 }
 
+/** Links from a card read the revisions this card was read with, or else the page's. */
+const linkPins = (person: SourcePersonData, page: ReadingPins | undefined) =>
+  readingPins(person.revision, person.sourceRevisions) ?? page;
+
 export function SourcePersonPage() {
-  const readId = () => {
-    try {
-      return decodeURIComponent(location.hash.slice('#source-person/'.length));
-    } catch {
-      return '';
-    }
-  };
-  const [id, setId] = createSignal(readId());
-  const update = () => setId(readId());
+  const [target, setTarget] = createSignal(parseSourcePersonHash(location.hash));
+  const update = () => setTarget(parseSourcePersonHash(location.hash));
   window.addEventListener('hashchange', update);
   onCleanup(() => window.removeEventListener('hashchange', update));
   return (
     <main class="source-person-page">
-      <SourcePerson id={id()} />
+      <SourcePerson id={target().id} pins={target().pins} />
     </main>
   );
 }
