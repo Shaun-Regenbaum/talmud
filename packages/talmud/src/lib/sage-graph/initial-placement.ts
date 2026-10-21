@@ -85,6 +85,10 @@ export async function initialPlacement(
       onSkip?.('competing_people');
       continue;
     }
+    if (occurrence.overlapsOtherReading) {
+      onSkip?.('overlaps_another_reading');
+      continue;
+    }
     const id = occurrence.people[0].id;
     if (!/^(proposal|reading):/.test(id)) {
       onSkip?.('unsupported_id');

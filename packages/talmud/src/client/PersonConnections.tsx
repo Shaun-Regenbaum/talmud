@@ -13,6 +13,7 @@ import {
   sefariaUrl,
 } from './sageInteractions';
 import './personCard.css';
+import { graphPins, type ReadingPins, sourcePersonHash } from '../lib/sage-graph/reading-pins';
 
 export function mergePersonConnections(
   subject: string,
@@ -92,6 +93,8 @@ export function PersonConnections(props: {
   id: string;
   name?: string;
   revision?: string;
+  /** The revisions the card above was read with; its person links read the same ones. */
+  pins?: ReadingPins;
   onPerson?: (id: string) => void;
 }) {
   const [data, { refetch }] = createResource(
@@ -131,7 +134,7 @@ export function PersonConnections(props: {
     (data()?.graph?.connections ?? []).filter((c) => c.a === p.slug || c.b === p.slug);
   const personLink = (id: string) =>
     id.startsWith('local:')
-      ? `#source-person/${encodeURIComponent(id)}`
+      ? sourcePersonHash(id, props.pins ?? graphPins(data()?.graph?.revision ?? props.revision))
       : `#sages/${encodeURIComponent(id)}`;
   const label = (id: string) => {
     const n = data()?.graph?.nodes.find((n) => n.id === id);

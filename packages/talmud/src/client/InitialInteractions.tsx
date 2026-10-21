@@ -1,6 +1,7 @@
 import { SourceCard } from '@corpus/ui/Study';
 import { createMemo, For, Show } from 'solid-js';
 import type { InitialReading, InitialRelationship } from '../lib/sage-graph/initial-readings';
+import { type ReadingPins, sourcePersonHash } from '../lib/sage-graph/reading-pins';
 import { lang, t } from './i18n';
 import { PersonStatus } from './PersonStatus';
 import RabbiInteractions from './RabbiInteractions';
@@ -68,7 +69,12 @@ export function initialSummary(
   return { slug: id, name, nameHe: name, generated: '', partners, partnersInAll: partners.length };
 }
 
-export function InitialInteractions(props: { id: string; name: string; reading: InitialReading }) {
+export function InitialInteractions(props: {
+  id: string;
+  name: string;
+  reading: InitialReading;
+  pins?: ReadingPins;
+}) {
   const data = createMemo(() => initialSummary(props.id, props.name, props.reading));
   const evidence = (rows: InitialRelationship[]) => (
     <For each={rows}>
@@ -157,7 +163,7 @@ export function InitialInteractions(props: { id: string; name: string; reading: 
                 )}
                 fallback={<bdi>{lang() === 'he' ? partner.nameHe : partner.name}</bdi>}
               >
-                <a href={`#source-person/${encodeURIComponent(partner.slug!)}`}>
+                <a href={sourcePersonHash(partner.slug!, props.pins)}>
                   {lang() === 'he' ? partner.nameHe : partner.name}
                 </a>
               </Show>

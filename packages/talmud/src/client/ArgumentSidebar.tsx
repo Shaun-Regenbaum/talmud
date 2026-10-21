@@ -1,6 +1,7 @@
 import { PersonConnections } from './PersonConnections';
 import { PersonEra } from './PersonEra';
 import { PersonStatus } from './PersonStatus';
+import { usePagePins } from './pagePins';
 import { SourcePerson } from './SourcePerson';
 // Recipes now live in the shared lib (carried on the worker mark def too).
 // Re-exported so existing importers (CARD_DEFS, tests) keep their `from
@@ -1979,12 +1980,35 @@ function RabbiLineage(props: SpecialBlockProps): JSX.Element {
     lookup,
     async (q) => q.slug || (q.nameHe ? await interactionsSlugForName(q.nameHe) : null),
   );
+  // The connections read the graph revision the page shows, and nothing until the page has one.
+  const page = usePagePins();
   return (
     <Show
-      when={!slug.loading && slug()}
-      fallback={<PersonStatus>{t('person.connectionsEmpty')}</PersonStatus>}
+      when={!page.required || page.pins()}
+      fallback={
+        <Show
+          when={!page.loading()}
+          fallback={<PersonStatus>{t('sourcePerson.loading')}</PersonStatus>}
+        >
+          <PersonStatus error onRetry={page.retry}>
+            {t('sourcePerson.error')}
+          </PersonStatus>
+        </Show>
+      }
     >
-      {(id) => <PersonConnections id={id()} name={str(f().name)} />}
+      <Show
+        when={!slug.loading && slug()}
+        fallback={<PersonStatus>{t('person.connectionsEmpty')}</PersonStatus>}
+      >
+        {(id) => (
+          <PersonConnections
+            id={id()}
+            name={str(f().name)}
+            revision={page.pins()?.revision}
+            pins={page.pins()}
+          />
+        )}
+      </Show>
     </Show>
   );
 }
@@ -4037,6 +4061,7 @@ export function VoiceGroupBody(props: {
 }
 
 export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
+  const pageRevisions = usePagePins();
   // Compile the daf's glossary matcher once (not per prose fragment).
   const conceptMatcher = createMemo(() => buildConceptMatcher(props.glossaryTerms));
 
@@ -4202,7 +4227,13 @@ export function ArgumentSidebar(props: ArgumentSidebarProps): JSX.Element {
               </Show>
 
               <Show when={c().kind === 'source-person'}>
-                <SourcePerson id={(c() as Extract<SidebarContent, { kind: 'source-person' }>).id} />
+                <SourcePerson
+                  id={(c() as Extract<SidebarContent, { kind: 'source-person' }>).id}
+                  pins={pageRevisions.pins()}
+                  pinsRequired={pageRevisions.required}
+                  pinsLoading={pageRevisions.loading()}
+                  onRetryPins={pageRevisions.retry}
+                />
               </Show>
               <Show when={c().kind === 'voice-group'}>
                 <VoiceGroupBody

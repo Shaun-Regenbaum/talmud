@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { GENERATION_ID_SET } from '../client/generations';
 import { canonicalSlug } from '../lib/rabbi/identity';
 import { RABBI_PLACES, type RabbiPlacesEntry } from './rabbi-places';
+import { NOT_A_STORE_REVISION } from './source-reading-stores';
 
 // The reader only needs these statement methods. This also lets tests run the
 // production SQL against SQLite instead of substituting query results.
@@ -68,7 +69,7 @@ export async function loadReviewedRabbiEntry(
     .prepare(
       `SELECT payload_json FROM sage_graph_all_records
        WHERE revision_id=(
-         SELECT id FROM sage_graph_revisions WHERE state='verified'
+         SELECT id FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION}
          ORDER BY created_at DESC, id DESC LIMIT 1
        ) AND record_id=? AND kind='registry_person'
          AND authority IN ('source_review', 'user_correction') AND decision='supported'`,
@@ -90,7 +91,7 @@ export async function loadReviewedRabbiEntries(
   if (!db) return {};
   const revision = await db
     .prepare(
-      "SELECT id FROM sage_graph_revisions WHERE state='verified' ORDER BY created_at DESC, id DESC LIMIT 1",
+      `SELECT id FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} ORDER BY created_at DESC, id DESC LIMIT 1`,
     )
     .first<{ id: string }>();
   if (!revision) return {};
