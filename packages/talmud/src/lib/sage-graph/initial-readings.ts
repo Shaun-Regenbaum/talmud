@@ -1,6 +1,8 @@
+import type { CheckedCoverage, CheckedDetail } from './checked-readings';
 import type { SourcePerson } from './types';
 
 export interface ReadingAnchor {
+  role?: 'printed_name' | 'actor_description' | 'referential_evidence';
   source_id?: string;
   segmentId?: string;
   published?: boolean;
@@ -19,6 +21,7 @@ export interface ReadingAnchor {
   primary: boolean;
 }
 export interface ReadingPerson {
+  placementEligible?: boolean;
   id: string;
   label: string;
   named: string;
@@ -45,6 +48,7 @@ export interface ReadingClaim {
   };
 }
 export interface InitialRelationship {
+  checked?: CheckedDetail;
   reviewBinding?: {
     readingRecordId: string;
     readingPayloadSha256: string;
@@ -67,6 +71,12 @@ export interface InitialRelationship {
   evidence: ReadingAnchor[];
 }
 export interface InitialReading {
+  checked?: {
+    artifactHash: string;
+    wholeReadingFullyChecked: boolean;
+    sourceCoverage: CheckedCoverage[];
+    mentions: ReadingAnchor[];
+  };
   proposals?: {
     id: string;
     reviewDecision?: string;
@@ -103,7 +113,10 @@ export function initialOccurrences(
 ): InitialOccurrence[] {
   const occurrences = new Map<string, InitialOccurrence>();
   for (const person of people) {
-    for (const anchor of person.mentions.filter((m) => m.published ?? m.primary)) {
+    if (person.placementEligible === false) continue;
+    for (const anchor of person.mentions.filter(
+      (m) => (m.published ?? m.primary) && (!m.role || m.role === 'printed_name'),
+    )) {
       const occurrence = occurrences.get(anchor.occurrenceKey) ?? {
         key: anchor.occurrenceKey,
         ref: anchor.ref,
@@ -151,7 +164,10 @@ export function readingOccurrences(
   const byKey = new Map<string, Item>();
   for (const { passageId, people } of readings) {
     for (const person of people) {
-      for (const anchor of person.mentions.filter((m) => m.published ?? m.primary)) {
+      if (person.placementEligible === false) continue;
+      for (const anchor of person.mentions.filter(
+        (m) => (m.published ?? m.primary) && (!m.role || m.role === 'printed_name'),
+      )) {
         if (!onPage(anchor.ref)) continue;
         const item = byKey.get(anchor.occurrenceKey) ?? {
           occurrence: {

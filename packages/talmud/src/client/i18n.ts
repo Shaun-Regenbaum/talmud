@@ -169,6 +169,18 @@ const CATALOG = {
     he: 'קריאה זו כוללת מצב היפותטי.',
   },
   'initial.uncertainPerson': { en: 'Uncertain person', he: 'אדם לא ודאי' },
+  'checked.cardTitle': { en: 'Checked source reading', he: 'קריאת מקור שנבדקה' },
+  'checked.partial': {
+    en: 'These people and connections were checked. Other details in this passage still need review.',
+    he: 'הדמויות והקשרים האלה נבדקו. פרטים נוספים בקטע עדיין טעונים בדיקה.',
+  },
+  'checked.counts': {
+    en: 'Counted from checked source passages. These local connections do not establish historical identities or dates.',
+    he: 'הספירה מבוססת על קטעי מקור שנבדקו. הקשרים המקומיים אינם קובעים זהויות היסטוריות או תאריכים.',
+  },
+  'checked.relation.direct_interaction': { en: 'Direct interaction', he: 'קשר ישיר' },
+  'checked.relation.intellectual_connection': { en: 'Compared teachings', he: 'השוואת דעות' },
+  'checked.relation.transmission': { en: 'Teaching passed on', he: 'מסירת דברים' },
   'initial.cardTitle': { en: 'Initial reading', he: 'קריאה ראשונית' },
   'initial.title': { en: 'Initial readings', he: 'קריאות ראשוניות' },
   'initial.reviewedIdentity': { en: 'Reviewed identity:', he: 'זהות שנבדקה:' },

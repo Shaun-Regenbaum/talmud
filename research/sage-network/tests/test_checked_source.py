@@ -8,7 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from checked_source.validate import VERSION, check, digest, original, sha
+from checked_source.validate import VERSION, check, digest, original, sha, strict_json
 from ownership.tile_ownership import OwnershipIndex
 
 FIXTURE = json.loads(gzip.decompress((Path(__file__).parent / 'fixtures/checked-source/actual-four.json.gz').read_bytes()))
@@ -185,6 +185,12 @@ class CheckedSourceTests(unittest.TestCase):
         new=sha(b['reviews'][0].encode())
         for d in b['plan']['decisions']: d['reviewHashes']=[new]
         with self.assertRaisesRegex(ValueError, 'Duplicate JSON key'): run(approve(b))
+
+    def test_overflowing_json_numbers_rejected(self):
+        for number in ('1e999', '-1e999', '1E400', 'NaN', 'Infinity', '-Infinity'):
+            with self.assertRaisesRegex(ValueError, 'Nonfinite JSON number'):
+                strict_json('{"a":' + number + '}')
+        self.assertEqual(strict_json('{"a":1e308,"b":-2.5,"c":10}'), {'a': 1e308, 'b': -2.5, 'c': 10})
 
     def test_competing_name_placement_rejected(self):
         b=make_bundle();a=b['plan']['decisions'][0]['after'];other=b['plan']['decisions'][1]['after']

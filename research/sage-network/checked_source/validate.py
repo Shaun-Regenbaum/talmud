@@ -6,6 +6,7 @@ not authority. Output is local screening data, not accepted historical facts.
 """
 import copy
 import json
+import math
 import unicodedata
 
 from compact_source_v4 import validate as v4
@@ -59,7 +60,12 @@ def strict_json(raw):
             require(key not in result, 'Duplicate JSON key')
             result[key] = value
         return result
-    return json.loads(raw, object_pairs_hook=pairs,
+    def number(text):
+        # 1e999 or -1e999 would otherwise become infinity without any error.
+        value = float(text)
+        require(math.isfinite(value), 'Nonfinite JSON number')
+        return value
+    return json.loads(raw, object_pairs_hook=pairs, parse_float=number,
                       parse_constant=lambda value: (_ for _ in ()).throw(ValueError('Nonfinite JSON number')))
 
 

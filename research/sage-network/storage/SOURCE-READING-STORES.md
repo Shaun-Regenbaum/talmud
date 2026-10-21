@@ -59,6 +59,11 @@ No app deploy is needed for a data release. The app reads the newest verified re
      receipt covers them, so only this release's artifacts are needed. The first release on an empty
      store needs no parent receipt.
 6. **Activate in staging**, then check pages and person cards.
+   Consumers that cite stored rows, such as name_candidates, can ask for a read-back file:
+   `readback --export ... --manifest ... --artifacts ALL_ARTIFACTS --ownership MANIFEST SHA256 --output FILE`.
+   It rebuilds every passage in the revision, so it needs every artifact, not only this release's. For each
+   passage it lists every stored row with its hash exactly as in D1, and the v1 rows rebuilt from R2 with
+   their v1 payload hashes. Rows come in record-ID order. Its format is `source-reading-store-readback-v1`.
 7. **Repeat steps 5 and 6 in production.**
 
 The importer refuses to mix the two kinds of data. Graph changes cannot go into a store. Compact rows

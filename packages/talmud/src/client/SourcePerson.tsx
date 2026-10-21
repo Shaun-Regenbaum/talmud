@@ -65,7 +65,13 @@ export function SourcePerson(props: {
         {(p) => (
           <>
             <p class="source-person-caption">
-              {t(p().initialReading ? 'initial.cardTitle' : 'sourcePerson.title')}
+              {t(
+                p().initialReading?.checked
+                  ? 'checked.cardTitle'
+                  : p().initialReading
+                    ? 'initial.cardTitle'
+                    : 'sourcePerson.title',
+              )}
             </p>
             <h2>
               <bdi>{lang() === 'he' ? p().nameHe : p().name}</bdi>
