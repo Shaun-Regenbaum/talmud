@@ -95,9 +95,6 @@ export function SourcePerson(props: {
                 )}
               </For>
             </Show>
-            <Show when={p().initialReading?.nameSuggestion}>
-              {(suggestion) => <NameSuggestion suggestion={suggestion()} />}
-            </Show>
             <Show when={p().conditionalProfile?.status === 'unavailable'}>
               <PersonStatus error onRetry={() => void refetch()}>
                 {t('person.profileUnavailable')}
@@ -142,7 +139,9 @@ export function SourcePerson(props: {
                   </Show>
                 }
               >
-                <p>{profile()?.bio}</p>
+                <p lang="en" dir="ltr">
+                  {profile()?.bio}
+                </p>
                 <For each={profile()?.sources}>
                   {(source) => (
                     <a href={source.url} target="_blank" rel="noopener noreferrer">
@@ -179,7 +178,23 @@ export function SourcePerson(props: {
             <Show when={p().initialReading}>
               {(reading) => (
                 <>
-                  <PersonReadingBasis reading={reading()} pins={linkPins(p(), props.pins)} />
+                  <PersonReadingBasis reading={reading()} pins={linkPins(p(), props.pins)}>
+                    <Show when={profile()?.proposal.recordId.startsWith('identity_link_evidence:')}>
+                      <p>
+                        {t('person.profileBridgeReason')}{' '}
+                        <a
+                          href={`/api/sage-graph/records?revision=${encodeURIComponent(profile()!.proposal.revision)}&id=${encodeURIComponent(profile()!.proposal.recordId)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {t('person.profileProof')}
+                        </a>
+                      </p>
+                    </Show>
+                    <Show when={reading().nameSuggestion}>
+                      {(suggestion) => <NameSuggestion suggestion={suggestion()} />}
+                    </Show>
+                  </PersonReadingBasis>
                   <InitialInteractions
                     id={p().id}
                     name={lang() === 'he' ? p().nameHe : p().name}

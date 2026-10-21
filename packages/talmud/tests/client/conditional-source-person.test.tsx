@@ -97,6 +97,12 @@ describe('saved information for a possible identity', () => {
     );
     expect(view.container.textContent).toContain(person.quote);
     expect(view.container.querySelector('.person-connections')).toBeTruthy();
+    expect(view.container.querySelector('.person-name-suggestion')?.closest('details')?.open).toBe(
+      false,
+    );
+    expect(
+      view.container.querySelector('.person-biography p[lang="en"]')?.getAttribute('dir'),
+    ).toBe('ltr');
   });
   it('keeps the profile conditional in Hebrew and clears it on navigation', async () => {
     const person = await card();
