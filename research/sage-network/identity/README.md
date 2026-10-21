@@ -75,3 +75,25 @@ kept for display and never matched.
 
 Registry generations are copied onto each candidate as stored metadata only. They are never this person's era.
 The output kind is `name_candidates`. Existing `identity_proposal` records and recipes are unchanged.
+
+## Prepare name_candidates records
+
+`storage/name_candidates_import.py` builds the records offline from checked inputs only:
+
+- a verified local export of the graph parent revision, whose record set must match its manifest;
+- for readings a source-reading store holds, that store's read-back file (`source-reading-store-readback-v1`), which
+  the store owner writes only after a full read-back rebuilds every passage from its R2 artifact.
+
+```sh
+python3 research/sage-network/storage/name_candidates_import.py prepare \
+  --graph parent.sqlite --revision sage-graph-... --readback bavli-readback.json --output prepared
+python3 research/sage-network/storage/name_candidates_import.py check \
+  --graph parent.sqlite --revision sage-graph-... --readback bavli-readback.json --changes prepared/changes.json
+```
+
+Each candidate cites the person, passage and source_reading rows as stored (store, revision, stored hash and format)
+and their rebuilt v1 hash. A reading the graph holds cannot also be cited from a store, since the graph copy wins. The
+check rebuilds every record from the same inputs and refuses any difference. It then checks a second time that no
+record is about a person a reviewed or human record decides, that no record is for a person older readings cover at
+every mention, and that every alias guard holds. Nothing is written to any database; the extend_d1 wiring follows the
+source-reading store change.
