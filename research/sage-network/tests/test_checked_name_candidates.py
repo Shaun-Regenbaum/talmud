@@ -186,10 +186,17 @@ class CheckedNameCandidateTests(unittest.TestCase):
             person = next(r['data'] for r in p['rows'] if r['record_id'] == 'checked_person:' + d['personKey'])
             self.assertEqual((record['record_id'], record['authority'], record['decision']), ('name_candidates:v1/' + d['personKey'], 'screening', 'needs_review'))
             self.assertEqual((d['basis'], d['accepted'], d['historicalIdentityResolved']), (nc.CHECKED_BASIS, False, False))
-            for name, record_id in (('person', 'checked_person:' + d['personKey']), ('reading', 'checked_reading:' + d['passageId'])):
+            cited = dict(person='checked_person:' + d['personKey'], reading='checked_reading:' + d['passageId'],
+                         ownership='checked_ownership:' + d['passageId'], coverage='checked_coverage:' + d['passageId'])
+            self.assertEqual(set(d['bindings']), {'format', 'artifact', *cited})
+            for name, record_id in cited.items():
                 self.assertEqual(d['bindings'][name], dict(recordId=record_id, v1PayloadSha256=None, store='bavli', revision=f['revision'],
                                                            payloadSha256=stored[record_id]['payloadSha256'], payloadFormat=imp.CHECKED_FORMAT))
             self.assertEqual(d['bindings']['artifact']['sha256'], p['artifactSha256'])
+            # primary means the focal source, as for raw readings; a case with no focal mention is context only.
+            segments = {x['source_id']: x for x in next(r['data'] for r in p['rows'] if r['kind'] == 'checked_reading')['segments']}
+            self.assertEqual([m['primary'] for m in d['mentions']], [segments[m['sourceId']]['provenance'].get('focal') is True for m in d['mentions']])
+            self.assertEqual(d['contextOnly'], not any(m['primary'] for m in d['mentions']))
             self.assertEqual(d['checkedDecision'], {k: person['decision'][k] for k in ('id', 'action', 'beforeHash', 'reviewHashes')})
             self.assertEqual([m['quote'] for m in d['mentions']], [m['quote'] for m in person['mentions'] if m['role'] == 'printed_name'])
             self.assertEqual({c['status'] for c in d['coverage']}, {'partial'})  # the test plan marks every source partial
@@ -298,7 +305,10 @@ class CheckedNameCandidateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'absent from the selection it names'):
             self.build(refit(two, misbound))
 
-    def test_edited_rows_are_refused_even_when_the_receipt_is_refit(self):
+    def test_edited_rows_are_refused_or_cite_their_edited_hash(self):
+        # An edit that leaves a stored hash stale is refused. An edit that also refits the stored hash can pass only in a
+        # file root pinned, and its records then cite the edited hash, which the store's own row does not have, so the
+        # card shows none of them.
         f = json.loads(STORE['file'])
         pid, _ = person_row(f, 'Rabbi Abba bar Memel')
 
@@ -309,6 +319,25 @@ class CheckedNameCandidateTests(unittest.TestCase):
             reading = next(r for r in f['checkedPassages'][pid]['rows'] if r['kind'] == 'checked_reading')
             reading['data']['planHash'] = '1' * 64
             restore_hash(f, pid, reading)
+
+        def rename(f):
+            # The passage under another name: its rows and envelope still name the real one.
+            other = 'cs1-' + '1' * 64
+            f['checkedPassages'][other] = f['checkedPassages'].pop(pid)
+            for r in f['checkedPassages'][other]['rows']:
+                r['passage_id'] = other
+
+        def ownership(f, manifest=None, job=None):
+            row = next(r for r in f['checkedPassages'][pid]['rows'] if r['kind'] == 'checked_ownership')
+            for unit in row['data']['ownedUnits']:
+                unit.update({k: v for k, v in (('ownershipManifestSha256', manifest), ('jobSha256', job)) if v})
+            restore_hash(f, pid, row)
+
+        def same_result(f):
+            first, second = sorted(f['checkedPassages'])
+            rows = [next(r for r in f['checkedPassages'][k]['rows'] if r['kind'] == 'checked_reading') for k in (first, second)]
+            rows[1]['data']['supersedes'] = rows[0]['data']['supersedes']
+            restore_hash(f, second, rows[1])
 
         def moved(f):
             _, row = person_row(f, 'Rabbi Abba bar Memel')
@@ -321,6 +350,11 @@ class CheckedNameCandidateTests(unittest.TestCase):
             (label, 'differs from its stored hash'),
             (plan, "differs from root's selection"),
             (moved, 'not at its span'),
+            (lambda f: rename(f), 'named for another reading'),
+            (lambda f: ownership(f, manifest='0' * 64), 'Checked ownership is for another reading or manifest'),
+            (lambda f: ownership(f, job='0' * 64), 'Checked ownership is for another reading or manifest'),
+            (lambda f: same_result(f), 'Two checked readings of one raw result'),
+            (lambda f: f['checkedPassages'][pid]['stored'].append(f['checkedPassages'][pid]['stored'][0]), 'Stored rows repeat'),
         ]
         for edit, message in edits:
             with self.subTest(message), self.assertRaisesRegex(ValueError, message):
@@ -329,6 +363,30 @@ class CheckedNameCandidateTests(unittest.TestCase):
             f = json.loads(STORE['file'])
             label(f)
             self.build(dict(STORE, file=raw_tests.file_bytes(f)))
+        real = {s['recordId']: s['payloadSha256'] for p in f['checkedPassages'].values() for s in p['stored']}
+
+        def fewer_owned(f):
+            # Owned units dropped except those holding R. Abba bar Memel's name, the manifest and job left as they were,
+            # and the stored hash refit.
+            keep = {m['segmentId'] for m in person_row(f, 'Rabbi Abba bar Memel')[1]['data']['mentions']}
+            row = next(r for r in f['checkedPassages'][pid]['rows'] if r['kind'] == 'checked_ownership')
+            row['data']['ownedUnits'] = [u for u in row['data']['ownedUnits'] if u['segmentId'] in keep]
+            restore_hash(f, pid, row)
+
+        def printed(f):
+            # A referential mention turned into a printed name, with the stored hash refit.
+            for p in f['checkedPassages'].values():
+                for r in p['rows']:
+                    if r['kind'] == 'checked_person' and r['data']['form'] == 'unnamed':
+                        r['data'].update(form='named')
+                        r['data']['mentions'][0]['role'] = 'printed_name'
+                        restore_hash(f, r['passage_id'], r)
+                        return
+        for edit, cited in ((fewer_owned, 'ownership'), (printed, 'person')):
+            with self.subTest(cited):
+                changes = self.build(refit(STORE, edit))
+                stale = [r for r in changes['records'] if r['data']['bindings'][cited]['payloadSha256'] != real[r['data']['bindings'][cited]['recordId']]]
+                self.assertTrue(stale, 'the edit shows in the cited hash')
 
     def test_a_checked_reading_replaces_the_raw_reading_of_the_same_result(self):
         f = json.loads(STORE['file'])
@@ -343,17 +401,35 @@ class CheckedNameCandidateTests(unittest.TestCase):
         rows, _ = parent([graph_copy])
         with self.assertRaisesRegex(ValueError, 'The graph holds the raw reading this checked reading supersedes'):
             self.build(rows=rows)
-        # Test only: a store raw reading of the same raw result, given beside the real checked readings. It is left
-        # out and listed as superseded; nothing is built from it.
+        # Test only: store raw readings of the same raw result and job, given beside the real checked readings through a
+        # stand-in for the read-back step. All of them are left out and listed as superseded; nothing is built from them.
         rows, manifest = parent()
         held, cases, sources = imp.readback_passages([STORE['file']], pins_for(manifest, STORE), OWNERSHIP, STORE['selections'], STORE['artifacts'])
-        store_raw = dict(store='bavli', revision=f['revision'], stored={}, v1Sha256={},
-                         v1=[dict(kind='source_reading', data=dict(provenance=dict(resultSha256=raw_result)))])
-        with mock.patch.object(imp, 'readback_passages', return_value=({'sr1-store-copy': store_raw}, cases, sources)):
-            raw, kept, _, superseded = imp.readings(rows, [STORE['file']], pins_for(manifest, STORE), OWNERSHIP)
+        job = envelope['binding']['jobHash']
+        store_raw = lambda result=raw_result, job=job: dict(
+            store='bavli', revision=f['revision'], stored={}, v1Sha256={},
+            v1=[dict(kind='source_reading', data=dict(provenance=dict(resultSha256=result, jobSha256=job))), dict(kind='person', data=dict(id='p1'))])
+        readings = lambda raw, graph=rows: self.with_store_raw(raw, cases, sources, graph, manifest)
+        raw, kept, superseded = readings({'sr1-store-copy': store_raw(), 'sr1-store-copy-2': store_raw()})
         self.assertEqual((raw, sorted(kept)), ({}, sorted(cases)))
-        self.assertEqual(superseded, [dict(passageId='sr1-store-copy', reason='A checked reading of the same raw result supersedes this raw reading',
-                                           checkedPassageId=pid)])
+        self.assertEqual(superseded, [dict(passageId=k, reason='A checked reading of the same raw result supersedes this raw reading', checkedPassageId=pid)
+                                      for k in ('sr1-store-copy', 'sr1-store-copy-2')])
+        # Beside a graph copy of the same result, a store copy does not hide the graph copy: refused.
+        with self.assertRaisesRegex(ValueError, 'The graph holds the raw reading'):
+            readings({'sr1-store-copy': store_raw()}, parent([graph_copy])[0])
+        with self.assertRaisesRegex(ValueError, 'is of another job'):
+            readings({'sr1-store-copy': store_raw(job='0' * 64)})
+        # The real human correction connection:b042-p0/review/answer, re-pointed by its subject column at the raw
+        # person: replacing that reading would hide the correction, so it is refused.
+        real = next(tuple(r) for r in raw_tests.PARENT_ROWS if r[0] == 'connection:b042-p0/review/answer')
+        decided = [r for r in rows if r[0] != real[0]] + [(*real[:4], 'local:sr1-store-copy/p1', *real[5:])]
+        with self.assertRaisesRegex(ValueError, 'decision covers a person of the raw reading'):
+            readings({'sr1-store-copy': store_raw()}, sorted(decided))
+
+    def with_store_raw(self, raw, cases, sources, rows, manifest):
+        with mock.patch.object(imp, 'readback_passages', return_value=(raw, cases, sources)):
+            out, kept, _, superseded = imp.readings(rows, [STORE['file']], pins_for(manifest, STORE), OWNERSHIP)
+        return out, kept, superseded
 
     def test_any_edit_to_the_changes_is_refused(self):
         changes = self.build()
