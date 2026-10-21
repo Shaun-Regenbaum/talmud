@@ -82,6 +82,8 @@ export interface InitialReading {
     reviewDecision?: string;
     reason: string;
     candidate?: { id: string; name: string; nameHe: string };
+    /** Registry entries a short printed name fits: the first few, and how many in all. None is a match. */
+    registryEntries?: { listed: { id: string; name: string; nameHe: string }[]; total: number };
     alternatives: string[];
     eraReason?: string;
     evidence: ReadingAnchor[];
