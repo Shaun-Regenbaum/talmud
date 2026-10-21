@@ -36,21 +36,37 @@ export function sourcePersonHash(id: string, pins?: ReadingPins): string {
   return `#source-person/${encodeURIComponent(id)}${query ? `?${query}` : ''}`;
 }
 
-/** Reads `#source-person/<id>?revision=..` back. Pins count only when all three are present. */
-export function parseSourcePersonHash(hash: string): { id: string; pins?: ReadingPins } {
+/**
+ * Reads `#source-person/<id>?revision=..` back. A link with no pins is unpinned. A link with some pins
+ * but not all three, or an empty one, or a bad ID is malformed: the card shows an error and reads
+ * nothing, rather than read the newest revisions in place of the ones it was given.
+ */
+export function parseSourcePersonHash(hash: string): {
+  id: string;
+  pins?: ReadingPins;
+  malformed?: true;
+} {
   const raw = hash.replace(/^#?source-person\//, '');
-  const [encoded, query = ''] = raw.split('?', 2);
+  const at = raw.indexOf('?');
+  const [encoded, query] = at < 0 ? [raw, undefined] : [raw.slice(0, at), raw.slice(at + 1)];
   let id = '';
   try {
     id = decodeURIComponent(encoded);
   } catch {
-    return { id: '' };
+    return { id: '', malformed: true };
   }
+  if (query === undefined) return { id };
   const params = new URLSearchParams(query);
-  const revision = params.get('revision');
-  const bavliRevision = params.get('bavliRevision');
-  const otherRevision = params.get('otherRevision');
-  return revision && bavliRevision && otherRevision
-    ? { id, pins: { revision, bavliRevision, otherRevision } }
-    : { id };
+  const names = ['revision', 'bavliRevision', 'otherRevision'] as const;
+  const [revision, bavliRevision, otherRevision] = names.map((name) => params.get(name));
+  if (
+    !id ||
+    !revision ||
+    !bavliRevision ||
+    !otherRevision ||
+    [...params.keys()].some((key) => !(names as readonly string[]).includes(key)) ||
+    names.some((name) => params.getAll(name).length !== 1)
+  )
+    return { id, malformed: true };
+  return { id, pins: { revision, bavliRevision, otherRevision } };
 }

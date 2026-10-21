@@ -45,15 +45,17 @@ const NOTE =
   'Name positions are not ready for the reader until page placement is checked.';
 
 async function revision(db: D1Database, requested?: string) {
-  const query = requested
-    ? db
-        .prepare(
-          `SELECT id, manifest_json FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} AND id=?`,
-        )
-        .bind(requested)
-    : db.prepare(
-        `SELECT id, manifest_json FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} ORDER BY created_at DESC, id DESC LIMIT 1`,
-      );
+  // A named revision is served exactly. An empty name is not a request for the newest.
+  const query =
+    requested !== undefined
+      ? db
+          .prepare(
+            `SELECT id, manifest_json FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} AND id=?`,
+          )
+          .bind(requested)
+      : db.prepare(
+          `SELECT id, manifest_json FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} ORDER BY created_at DESC, id DESC LIMIT 1`,
+        );
   return query.first<{ id: string; manifest_json: string }>();
 }
 

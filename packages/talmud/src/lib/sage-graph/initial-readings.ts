@@ -85,6 +85,8 @@ export interface InitialReading {
 }
 export interface InitialOccurrence {
   passageOnly?: boolean;
+  /** Another reading quotes overlapping words of this source as a different occurrence. */
+  overlapsOtherReading?: boolean;
   key: string;
   ref: string;
   quote: string;
@@ -118,13 +120,21 @@ export function initialOccurrences(
 }
 
 /**
- * The occurrences of several readings, each shown once. Readings of the same words share an
- * occurrence key. Readings that quote different spans of the same words (one quotes "אמר רב", another
- * "רב") are matched too: two occurrences in the same source segment from different readings join
- * when each overlaps the other more than anything else in the other reading. One reading's own
- * occurrences never join, so a son's name and the father named inside it stay apart. A joined
- * occurrence keeps every reading's proposal and shows the narrowest quote. It chooses no identity:
- * with people from two readings it competes, and placement leaves it unlinked.
+ * The one attached Hebrew letter that may stand before a name in a quote: the same letters as the
+ * reviewed prefix amendment, research/sage-network/anchor_repair_v2.py `PREFIXES`. A test keeps the
+ * two lists equal.
+ */
+export const NAME_PREFIX_LETTERS = 'ובלמשכד';
+
+/**
+ * The occurrences of several readings, each shown once. Two occurrences from different readings join
+ * only when the source words show they are the same name: the same span, or one quote is the other
+ * with one attached prefix letter (ורבי יוחנן / רבי יוחנן). Nothing else joins, however much it
+ * overlaps: one reading's father-only quote and another's full name of the son stay apart, even when
+ * neither reading has both. One reading's own occurrences never join. A joined occurrence keeps every
+ * reading's proposal and shows the shorter quote. An occurrence that overlaps another reading's
+ * occurrence without joining is marked `overlapsOtherReading`, and placement leaves it unlinked, so
+ * no reading is chosen over another.
  */
 export function readingOccurrences(
   readings: { passageId: string; people: ReadingPerson[] }[],
@@ -173,68 +183,57 @@ export function readingOccurrences(
     while (group[at] !== at) at = group[at];
     return at;
   };
-  const members = (g: number) => items.filter((_, i) => root(i) === g);
-  const share = (a: Item, b: Item) => {
-    if (a.segment !== b.segment || a.end <= b.start || b.end <= a.start) return 0;
-    return (
-      (Math.min(a.end, b.end) - Math.max(a.start, b.start)) /
-      (Math.max(a.end, b.end) - Math.min(a.start, b.start))
-    );
-  };
-  // The one occurrence of the other reading that overlaps this one most; a tie matches nothing.
-  const best = (i: number, among: number[]) => {
-    const scored = among
-      .map((j) => ({ j, score: share(items[i], items[j]) }))
-      .filter((s) => s.score > 0)
-      .sort((x, y) => y.score - x.score);
-    return scored.length && (scored.length === 1 || scored[0].score > scored[1].score)
-      ? scored[0].j
-      : undefined;
-  };
-  const ids = [...new Set(readings.map((r) => r.passageId))].sort();
-  for (const [n, first] of ids.entries()) {
-    for (const second of ids.slice(n + 1)) {
-      const a = items.flatMap((item, i) => (item.readings.has(first) ? [i] : []));
-      const b = items.flatMap((item, i) =>
-        item.readings.has(second) && !item.readings.has(first) ? [i] : [],
-      );
-      for (const i of a) {
-        const j = best(i, b);
-        if (j === undefined || best(j, a) !== i) continue;
-        const [gi, gj] = [root(i), root(j)];
-        if (gi === gj) continue;
-        const left = members(gi).flatMap((m) => [...m.readings]);
-        const right = members(gj).flatMap((m) => [...m.readings]);
-        // Never join two occurrences of one reading.
-        if (left.some((r) => right.includes(r))) continue;
-        group[gj] = gi;
-      }
+  const readingsOf = (g: number) =>
+    new Set(items.flatMap((item, i) => (root(i) === g ? [...item.readings] : [])));
+  // The same name, by the source words: one quote is the other with one attached prefix letter.
+  const prefixed = (long: Item, short: Item) =>
+    long.segment === short.segment &&
+    long.end === short.end &&
+    long.start + 1 === short.start &&
+    Array.from(long.occurrence.quote).length === Array.from(short.occurrence.quote).length + 1 &&
+    NAME_PREFIX_LETTERS.includes(Array.from(long.occurrence.quote)[0]) &&
+    Array.from(long.occurrence.quote).slice(1).join('') === short.occurrence.quote;
+  for (const [i, a] of items.entries()) {
+    for (const [j, b] of items.entries()) {
+      if (!prefixed(a, b)) continue;
+      const [gi, gj] = [root(i), root(j)];
+      const left = readingsOf(gi);
+      // Never join two occurrences of one reading.
+      if (gi === gj || [...readingsOf(gj)].some((r) => left.has(r))) continue;
+      group[gj] = gi;
     }
   }
-  const out: InitialOccurrence[] = [];
-  const shownGroups = new Set<number>();
-  for (const [i] of items.entries()) {
-    const g = root(i);
-    if (shownGroups.has(g)) continue;
-    shownGroups.add(g);
-    const joined = members(g);
-    if (joined.length === 1) {
-      out.push(joined[0].occurrence);
-      continue;
-    }
-    const shown = [...joined].sort(
-      (x, y) =>
-        x.end - x.start - (y.end - y.start) ||
-        x.start - y.start ||
-        x.occurrence.key.localeCompare(y.occurrence.key),
-    )[0].occurrence;
+  const groups = new Map<number, Item[]>();
+  for (const [i, item] of items.entries())
+    groups.set(root(i), [...(groups.get(root(i)) ?? []), item]);
+  const shown = [...groups.values()].map((joined) => {
     const people = joined.flatMap((m) => m.occurrence.people);
-    out.push({
-      ...shown,
-      people: people.filter((p, k) => people.findIndex((q) => q.id === p.id) === k),
-    });
+    const narrowest = [...joined].sort((x, y) => x.end - x.start - (y.end - y.start))[0];
+    return {
+      joined,
+      readings: new Set(joined.flatMap((m) => [...m.readings])),
+      occurrence: {
+        ...narrowest.occurrence,
+        people: people.filter((p, k) => people.findIndex((q) => q.id === p.id) === k),
+      } as InitialOccurrence,
+    };
+  });
+  const overlap = (x: Item, y: Item) =>
+    x.segment === y.segment && x.start < y.end && y.start < x.end;
+  // Overlapping occurrences of one reading alone, like a son's name and the father inside it, are
+  // that reading's own choice. Any other overlap is two readings disagreeing about the words.
+  const oneReading = (x: (typeof shown)[number], y: (typeof shown)[number]) =>
+    x.readings.size === 1 && y.readings.size === 1 && [...x.readings][0] === [...y.readings][0];
+  for (const a of shown) {
+    if (
+      shown.some(
+        (b) =>
+          b !== a && !oneReading(a, b) && a.joined.some((x) => b.joined.some((y) => overlap(x, y))),
+      )
+    )
+      a.occurrence.overlapsOtherReading = true;
   }
-  return out;
+  return shown.map((s) => s.occurrence);
 }
 
 export function initialPerson(

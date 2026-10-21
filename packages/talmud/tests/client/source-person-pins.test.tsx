@@ -1,6 +1,6 @@
 import { fireEvent, render, waitFor } from '@solidjs/testing-library';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { SourcePerson } from '../../src/client/SourcePerson';
+import { SourcePerson, SourcePersonPage } from '../../src/client/SourcePerson';
 import {
   initialPerson,
   type ReadingClaim,
@@ -48,6 +48,18 @@ async function rabbahCard() {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('a person card opened from a page', () => {
+  it('refuses a link with only some of its pins and fetches nothing', async () => {
+    const card = await rabbahCard();
+    const fetch = vi.fn(async (_url: string) => new Response(JSON.stringify(card)));
+    vi.stubGlobal('fetch', fetch);
+    location.hash = `#source-person/${encodeURIComponent(card.id)}?revision=${pins.revision}`;
+    const { container } = render(() => <SourcePersonPage />);
+    await waitFor(() => expect(container.textContent).toBeTruthy());
+    expect(container.querySelector('h2')).toBeNull();
+    expect(fetch).not.toHaveBeenCalled();
+    location.hash = '';
+  });
+
   it('asks for the page revisions and passes them to every person link', async () => {
     const card = await rabbahCard();
     const fetch = vi.fn(async (_url: string) => new Response(JSON.stringify(card)));

@@ -81,17 +81,22 @@ cannot go into the graph. A store revision can only extend a revision of the sam
   every person card it opens, and with every link inside a card, as `revision`, `bavliRevision` and
   `otherRevision`. `none` means the page read no revision of that store, so the card skips it too. A
   named revision that is not there is an error. The card shows it and never asks again without the
-  revision. `packages/talmud/src/lib/sage-graph/reading-pins.ts` holds this.
-- **Several readings of the same words are shown once.** Readings that quote the same span share one
-  occurrence. Readings that quote different spans of the same words also share one. For example, an
-  older reading quotes "אמר רב" and a newer one quotes "רב". Two occurrences join when they are in the
-  same source segment, come from different readings, and each overlaps the other more than anything
-  else in the other reading. One reading's own occurrences never join, so a son's name and the father
-  named inside it stay apart. A joined occurrence keeps every reading's proposal and shows the narrowest
-  quote.
+  revision. A card link with only some of the three, or an empty one, is refused, not read as
+  unpinned. An empty `revision=` is a 404, not the newest graph revision.
+  `packages/talmud/src/lib/sage-graph/reading-pins.ts` holds this.
+- **Several readings of the same words are shown once.** Two occurrences from different readings join
+  only when the source words show they are the same name. That means the same span, or one quote is
+  the other with one attached prefix letter, like ורבי יוחנן and רבי יוחנן. The letters are the same as
+  the reviewed prefix amendment, `anchor_repair_v2.PREFIXES`. Overlap alone never joins anything. So a
+  father-only quote in one reading and the son's full name in another stay apart, even when neither
+  reading has both. One reading's own occurrences never join either. A joined occurrence keeps every
+  reading's proposal and shows the shorter quote.
+- **Overlapping readings are not linked.** An occurrence that overlaps another reading's occurrence
+  without joining is marked `overlapsOtherReading`. For example, an older reading quotes "אמר רב"
+  where a newer one quotes "רב". Both are listed, and neither is linked on the page.
 - **Nothing is chosen between readings.** A joined occurrence with people from two readings is never
-  linked on the page. Each person card shows and counts only its own reading's relationships, so a
-  second reading of a job never doubles a count.
+  linked either. Each person card shows and counts only its own reading's relationships, so a second
+  reading of a job never doubles a count.
 - **The graph copy wins.** If a passage is in both the graph and a store, the app uses the graph copy.
   The graph holds older readings and every human correction. Reviewed people at the same words still
   come from the graph.

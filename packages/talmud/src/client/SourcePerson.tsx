@@ -208,7 +208,12 @@ export function SourcePersonPage() {
   onCleanup(() => window.removeEventListener('hashchange', update));
   return (
     <main class="source-person-page">
-      <SourcePerson id={target().id} pins={target().pins} />
+      <Show
+        when={!target().malformed}
+        fallback={<PersonStatus error>{t('sourcePerson.error')}</PersonStatus>}
+      >
+        <SourcePerson id={target().id} pins={target().pins} />
+      </Show>
     </main>
   );
 }

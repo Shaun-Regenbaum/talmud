@@ -2,13 +2,23 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { InitialOccurrence } from '../src/lib/sage-graph/initial-readings';
+import {
+  type InitialOccurrence,
+  NAME_PREFIX_LETTERS,
+  type ReadingClaim,
+  type ReadingPerson,
+  readingOccurrences,
+} from '../src/lib/sage-graph/initial-readings';
 import {
   parseSourcePersonHash,
   pinQuery,
   readingPins,
   sourcePersonHash,
 } from '../src/lib/sage-graph/reading-pins';
+import {
+  applyReadingCoverage,
+  type ReadingCoverage,
+} from '../src/lib/sage-graph/source-reading-coverage';
 import {
   canonicalJson,
   decodeStoredPassage,
@@ -500,6 +510,26 @@ type Placed = {
     occurrences: (InitialOccurrence & { sourceKey: string; start: number; end: number })[];
   };
 };
+/** One real stored reading as the page reads it: decoded, with its owned sources published. */
+async function readingAt(rows: StoredRow[], ref: string) {
+  const passage = rows.find((r) => r.kind === 'passage' && r.ref === ref)!;
+  const passageId = passage.passage_id!;
+  const decoded = await decodeStoredPassage(
+    passageId,
+    rows.filter((r) => r.passage_id === passageId),
+  );
+  const data = (kind: string) =>
+    decoded.filter((r) => r.kind === kind).map((r) => JSON.parse(r.payload_json));
+  const { people } = applyReadingCoverage(
+    passageId,
+    data('source_reading')[0].provenance.jobSha256,
+    data('passage')[0].sourceSegments,
+    data('source_reading_coverage')[0] as ReadingCoverage,
+    data('person') as ReadingPerson[],
+    data('claim') as ReadingClaim[],
+  );
+  return { passageId, people };
+}
 /** Fresh databases for one test: graph rows and store rows, each as one verified revision. */
 function setUp(graphRows: StoredRow[], storeRows: StoredRow[]) {
   for (const db of [graph, bavli]) db.close();
@@ -539,7 +569,7 @@ describe('real Hebrew names and duplicate readings', () => {
     });
   }
 
-  it('shows each occurrence once, keeps both readings as proposals and links neither', async () => {
+  it('joins two readings only at the same words, and links neither', async () => {
     for (const [graphRows, storeRows] of [
       [hebrew.v2.v1, hebrew.v4.stored], // the older reading in the graph, the new one in a store
       [
@@ -548,35 +578,99 @@ describe('real Hebrew names and duplicate readings', () => {
       ],
     ]) {
       setUp(graphRows, storeRows);
-      const page = await get<Initial & Placed>('/initial?ref=Eruvin%2029a&placement=v1');
-      expect(page.status).toBe(200);
-      const keys = page.body.occurrences.map((o) => o.key);
+      // Niddah 41b: both readings quote ריש לקיש and רבי יוחנן at the same spans, so they join.
+      const niddah = await get<Initial & Placed>('/initial?ref=Niddah%2041b&placement=v1');
+      const keys = niddah.body.occurrences.map((o) => o.key);
       expect(new Set(keys).size).toBe(keys.length);
-      const both = page.body.occurrences.filter(
+      const joined = niddah.body.occurrences.filter(
         (o) => new Set(o.people.map((p) => p.id.split('/')[0])).size === 2,
       );
-      expect(both.length).toBeGreaterThan(0);
-      const units = page.body.sources.map((s) => s.unitKey);
+      expect(joined.map((o) => o.quote)).toEqual(expect.arrayContaining(['ריש לקיש', 'רבי יוחנן']));
+      for (const row of niddah.body.placement.occurrences)
+        expect(joined.some((o) => o.key === row.key)).toBe(false);
+      const units = niddah.body.sources.map((s) => s.unitKey);
       expect(new Set(units).size).toBe(units.length);
-      expect(page.body.sources.some((s) => s.readingPassageIds.length === 2)).toBe(true);
-      // The older reading quotes phrases ("אמר רב"), the newer one names only ("רב"): shown once each.
-      const quotes = page.body.occurrences.map((o) => o.quote);
-      for (const phrase of [
-        'אמר רב',
-        'סבר רב יוסף למימר',
-        'אמר ליה רבה',
-        'רבי שמעון בן אלעזר אומר',
-      ])
-        expect(quotes).not.toContain(phrase);
-      // A son's name and the father named inside it are two occurrences, never one.
-      const son = page.body.occurrences.find((o) => o.quote === 'רבי שמעון בן אלעזר')!;
-      const father = page.body.occurrences.find((o) => o.quote === 'אלעזר')!;
+      expect(niddah.body.sources.some((s) => s.readingPassageIds.length === 2)).toBe(true);
+      // Eruvin 29a: the older reading quotes phrases ("אמר רב"), the newer one names ("רב"). The
+      // source words do not show these are one name, so they stay apart and neither is linked.
+      const eruvin = await get<Initial & Placed>('/initial?ref=Eruvin%2029a&placement=v1');
+      const quotes = eruvin.body.occurrences.map((o) => o.quote);
+      expect(quotes).toEqual(expect.arrayContaining(['אמר רב', 'רב', 'אמר ליה רבה', 'רבה']));
+      expect(eruvin.body.occurrences.every((o) => o.people.length === 1)).toBe(true);
+      const contested = eruvin.body.occurrences.filter((o) => o.overlapsOtherReading);
+      expect(contested.length).toBeGreaterThan(0);
+      for (const row of eruvin.body.placement.occurrences)
+        expect(contested.some((o) => o.key === row.key)).toBe(false);
+      // A son's name and the father named inside it are never one occurrence.
+      const son = eruvin.body.occurrences.find((o) => o.quote === 'רבי שמעון בן אלעזר')!;
+      const father = eruvin.body.occurrences.find((o) => o.quote === 'אלעזר')!;
       expect(son.key).not.toBe(father.key);
-      expect([son.people.length, father.people.length]).toEqual([2, 2]);
-      // Two readings at the same words compete, so neither is linked: no identity is chosen.
-      for (const row of page.body.placement.occurrences)
-        expect(both.some((o) => o.key === row.key)).toBe(false);
     }
+  });
+
+  it('keeps a father-only quote and a son-only quote apart when each reading missed the other', async () => {
+    // The real readings of Eruvin 29a:15, each with one person left out, as a missed extraction would.
+    const [v4, v2] = await Promise.all([
+      readingAt(hebrew.v4.stored, 'Eruvin 29a:15'),
+      readingAt(hebrew.v2.stored, 'Eruvin 29a:15'),
+    ]);
+    const only = (reading: typeof v4, keep: (label: string) => boolean) => ({
+      ...reading,
+      people: reading.people.filter((p) => keep(p.label)),
+    });
+    // The v2 labels add an English gloss: "אלעזר (Elazar)".
+    const isFather = (label: string) => label.split(' (')[0] === 'אלעזר';
+    const isSon = (label: string) => label.split(' (')[0] === 'רבי שמעון בן אלעזר';
+    for (const pair of [
+      [only(v4, isFather), only(v2, isSon)],
+      [only(v4, isSon), only(v2, isFather)],
+    ]) {
+      expect(pair.every((r) => r.people.length === 1)).toBe(true);
+      const shown = readingOccurrences(pair, (ref) => ref === 'Eruvin 29a:15');
+      expect(shown).toHaveLength(2);
+      expect(shown.every((o) => o.people.length === 1 && o.overlapsOtherReading)).toBe(true);
+    }
+  });
+
+  it('joins a quote with one attached prefix letter, and nothing looser', async () => {
+    // Real words of Shabbat 153b:15, where the captured reading quotes "דר"ע". No captured reading
+    // quotes these words without the prefix, so the second reading here is those same real words
+    // starting one letter later. Its text is the source's own.
+    const reading = await readingAt(stored, 'Shabbat 153b:13');
+    const akiva = reading.people.find((p) => p.mentions.some((m) => m.quote === 'דר"ע'))!;
+    const later = (person: ReadingPerson, skip: number) => ({
+      passageId: `${reading.passageId}-later-by-${skip}`,
+      people: [
+        {
+          ...person,
+          mentions: person.mentions.map((m) => ({
+            ...m,
+            start: m.start + skip,
+            segmentStart: (m.segmentStart ?? m.start) + skip,
+            quote: Array.from(m.quote).slice(skip).join(''),
+            occurrenceKey: `${m.occurrenceKey}-later-by-${skip}`,
+          })),
+        },
+      ],
+    });
+    const page = (ref: string) => ref === 'Shabbat 153b:15';
+    const one = readingOccurrences([{ ...reading, people: [akiva] }, later(akiva, 1)], page);
+    expect(one).toHaveLength(1);
+    expect(one[0].quote).toBe('ר"ע');
+    expect(one[0].people).toHaveLength(2);
+    const yose = reading.people.find((p) => p.mentions.some((m) => m.quote === "דר' יוסי"))!;
+    const apart = readingOccurrences([{ ...reading, people: [yose] }, later(yose, 4)], page);
+    expect(apart.map((o) => o.quote)).toEqual(["דר' יוסי", 'יוסי']);
+    expect(apart.every((o) => o.overlapsOtherReading)).toBe(true);
+  });
+
+  it('uses the same prefix letters as the reviewed prefix amendment', () => {
+    const python = readFileSync(
+      join(__dirname, '../../../research/sage-network/anchor_repair_v2.py'),
+      'utf8',
+    );
+    const letters = /^PREFIXES = frozenset\('([^']+)'\)$/m.exec(python)![1];
+    expect([...NAME_PREFIX_LETTERS].sort()).toEqual([...letters].sort());
   });
 
   it('counts relationships from one reading only, however many readings share the words', async () => {
@@ -618,8 +712,21 @@ describe('real Hebrew names and duplicate readings', () => {
     expect((await get(`/person?id=${encodeURIComponent(id)}&${none}`)).status).toBe(404);
     const hash = sourcePersonHash(id, pins);
     expect(parseSourcePersonHash(hash)).toEqual({ id, pins });
-    expect(
-      parseSourcePersonHash(`#source-person/${encodeURIComponent(id)}?revision=${GRAPH}`),
-    ).toEqual({ id });
+    // A link with only some of the pins, or an empty one, is malformed, never read as unpinned.
+    const partials = [
+      `revision=${GRAPH}`,
+      `${pinQuery(pins)}&bavliRevision=`,
+      pinQuery({ ...pins, bavliRevision: '' }),
+      '',
+    ];
+    for (const partial of partials)
+      expect(parseSourcePersonHash(`#source-person/${encodeURIComponent(id)}?${partial}`)).toEqual({
+        id,
+        malformed: true,
+      });
+    expect(parseSourcePersonHash(`#source-person/${encodeURIComponent(id)}`)).toEqual({ id });
+    // An empty graph revision is not a request for the newest one.
+    expect((await get(`/person?id=${encodeURIComponent(id)}&revision=`)).status).toBe(404);
+    expect((await get('/initial?ref=Niddah%2041b&revision=')).status).toBe(404);
   });
 });
