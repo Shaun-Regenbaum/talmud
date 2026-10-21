@@ -343,6 +343,20 @@ class NameCandidateImportTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, message):
                 imp.load_pins(broken)
 
+    def test_a_number_too_large_for_a_float_is_refused(self):
+        # 1e999 parses to infinity through parse_float, never reaching parse_constant.
+        for huge in (b'1e999', b'-1e999'):
+            with self.assertRaisesRegex(ValueError, 'Non-finite JSON number'):
+                imp.strict_json(b'{"x": ' + huge + b'}')
+
+    def test_a_readback_file_with_a_huge_number_is_refused(self):
+        rows, manifest = graph_only()
+        for huge in (b'1e999', b'-1e999'):
+            big = STORE_FILE.replace(b'{\n "complete": true,', b'{\n "complete": true,\n "size": ' + huge + b',', 1)
+            self.assertNotEqual(big, STORE_FILE)
+            with self.assertRaisesRegex(ValueError, 'Non-finite JSON number'):
+                self.build(rows, manifest, [big])
+
     def test_read_graph_checks_the_record_set(self):
         rows, manifest = parent()
         with tempfile.TemporaryDirectory() as folder:

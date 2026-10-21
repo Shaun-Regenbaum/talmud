@@ -27,6 +27,7 @@ Usage:
 import argparse
 import hashlib
 import json
+import math
 import sqlite3
 import sys
 from pathlib import Path
@@ -75,7 +76,13 @@ def strict_json(text):
 
     def constant(name):
         raise ValueError('Non-finite JSON number: ' + name)
-    return json.loads(text.decode() if isinstance(text, bytes) else text, object_pairs_hook=pairs, parse_constant=constant)
+
+    def number(text):
+        value = float(text)
+        require(math.isfinite(value), 'Non-finite JSON number: ' + text)  # 1e999 parses to inf without parse_constant
+        return value
+    return json.loads(text.decode() if isinstance(text, bytes) else text, object_pairs_hook=pairs, parse_constant=constant,
+                      parse_float=number)
 
 
 def read_graph(path, revision):
