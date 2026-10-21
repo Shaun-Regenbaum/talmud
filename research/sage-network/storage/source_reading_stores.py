@@ -42,6 +42,9 @@ VERSION = 'source-reading-stores-v1'
 # explicit upgrade revision; the compact rows and their decoder stay as they are.
 CONTRACT_2 = 'source-reading-stores-v2'
 READBACK_VERSION = 'source-reading-store-readback-v1'
+# Checked rows a read-back carries in full when asked (checked_rows), so consumers such as the name-candidate importer cite
+# rows the receipt covers. Without it a read-back keeps its earlier format exactly.
+CHECKED_ROWS_FOR_CONSUMERS = ('checked_reading', 'checked_person', 'checked_ownership', 'checked_coverage', 'checked_decision')
 # Each store accepts only its reviewed ownership manifest, the same pins the source-binding release used.
 STORES = {
     'bavli': dict(database='talmud-source-readings-bavli', corpora=['bavli'], ownershipSource='full-bavli-tiles v1',
@@ -272,11 +275,12 @@ def verify_store(export, manifest_path, artifacts, ownership_specs, parent_recei
     return _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full, checked)[0]
 
 
-def readback(export, manifest_path, artifacts, ownership_specs, checked=None):
+def readback(export, manifest_path, artifacts, ownership_specs, checked=None, checked_rows=False):
     """Every passage of a store revision, as stored and as the v1 importer rebuilds it, for consumers that
-    cite stored rows. Every passage is rebuilt from its R2 artifact first; nothing is written otherwise."""
+    cite stored rows. Every passage is rebuilt from its R2 artifact first; nothing is written otherwise.
+    With checked_rows, each checked passage also carries its CHECKED_ROWS_FOR_CONSUMERS rows as stored."""
     receipt, passages, checked_passages = _read_back(export, manifest_path, artifacts, ownership_specs, None, True,
-                                                     checked, with_checked=True)
+                                                     checked, with_checked=True, checked_rows=checked_rows)
     # A consumer cites a published revision, never one still loading.
     require(receipt['revisionState'] == 'verified', 'Only a verified revision can be read back for citing')
     # The receipt covers the rows too, so it cannot travel with edited ones.
@@ -288,7 +292,8 @@ def readback(export, manifest_path, artifacts, ownership_specs, checked=None):
                 checkedPassages=checked_passages)
 
 
-def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full, checked=None, with_checked=False):
+def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full, checked=None, with_checked=False,
+               checked_rows=False):
     from verify_d1 import verify
     exported = verify(export, manifest_path)
     manifest = json.loads(manifest_path.read_text())
@@ -367,6 +372,10 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                 artifactSha256=data['artifact']['sha256'], jobId=data['jobId'],
                 stored=[dict(recordId=r['record_id'], kind=r['kind'], payloadSha256=hashes[r['record_id']],
                              payloadFormat=r['data']['format']) for r in group])
+            if checked_rows:
+                # The rows a name-candidate consumer reads, exactly as stored and just checked against the artifact.
+                checked_passages[pid]['rows'] = sorted((r for r in group if r['kind'] in CHECKED_ROWS_FOR_CONSUMERS),
+                                                       key=lambda r: r['record_id'])
             continue
         envelopes = [r for r in group if r['kind'] == 'source_reading']
         require(len(envelopes) == 1, 'A passage needs exactly one source_reading envelope')
@@ -552,6 +561,9 @@ def main():
                        help='Repeat for every selection held by the revision, including inherited readings')
         if command == 'verify':
             p.add_argument('--parent-receipt', type=Path, help="The parent revision's read-back receipt, unless it is empty")
+        else:
+            p.add_argument('--with-checked-rows', action='store_true',
+                           help='Also carry each checked passage\'s stored rows, for the name-candidate importer')
     args = parser.parse_args()
     checked = ([checked_inputs(Path(path), pin) for path, pin in args.checked_selection]
                if getattr(args, 'checked_selection', None) and args.command in ('verify', 'readback') else None)
@@ -582,7 +594,7 @@ def main():
                                  args.parent_revision, ownership, args.legacy_db, args.legacy_revision, args.output)
     elif args.command == 'readback':
         specs = [dict(manifest=json.loads(Path(m).read_text()), expectedManifestSha256=h) for m, h in args.ownership]
-        result = readback(args.export, args.manifest, args.artifacts, specs, checked)
+        result = readback(args.export, args.manifest, args.artifacts, specs, checked, args.with_checked_rows)
         args.output.write_text(json.dumps(result, ensure_ascii=False) + '\n')
         result = {k: result[k] for k in ('store', 'revision', 'recordSetSha256', 'readBackSha256')}
     else:
