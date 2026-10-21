@@ -38,6 +38,9 @@ from shared_records import FORMAT as SHARED_FORMAT, record_table  # noqa: E402
 from source_coverage import pinned_index, records as coverage_records  # noqa: E402
 
 VERSION = 'source-reading-stores-v1'
+# A store under contract 2 holds checked source readings as well. A store moves to it only by an
+# explicit upgrade revision; the compact rows and their decoder stay as they are.
+CONTRACT_2 = 'source-reading-stores-v2'
 READBACK_VERSION = 'source-reading-store-readback-v1'
 # Each store accepts only its reviewed ownership manifest, the same pins the source-binding release used.
 STORES = {
@@ -50,8 +53,14 @@ STORES = {
 }
 NEWEST = "SELECT id FROM sage_graph_revisions WHERE state='verified' ORDER BY created_at DESC, id DESC LIMIT 1"
 KINDS = v1.KINDS | {'source_reading_run'}
+# Every kind a store revision may hold, compact or checked; a contract 1 store refuses the checked ones.
+STORE_KINDS = KINDS | {'checked_reading', 'checked_person', 'checked_connection', 'checked_decision',
+                       'checked_coverage', 'checked_unit', 'checked_ownership'}
 CHANGE_FIELDS = {'parentRevision', 'description', 'sourceReadingStore', 'sourceReadingVersion', 'sourceReadingBundles',
                  'sourceReadingInputs', 'sourceReadingOwnership', 'legacyGraphRevision', 'records'}
+CHECKED_FIELDS = {'parentRevision', 'description', 'sourceReadingStore', 'checkedSelection', 'checkedRootApprovals',
+                  'checkedBundles', 'sourceReadingOwnership', 'legacyGraphRevision', 'records'}
+UPGRADE_FIELDS = {'parentRevision', 'description', 'sourceReadingStoreUpgrade', 'records'}
 COLUMNS = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
 
 
@@ -74,11 +83,36 @@ def store_for(job):
     return names[0]
 
 
-def store_block(name):
+def store_block(name, contract=1):
     require(name in STORES, 'Unknown source-reading store: ' + str(name))
     store = STORES[name]
-    return dict(name=name, database=store['database'], corpora=list(store['corpora']),
-                recordFormat=compact_store.FORMAT, importVersion=VERSION)
+    base = dict(name=name, database=store['database'], corpora=list(store['corpora']))
+    if contract == 1:
+        return dict(base, recordFormat=compact_store.FORMAT, importVersion=VERSION)
+    require(contract == 2, 'Unknown source-reading store contract')
+    import checked_source_store
+    return dict(base, recordFormats=[compact_store.FORMAT, checked_source_store.FORMAT], importVersion=CONTRACT_2)
+
+
+def contract_of(block):
+    """1 or 2 for a known block of a known store, else None."""
+    name = block.get('name') if isinstance(block, dict) else None
+    return next((c for c in (1, 2) if name in STORES and block == store_block(name, c)), None)
+
+
+def pinned_ownership(store, ownership):
+    require(ownership is not None, 'A source-reading store needs a pinned ownership manifest')
+    require(ownership['manifest']['manifest'].get('sourceVersion') == STORES[store]['ownershipSource'],
+            'Ownership manifest belongs to another store')
+    require(ownership['expectedManifestSha256'] == STORES[store]['ownershipManifestSha256'],
+            'Ownership manifest is not the reviewed one for this store')
+
+
+def upgrade_changes(block, parent_revision):
+    """The explicit revision that lets a store hold checked readings. It adds and changes no record."""
+    require(contract_of(block) == 1, 'Only a contract 1 store can be upgraded')
+    return dict(parentRevision=parent_revision, description=f"Let the {block['name']} store hold checked source readings",
+                sourceReadingStoreUpgrade=dict(fromBlock=block, toBlock=store_block(block['name'], 2)), records=[])
 
 
 def revision_prefix(name):
@@ -94,17 +128,15 @@ def passage_id(bundle):
     return v1.records(bundle)[0]['passage_id']
 
 
-def changes_for(store, bundles, parent_revision, input_artifacts, ownership, legacy_revision, existing=None):
-    """`existing`: record ID -> compact row already in the parent revision of the same store."""
-    block = store_block(store)
+def changes_for(store, bundles, parent_revision, input_artifacts, ownership, legacy_revision, existing=None, block=None):
+    """`existing`: record ID -> compact row already in the parent revision of the same store. `block` is
+    the parent's store block, contract 1 by default."""
+    block = block or store_block(store)
+    require(contract_of(block) and block['name'] == store, 'Unknown store block')
     require(isinstance(bundles, list) and bool(bundles), 'No source readings')
     for bundle in bundles:
         require(store_for(bundle['job']) == store, 'Job belongs to another store: ' + str(bundle['job'].get('job_id')))
-    require(ownership is not None, 'A source-reading store needs a pinned ownership manifest')
-    require(ownership['manifest']['manifest'].get('sourceVersion') == STORES[store]['ownershipSource'],
-            'Ownership manifest belongs to another store')
-    require(ownership['expectedManifestSha256'] == STORES[store]['ownershipManifestSha256'],
-            'Ownership manifest is not the reviewed one for this store')
+    pinned_ownership(store, ownership)
     require(isinstance(legacy_revision, str) and legacy_revision.startswith('sage-graph-'),
             'Name the verified legacy graph revision these readings were checked against')
     # The unchanged importer rebuilds every v1 row from the frozen inputs, with publication ownership.
@@ -130,19 +162,39 @@ def is_store(manifest):
     return 'sourceReadingStore' in manifest
 
 
-def validate_changes(changes, rows, parent):
-    """Called by extend_d1 for a store parent. A store holds compact source readings and nothing else."""
+def validate_changes(changes, rows, parent, checked_selections=()):
+    """Called by extend_d1 for a store parent. A store holds compact and checked source readings and
+    nothing else. Returns the store block of the new revision. `checked_selections` are the SHA-256s of
+    root's checked release selections, given by the caller and never taken from the changes."""
     require(is_store(parent), 'Compact source readings go to a source-reading store, not the graph')
-    require(set(changes) == CHANGE_FIELDS, 'A source-reading store import cannot carry other changes')
-    store = changes['sourceReadingStore'].get('name')
-    require(changes['sourceReadingStore'] == store_block(store) == parent['sourceReadingStore'],
-            'Parent revision belongs to another source-reading store')
+    block = parent['sourceReadingStore']
+    store = block.get('name') if isinstance(block, dict) else None
+    require(contract_of(block), 'Parent revision has an unknown store block')
     require(parent['revision'].startswith(revision_prefix(store)), 'Parent revision belongs to another source-reading store')
-    require(changes['sourceReadingVersion'] == v1.VERSION, 'Unknown source reading import')
     existing = {key: item(row) for key, row in rows.items()}
+    if 'sourceReadingStoreUpgrade' in changes:
+        require(set(changes) == UPGRADE_FIELDS and changes == upgrade_changes(block, parent['revision']),
+                'Store contract upgrade differs')
+        return changes['sourceReadingStoreUpgrade']['toBlock']
+    if 'checkedSelection' in changes:
+        import checked_source_store
+        require(set(changes) == CHECKED_FIELDS, 'A checked store import cannot carry other changes')
+        require(changes['sourceReadingStore'] == block, 'Parent revision belongs to another source-reading store')
+        pin = digest(changes['checkedSelection'])
+        require(pin in set(checked_selections), 'Checked release selection is not pinned by the caller')
+        pinned_ownership(store, changes['sourceReadingOwnership'])
+        expected = checked_source_store.changes_for(
+            block, changes['checkedSelection'], pin, changes['checkedRootApprovals'], changes['checkedBundles'],
+            changes['sourceReadingOwnership'], changes['parentRevision'], changes['legacyGraphRevision'], existing)
+        require(changes == expected, 'Checked store records differ from strict reconstruction')
+        return block
+    require(set(changes) == CHANGE_FIELDS, 'A source-reading store import cannot carry other changes')
+    require(changes['sourceReadingStore'] == block, 'Parent revision belongs to another source-reading store')
+    require(changes['sourceReadingVersion'] == v1.VERSION, 'Unknown source reading import')
     expected = changes_for(store, changes['sourceReadingBundles'], changes['parentRevision'], changes['sourceReadingInputs'],
-                           changes['sourceReadingOwnership'], changes['legacyGraphRevision'], existing)
+                           changes['sourceReadingOwnership'], changes['legacyGraphRevision'], existing, block)
     require(changes == expected, 'Store records differ from strict reconstruction')
+    return block
 
 
 def quoted(value):
@@ -182,11 +234,11 @@ def activate_sql(revision, parent):
             f"AND {_newest_is(parent)}{later};\n{_stop_unless(revision, 'verified')}\n")
 
 
-def genesis(store):
+def genesis(store, contract=1):
     """The empty first revision of a store, as extend_d1 would write it. Nothing to verify but the schema."""
     manifest = dict(schemaVersion=1, parentRevision=None, change=f'Create the empty {store} source-reading store',
                     recordCount=0, countsByKind={}, recordSetSha256=digest(encode([])),
-                    storageFormat=SHARED_FORMAT, sourceReadingStore=store_block(store))
+                    storageFormat=SHARED_FORMAT, sourceReadingStore=store_block(store, contract))
     revision = revision_prefix(store) + digest(encode(manifest))[:20]
     return {
         'import.sql': '\n'.join(revision_sql(revision, manifest, None)) + '\n',
@@ -210,33 +262,39 @@ def route(capture):
     return out, receipt
 
 
-def verify_store(export, manifest_path, artifacts, ownership_specs, parent_receipt=None, full=False):
+def verify_store(export, manifest_path, artifacts, ownership_specs, parent_receipt=None, full=False, checked=None):
     """Read a store export back after an import. Records new in this revision are rebuilt from their R2
     artifacts, downloaded again, and must equal the importer's rows. Records kept from the parent must be
     the parent's exact versions; the parent's own read-back receipt covers them. With `full`, every
-    passage is rebuilt, whatever its parent's receipt says."""
-    return _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full)[0]
+    passage is rebuilt, whatever its parent's receipt says. `checked` is root's checked release selection,
+    `dict(selection=TEXT, pin=SHA256 given separately, approvals={file hash: text})`, needed when the
+    revision holds checked readings."""
+    return _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full, checked)[0]
 
 
-def readback(export, manifest_path, artifacts, ownership_specs):
+def readback(export, manifest_path, artifacts, ownership_specs, checked=None):
     """Every passage of a store revision, as stored and as the v1 importer rebuilds it, for consumers that
     cite stored rows. Every passage is rebuilt from its R2 artifact first; nothing is written otherwise."""
-    receipt, passages = _read_back(export, manifest_path, artifacts, ownership_specs, None, True)
+    receipt, passages, checked_passages = _read_back(export, manifest_path, artifacts, ownership_specs, None, True,
+                                                     checked, with_checked=True)
     # A consumer cites a published revision, never one still loading.
     require(receipt['revisionState'] == 'verified', 'Only a verified revision can be read back for citing')
     # The receipt covers the rows too, so it cannot travel with edited ones.
-    receipt = dict(receipt, passagesSha256=digest(encode(passages)))
+    receipt = dict(receipt, passagesSha256=digest(encode(passages)),
+                   checkedPassagesSha256=digest(encode(checked_passages)))
     return dict(version=READBACK_VERSION, store=receipt['store'], revision=receipt['revision'],
                 parentRevision=receipt['parentRevision'], recordSetSha256=receipt['recordSetSha256'],
-                readBack=receipt, readBackSha256=digest(encode(receipt)), complete=True, passages=passages)
+                readBack=receipt, readBackSha256=digest(encode(receipt)), complete=True, passages=passages,
+                checkedPassages=checked_passages)
 
 
-def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full):
+def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full, checked=None, with_checked=False):
     from verify_d1 import verify
-    checked = verify(export, manifest_path)
+    exported = verify(export, manifest_path)
     manifest = json.loads(manifest_path.read_text())
     store = manifest.get('sourceReadingStore', {}).get('name')
-    require(manifest.get('sourceReadingStore') == store_block(store), 'Not a source-reading store revision')
+    contract = contract_of(manifest.get('sourceReadingStore'))
+    require(contract, 'Not a source-reading store revision')
     require(manifest['revision'].startswith(revision_prefix(store)) and manifest.get('storageFormat') == SHARED_FORMAT,
             'Store revision ID or storage format differs')
     indexes = {spec['expectedManifestSha256']: pinned_index(spec) for spec in ownership_specs}
@@ -262,7 +320,14 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                         and parent_receipt.get('matchesImporter') is True
                         and parent_receipt.get('recordSetSha256') == parent_manifest['recordSetSha256'],
                         'The parent revision needs its own read-back receipt')
-    require(all(r['kind'] in KINDS for r in found), 'Unexpected record kind in a source-reading store')
+    import checked_source_store
+    allowed = KINDS | (checked_source_store.KINDS if contract == 2 else set())
+    require(all(r['kind'] in allowed for r in found), 'Unexpected record kind in a source-reading store')
+    cases = None
+    if any(r['kind'] == 'checked_reading' for r in found):
+        require(isinstance(checked, dict), "Checked readings need root's pinned selection to be read back")
+        _, cases = checked_source_store.selected_cases(checked['selection'], checked['pin'], checked['approvals'])
+    checked_passages = {}
     runs = [r for r in found if r['kind'] == 'source_reading_run']
     for r in runs:
         key = v1.digest(r['data']['manifest'])
@@ -276,6 +341,29 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
             by_passage.setdefault(r['passage_id'], []).append(r)
     used, bundles, passages = set(), {}, {}
     for pid, group in by_passage.items():
+        if pid.startswith('cs1-'):
+            envelope = [r for r in group if r['kind'] == 'checked_reading']
+            require(len(envelope) == 1, 'A checked reading needs exactly one envelope')
+            data = envelope[0]['data']
+            require(data['selectionSha256'] == checked['pin'], 'Checked reading comes from another selection')
+            if not full and all(r['record_id'] in inherited for r in group):
+                continue  # unchanged since the parent, whose receipt covers it
+            path = artifacts / (data['artifact']['sha256'] + '.json')
+            require(path.exists(), 'Missing downloaded R2 artifact: ' + path.name)
+            raw = path.read_bytes()
+            require(hashlib.sha256(raw).hexdigest() == data['artifact']['sha256'] == data['bundleFileSha256']
+                    and len(raw) == data['artifact']['bytes'], 'Downloaded R2 file differs from its envelope: ' + path.name)
+            pin = STORES[store]['ownershipManifestSha256']
+            require(pin in indexes, 'Ownership manifest is not pinned for this check')
+            name, expected = checked_source_store.records(raw.decode(), cases[data['jobId']], indexes[pin], checked['pin'])
+            require(name == store and sorted(group, key=lambda r: r['record_id']) == sorted(expected, key=lambda r: r['record_id']),
+                    'Stored checked reading differs from its approved artifact: ' + pid)
+            bundles[pid] = data['artifact']['sha256']
+            checked_passages[pid] = dict(
+                artifactSha256=data['artifact']['sha256'], jobId=data['jobId'],
+                stored=[dict(recordId=r['record_id'], kind=r['kind'], payloadSha256=hashes[r['record_id']],
+                             payloadFormat=r['data']['format']) for r in group])
+            continue
         envelopes = [r for r in group if r['kind'] == 'source_reading']
         require(len(envelopes) == 1, 'A passage needs exactly one source_reading envelope')
         provenance = envelopes[0]['data']['provenance']
@@ -309,12 +397,13 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                 'Stored and rebuilt rows differ: ' + pid)
         passages[pid] = dict(artifactSha256=provenance['artifactSha256'], stored=stored, v1=rebuilt)
     require({r['data']['manifestSha256'] for r in runs} == used, 'Run manifests differ from the readings that use them')
-    receipt = dict(checked, store=store, database=STORES[store]['database'], recordSetSha256=manifest['recordSetSha256'],
+    receipt = dict(exported, store=store, database=STORES[store]['database'], recordSetSha256=manifest['recordSetSha256'],
                    parentRevision=parent, passages=len(by_passage), passagesChecked=len(bundles),
                    passagesFromParent=len(by_passage) - len(bundles),
                    countsByKind=dict(sorted(Counter(r['kind'] for r in found).items())),
-                   artifactsChecked=len(bundles), matchesImporter=True, revisionState=state)
-    return receipt, passages
+                   artifactsChecked=len(bundles), matchesImporter=True, revisionState=state,
+                   checkedPassages=len(checked_passages))
+    return (receipt, passages, checked_passages) if with_checked else (receipt, passages)
 
 
 def _read_rows(path, revision, keys):
@@ -350,7 +439,8 @@ def prepare(store, capture, parent_db, parent_revision, ownership, legacy_db, le
     inputs = {key: capture['inputArtifacts'][key] for key in used}
     keys = sorted({r['record_id'] for b in bundles for r in compact_store.records(b, index)})
     parent, existing = _read_rows(parent_db, parent_revision, keys)
-    require(parent.get('sourceReadingStore') == store_block(store), 'Parent revision belongs to another store')
+    block = parent.get('sourceReadingStore')
+    require(contract_of(block) and block['name'] == store, 'Parent revision belongs to another store')
     require(parent['newest'], 'A store release must extend the newest verified revision')
     # The legacy graph keeps its own copy of older readings, and the reader prefers it. A store must
     # never hold a reading the graph already has, so a human correction there cannot be shadowed.
@@ -358,7 +448,7 @@ def prepare(store, capture, parent_db, parent_revision, ownership, legacy_db, le
     require(not is_store(legacy), 'The legacy revision is a source-reading store')
     require(not overlap, 'The legacy graph already holds these records: ' + ', '.join(sorted(overlap)[:5]))
     changes = changes_for(store, bundles, parent_revision, inputs, ownership, legacy_revision,
-                          {k: item(r) for k, r in existing.items()})
+                          {k: item(r) for k, r in existing.items()}, block)
     output.mkdir(parents=True, exist_ok=False)
     (output / 'artifacts').mkdir()
     for bundle in bundles:
@@ -367,6 +457,51 @@ def prepare(store, capture, parent_db, parent_revision, ownership, legacy_db, le
     for name, value in [('changes.json', changes), ('held.json', held)]:
         (output / name).write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n')
     return dict(store=store, records=len(changes['records']), held=len(held), parentRevision=parent_revision)
+
+
+def prepare_checked(store, selection_path, selection_pin, parent_db, parent_revision, ownership, legacy_db,
+                    legacy_revision, output):
+    """Changes and R2 files for root's checked selection. `selection_pin` is the hash root gave for the
+    selection file; the approval and bundle files are found and checked through it."""
+    import checked_source_store
+    selection_text = selection_path.read_text()
+    selection = checked_source_store.strict_json(selection_text)
+    approvals = {c['rootApprovalFileSha256']: Path(c['rootApprovalPath']).read_text() for c in selection['cases']}
+    _, cases = checked_source_store.selected_cases(selection_text, selection_pin, approvals)
+    bundles = {job: Path(case['bundlePath']).read_text() for job, case in cases.items()}
+    rows = checked_source_store.rows_for(store, cases, bundles, pinned_index(ownership), selection_pin)
+    keys = sorted({r['record_id'] for r in rows})
+    parent, existing = _read_rows(parent_db, parent_revision, keys)
+    block = parent.get('sourceReadingStore')
+    require(contract_of(block) == 2 and block['name'] == store, 'Upgrade the store before adding checked readings')
+    require(parent['newest'], 'A store release must extend the newest verified revision')
+    legacy, overlap = _read_rows(legacy_db, legacy_revision, keys)
+    require(not is_store(legacy), 'The legacy revision is a source-reading store')
+    require(not overlap, 'The legacy graph already holds these records: ' + ', '.join(sorted(overlap)[:5]))
+    with closing(sqlite3.connect(parent_db.resolve().as_uri() + '?mode=ro', uri=True)) as db:
+        stored = {r[0]: item(r) for r in db.execute(
+            f"SELECT {COLUMNS} FROM {record_table(db)} WHERE revision_id=? AND kind='checked_reading'", (parent_revision,))}
+    changes = checked_source_store.changes_for(block, selection_text, selection_pin, approvals, bundles, ownership,
+                                               parent_revision, legacy_revision,
+                                               {**{k: item(r) for k, r in existing.items()}, **stored})
+    output.mkdir(parents=True, exist_ok=False)
+    (output / 'artifacts').mkdir()
+    mine = {r['data']['jobId'] for r in rows if r['kind'] == 'checked_reading'}
+    for job in mine:
+        (output / 'artifacts' / (cases[job]['bundleFileSha256'] + '.json')).write_text(bundles[job])
+    (output / 'changes.json').write_text(json.dumps(changes, ensure_ascii=False, indent=2) + '\n')
+    return dict(store=store, readings=len(mine), selectedReadings=len(cases), records=len(changes['records']),
+                parentRevision=parent_revision)
+
+
+def checked_inputs(selection_path, selection_pin):
+    """Root's checked selection and the approval files it names, for verify and readback."""
+    import checked_source_store
+    text = selection_path.read_text()
+    require(checked_source_store.sha(text) == selection_pin, 'Checked release selection is not the one root pinned')
+    cases = checked_source_store.strict_json(text)['cases']
+    return dict(selection=text, pin=selection_pin,
+                approvals={c['rootApprovalFileSha256']: Path(c['rootApprovalPath']).read_text() for c in cases})
 
 
 def main():
@@ -383,16 +518,27 @@ def main():
         p.add_argument(name, type=Path, required=True)
     for name in ('--parent-revision', '--ownership-hash', '--legacy-revision'):
         p.add_argument(name, required=True)
-    p = sub.add_parser('verify')
-    for name in ('--export', '--manifest', '--artifacts', '--receipt'):
+    p = sub.add_parser('upgrade', help='The revision that lets a store hold checked readings')
+    p.add_argument('--parent-manifest', type=Path, required=True); p.add_argument('--output', type=Path, required=True)
+    p = sub.add_parser('prepare-checked')
+    p.add_argument('--store', choices=sorted(STORES), required=True)
+    p.add_argument('--checked-selection', nargs=2, required=True, metavar=('SELECTION_JSON', 'ROOT_SHA256'))
+    for name in ('--parent-db', '--ownership', '--legacy-db', '--output'):
         p.add_argument(name, type=Path, required=True)
-    p.add_argument('--ownership', nargs=2, action='append', required=True, metavar=('MANIFEST_JSON', 'REVIEWED_SHA256'))
-    p.add_argument('--parent-receipt', type=Path, help="The parent revision's read-back receipt, unless it is empty")
-    p = sub.add_parser('readback')
-    for name in ('--export', '--manifest', '--artifacts', '--output'):
-        p.add_argument(name, type=Path, required=True)
-    p.add_argument('--ownership', nargs=2, action='append', required=True, metavar=('MANIFEST_JSON', 'REVIEWED_SHA256'))
+    for name in ('--parent-revision', '--ownership-hash', '--legacy-revision'):
+        p.add_argument(name, required=True)
+    for command in ('verify', 'readback'):
+        p = sub.add_parser(command)
+        for name in ('--export', '--manifest', '--artifacts', '--receipt' if command == 'verify' else '--output'):
+            p.add_argument(name, type=Path, required=True)
+        p.add_argument('--ownership', nargs=2, action='append', required=True, metavar=('MANIFEST_JSON', 'REVIEWED_SHA256'))
+        p.add_argument('--checked-selection', nargs=2, metavar=('SELECTION_JSON', 'ROOT_SHA256'),
+                       help='Needed when the revision holds checked readings')
+        if command == 'verify':
+            p.add_argument('--parent-receipt', type=Path, help="The parent revision's read-back receipt, unless it is empty")
     args = parser.parse_args()
+    checked = (checked_inputs(Path(args.checked_selection[0]), args.checked_selection[1])
+               if getattr(args, 'checked_selection', None) and args.command in ('verify', 'readback') else None)
     if args.command == 'route':
         parts, receipt = route(json.loads(args.capture.read_text()))
         args.output.mkdir(parents=True, exist_ok=False)
@@ -410,15 +556,23 @@ def main():
         ownership = dict(manifest=json.loads(args.ownership.read_text()), expectedManifestSha256=args.ownership_hash)
         result = prepare(args.store, json.loads(args.capture.read_text()), args.parent_db, args.parent_revision,
                          ownership, args.legacy_db, args.legacy_revision, args.output)
+    elif args.command == 'upgrade':
+        parent = json.loads(args.parent_manifest.read_text())
+        result = upgrade_changes(parent['sourceReadingStore'], parent['revision'])
+        args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + '\n')
+    elif args.command == 'prepare-checked':
+        ownership = dict(manifest=json.loads(args.ownership.read_text()), expectedManifestSha256=args.ownership_hash)
+        result = prepare_checked(args.store, Path(args.checked_selection[0]), args.checked_selection[1], args.parent_db,
+                                 args.parent_revision, ownership, args.legacy_db, args.legacy_revision, args.output)
     elif args.command == 'readback':
         specs = [dict(manifest=json.loads(Path(m).read_text()), expectedManifestSha256=h) for m, h in args.ownership]
-        result = readback(args.export, args.manifest, args.artifacts, specs)
+        result = readback(args.export, args.manifest, args.artifacts, specs, checked)
         args.output.write_text(json.dumps(result, ensure_ascii=False) + '\n')
         result = {k: result[k] for k in ('store', 'revision', 'recordSetSha256', 'readBackSha256')}
     else:
         specs = [dict(manifest=json.loads(Path(m).read_text()), expectedManifestSha256=h) for m, h in args.ownership]
         parent = json.loads(args.parent_receipt.read_text()) if args.parent_receipt else None
-        result = verify_store(args.export, args.manifest, args.artifacts, specs, parent)
+        result = verify_store(args.export, args.manifest, args.artifacts, specs, parent, checked=checked)
         args.receipt.write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result))
 
