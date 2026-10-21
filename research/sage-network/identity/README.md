@@ -60,8 +60,12 @@ kept for display and never matched.
   ends inside a longer word gives none (the anchor audit's whole-word rule).
 - A person is skipped only when older readings placed every one of its mentions at the same words and in the
   same role. A father inside an older child's quote, or a quote printed twice, is only noted as possible.
-- A person that an accepted identity or a human correction in the parent revision already decides is skipped. The
-  deciding records come from the parent itself (`settled_from_parent`), with their payload hashes.
+- A person that a reviewed or human record in the parent revision already decides is skipped. `Decisions` finds those
+  records with the era release's own scope (`possible_eras.scoped_rows`): by `personKey`, `case.personKey`,
+  `identityDecision.personKey`, `personKeys` or the a/b sides, by identity group, by subject or object, and through
+  the claims a human correction names. It also reads graph nodes, which list reviewed people in `personKeys`.
+- A decision about another person never decides this one. Decisions about older people at the same words are kept
+  on the case as review evidence (`olderDecisions`). Only full coverage at the same span and role skips a person.
 - Every anchor is checked against its source: the source hash, segment, edition, page, the nth match of the quote
   and its occurrence key. An alias that must not name a father is refused after `בר`, `בן`, `ברבי` or `בריה ד`,
   including a ד the quote itself carries.

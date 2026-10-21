@@ -26,6 +26,8 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'storage'))
+import possible_eras  # noqa: E402  (the era release's scope of decisions about a person)
 from ownership.tile_ownership import digest as tile_digest, source_unit  # noqa: E402
 
 VERSION = 'source-name-candidates-v1'
@@ -78,7 +80,12 @@ WORD_PREFIX = re.compile('[ודלבכמשה]{1,3}|א|אד|ואד|כד|מד')
 # The site's rule for an alias that must not name a father (HE_PATRONYMIC_PREFIX_RE in the worker), applied to the
 # text before the name plus any prefix letter the quote itself carries: X בריה דרב אמי names Rav Ami as a father.
 PATRONYMIC_BEFORE = re.compile(r'(?:^|\s)(?:בריה\s+ד|בר|בן|ברבי)\s*$')
-SETTLING = {('source_identity', 'accepted_registry_identity'), ('source_identity', 'accepted_local'), ('accepted_identity', 'accepted')}
+# A reviewed or human record about a person outranks any name match. Which records are about a person comes from
+# possible_eras.scoped_rows, the scope the era release used, plus any other kind that names the person directly
+# (graph nodes list reviewed people in personKeys). The placeholder candidate keeps that scope's registry-review match
+# from firing: one live identity_review has no registrySlug and would otherwise match every person.
+DECIDING_AUTHORITIES = ('source_review', 'user_correction')
+NO_CANDIDATE = '<no registry candidate>'
 QUOTES = str.maketrans({'׳': "'", '’': "'", '‘': "'", '״': '"', '“': '"', '”': '"'})
 # Before a title two attached letters are safe (מדר' סימאי). Before an abbreviation only ו and one more,
 # so that an abbreviation such as מהר"ל is never cut down to ר"ל.
@@ -455,34 +462,52 @@ def prior_reading(mentions, form, spans):
     return dict(covered=listed(covered), possible=listed(possible))
 
 
-def settled_from_parent(rows):
-    """People a human or an accepted identity already decides, from the parent records themselves.
+class Decisions:
+    """Reviewed and human decisions in the parent revision, found the way the era release finds them.
 
-    rows: (record_id, kind, passage_id, ref, subject_id, object_id, authority, decision, payload_sha256, payload_json).
-    An accepted source_identity or accepted_identity decides its personKey. A human correction decides every local
-    person it names. Each person keeps the exact records and payload hashes that decide it.
+    rows: every parent record as (record_id, kind, passage_id, ref, subject_id, object_id, authority, decision,
+    payload_sha256, payload_json). about(key) lists every record with a reviewed or human authority, or a withheld
+    passage, that is about that person: by personKey, case.personKey, identityDecision.personKey, personKeys or the
+    a/b sides, by its identity groups, by subject or object, or through a claim a human correction names.
     """
-    out = defaultdict(list)
-    for record_id, kind, _, _, subject, obj, authority, decision, payload_sha, payload in rows:
-        require(sha(payload) == payload_sha, 'Parent payload hash differs: ' + record_id)
-        data = json.loads(payload)
-        keys = set()
-        if (kind, decision) in SETTLING and authority in ('source_review', 'user_correction') and data.get('personKey'):
-            keys.add(data['personKey'])
-        if authority == 'user_correction':
-            keys |= {x.removeprefix('local:') for x in (subject, obj, data.get('a'), data.get('b')) if isinstance(x, str) and x.startswith('local:')}
-            if data.get('personKey'):
-                keys.add(data['personKey'])
-        for key in keys:
-            out[key].append(dict(recordId=record_id, kind=kind, authority=authority, decision=decision, payloadSha256=payload_sha))
-    return {k: sorted(v, key=encode) for k, v in out.items()}
+
+    def __init__(self, rows):
+        self.rows = {}
+        for row in rows:
+            require(sha(row[-1]) == row[-2], 'Parent payload hash differs: ' + row[0])
+            self.rows[row[0]] = row
+        self.index = possible_eras.context_index(self.rows)
+        self.cache = {}
+
+    def about(self, key):
+        if key not in self.cache:
+            context = possible_eras.context_for(self.index, key)
+            found = possible_eras.scoped_rows(context, key, NO_CANDIDATE)
+            found += [r for r in context.values() if r[1] not in possible_eras.SCOPE_KINDS and possible_eras.direct(r, key)]
+            deciding = {r[0]: possible_eras.binding(r) for r in found if r[6] in DECIDING_AUTHORITIES or r[1] == 'withheld'}
+            self.cache[key] = sorted(deciding.values(), key=lambda b: b['recordId'])
+        return self.cache[key]
 
 
-def build(rows_by_passage, registry, duplicates, parent, spans=None, settled=None):
+def older_decisions(older, decisions):
+    """Reviewed or human decisions about the older people at these words. Review evidence only: a decision about
+    another person never decides this one, and never hides a mention it does not cover at the same span and role."""
+    out = []
+    for relation, items in (('same-span-and-role', older['covered']), ('overlap-only', older['possible'])):
+        for item in items:
+            for person in item['olderPeople']:
+                found = decisions.about(person) if decisions else []
+                if found:
+                    out.append(dict(olderPerson=person, relation=relation, occurrenceKey=item['occurrenceKey'], decidedBy=found,
+                                    use='review evidence only; not a decision about this person'))
+    return out
+
+
+def build(rows_by_passage, registry, duplicates, parent, spans=None, decisions=None):
     """rows_by_passage: the v1 rows that source_readings.records() builds, one list per reading.
 
-    settled maps a person key to the human correction or accepted identity that already decides it. Those
-    people get no candidates: a reviewer's answer always outranks a name match.
+    decisions: a Decisions over the parent revision. A person it says a reviewer or a human already decided gets no
+    candidates. Decisions about older people at the same words are attached as review evidence only.
     """
     cases, skipped = [], []
     for rows in rows_by_passage:
@@ -493,18 +518,19 @@ def build(rows_by_passage, registry, duplicates, parent, spans=None, settled=Non
             if reading['kind'] != 'person' or reading['form'] not in ('named', 'embedded_parent'):
                 skipped.append(dict(personKey=key, reason=f'{reading["kind"]}/{reading["form"]} is not matched to the registry'))
                 continue
-            if key in (settled or {}):
-                require(all({'recordId', 'payloadSha256', 'authority', 'decision'} <= set(x) for x in settled[key]), 'Settlement needs its records')
-                skipped.append(dict(personKey=key, reason='A human correction or accepted identity already decides this person',
-                                    settledBy=settled[key]))
+            own = decisions.about(key) if decisions else []
+            if own:
+                skipped.append(dict(personKey=key, reason='A reviewed or human decision already covers this person', decidedBy=own))
                 continue
             case = build_case(row, passage, source_reading, registry, duplicates, parent)
             older = prior_reading(case['mentions'], reading['form'], spans or {})
+            evidence = older_decisions(older, decisions)
             if {x['occurrenceKey'] for x in older['covered']} == {m['occurrenceKey'] for m in case['mentions']}:
+                # The only way another person's record outranks this one: the same words and role at every mention.
                 skipped.append(dict(personKey=key, reason='Older readings already placed every mention of this person, at the same words '
-                                    'and in the same role', olderReading=older))
+                                    'and in the same role', olderReading=older, olderDecisions=evidence))
                 continue
-            cases.append(dict(case, olderReading=older))
+            cases.append(dict(case, olderReading=older, olderDecisions=evidence))
     by_occurrence = defaultdict(set)
     for c in cases:
         for m in c['mentions']:
@@ -519,7 +545,9 @@ def rules_sha():
     return digest(dict(version=VERSION, rules=RULES, siteList=SITE_LIST, siteReadings=SITE_READINGS, siteMeir=SITE_MEIR,
                        matcherList=MATCHER_LIST, unreviewedReadings=UNREVIEWED_READINGS, titles=TITLES, patronymic=PATRONYMIC,
                        nonSageSlugs=sorted(NON_SAGE_SLUGS), wordPrefix=WORD_PREFIX.pattern, patronymicBefore=PATRONYMIC_BEFORE.pattern,
-                       titlePrefix=TITLE_PREFIX.pattern, abbreviationPrefix=ABBREVIATION_PREFIX.pattern, settling=sorted(SETTLING),
+                       titlePrefix=TITLE_PREFIX.pattern, abbreviationPrefix=ABBREVIATION_PREFIX.pattern,
+                       decidingAuthorities=DECIDING_AUTHORITIES, noCandidate=NO_CANDIDATE, decisionScope='possible_eras.scoped_rows',
+                       decisionScopeSha256=sha256_file(possible_eras.__file__),
                        quotes=sorted(QUOTES.items()), bindingFormat=BINDING_FORMAT))
 
 

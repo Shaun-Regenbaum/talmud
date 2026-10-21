@@ -19,7 +19,7 @@ FIXTURES = Path(__file__).parent / 'fixtures'
 DATA = ROOT.parents[1] / 'packages/talmud/src/lib/data'
 READINGS = json.loads((FIXTURES / 'source-reading-real-v8.json').read_text())
 REGISTRY = json.loads((FIXTURES / 'name-candidates-registry.json').read_text())
-SETTLEMENT = json.loads((FIXTURES / 'name-candidates-settlement.json').read_text())
+DECISIONS = json.loads((FIXTURES / 'name-candidates-decisions.json').read_text())
 ALIASES = json.loads((DATA / 'rabbi-he-aliases.json').read_text())
 DUPLICATES = json.loads((DATA / 'rabbi-duplicates.json').read_text())['duplicates']
 PARENT = 'sage-graph-8b0f4c2d379702e96afa'
@@ -50,6 +50,16 @@ def move_mention(rows, person_id, text, quote, start):
     source.update(text=text, sha256=nc.sha(text))
     fresh = mention_at(source, quote, start)
     m.update({k: fresh[k] for k in ('quote', 'start', 'end', 'occurrence', 'occurrenceKey', 'source_sha256')})
+
+
+class Borrowed:
+    """For tests only: no real decision names a new-reading person yet, so a new key borrows a real person's decisions."""
+
+    def __init__(self, decisions, borrowed):
+        self.decisions, self.borrowed = decisions, borrowed
+
+    def about(self, key):
+        return self.decisions.about(self.borrowed.get(key, key))
 
 
 def approved():
@@ -204,27 +214,58 @@ class NameCandidateTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, message):
                 self.build(groups)
 
-    def test_human_decision_wins(self):
-        rows = [tuple(r) for r in SETTLEMENT['rows']]
-        settled = nc.settled_from_parent(rows)
-        hashes = {r[0]: r[8] for r in rows}
-        self.assertEqual(sorted(settled), ['b000-p0/B', 'b008-p0/D', 'b042-p0/A', 'b042-p3/B', 'b042-p3/D'])
-        self.assertEqual([x['recordId'] for x in settled['b042-p3/D']], ['connection:b042-p3/review/marriage'])
-        self.assertEqual(settled['b042-p3/D'][0]['authority'], 'user_correction')
-        self.assertTrue(all(x['payloadSha256'] == hashes[x['recordId']] for v in settled.values() for x in v))
-        self.assertNotIn('b267-p9/A', settled, 'an identity assessment decides nothing')
-        broken = [list(r) for r in rows]
+    def test_decisions_come_from_the_era_scope(self):
+        decisions = nc.Decisions([tuple(r) for r in DECISIONS['rows']])
+        people = DECISIONS['people']
+        # The fixture keeps only the records these answers need; the answers were worked out over the whole revision.
+        for key in people.values():
+            self.assertEqual(decisions.about(key), DECISIONS['expected'][key], key)
+        ids = lambda key: {b['recordId'] for b in decisions.about(key)}
+        self.assertIn('accepted_identity:b042-p0/A', ids(people['nestedIdentityDecision']))
+        self.assertTrue(any(i.startswith('graph_node:') for i in ids(people['graphNodePersonKeys'])))
+        self.assertTrue(any(i.startswith('identity_group:') for i in ids(people['identityGroup'])))
+        self.assertIn('exclusion:0', ids(people['humanExclusionThroughClaim']))
+        self.assertEqual(decisions.about(people['screeningOnly']), [], 'screening records decide nothing')
+        trap = next(r[0] for r in DECISIONS['rows'] if r[1] == 'identity_review' and 'registrySlug' not in json.loads(r[-1]))
+        self.assertFalse(any(trap in ids(key) for key in people.values()), 'a review with no registrySlug is about no one here')
+        broken = [list(r) for r in DECISIONS['rows']]
         broken[0][9] = broken[0][9].replace('"', ' "', 1)
         with self.assertRaisesRegex(ValueError, 'Parent payload hash differs'):
-            nc.settled_from_parent([tuple(r) for r in broken])
-        # No real decision names a new-reading person yet. For this test, Rami takes the decision records of the
-        # accepted identity b042-p0/A; the records themselves are real and unchanged.
-        cases, skipped = self.build(settled={R001 + '/p1': settled['b042-p0/A']})
+            nc.Decisions([tuple(r) for r in broken])
+
+    def test_a_decision_about_this_person_wins(self):
+        decisions = nc.Decisions([tuple(r) for r in DECISIONS['rows']])
+        cases, skipped = self.build(decisions=Borrowed(decisions, {R001 + '/p1': 'b042-p0/A'}))
         self.assertNotIn(R001 + '/p1', cases)
         skip = next(s for s in skipped if s['personKey'] == R001 + '/p1')
-        self.assertEqual(skip['settledBy'], settled['b042-p0/A'])
-        with self.assertRaisesRegex(ValueError, 'Settlement needs its records'):
-            self.build(settled={R001 + '/p1': [dict(recordId='accepted_identity:example')]})
+        self.assertEqual(skip['decidedBy'], decisions.about('b042-p0/A'))
+        self.assertEqual(self.build(decisions=decisions)[0].keys(), self.build()[0].keys(), 'real decisions name no new person')
+
+    def test_a_decision_about_another_person_is_only_evidence(self):
+        # Built for this test: an older passage holding 001's own s2 text, under the key of a real decided person,
+        # b042-p0/A, so the rule can be seen. The decision records are real and unchanged.
+        decisions = nc.Decisions([tuple(r) for r in DECISIONS['rows']])
+        source = next(s for s in self.groups[0][0]['data']['sourceSegments'] if s['source_id'] == 's2')
+        text = source['text']
+        binding = dict(passageId='b042-p0', edition=source['edition'], segmentId=source['provenance']['segment_id'], sourceSha256=nc.sha(text))
+        older = lambda quote: nc.older_occurrences([('passage:b042-p0', 'passage', 'b042-p0', json.dumps(dict(source=dict(passage=text)))),
+                                                    ('person:b042-p0/A', 'person', 'b042-p0', json.dumps(dict(id='A', named='name', quote=quote, quoteLocation='passage')))],
+                                                   [binding])
+        cases, skipped = self.build(spans=older('רמי בר חמא'), decisions=decisions)
+        # Rami: every mention at the same span and role, so the older reading stands, with its decisions listed.
+        skip = next(s for s in skipped if s['personKey'] == R001 + '/p1')
+        self.assertEqual({(d['olderPerson'], d['relation']) for d in skip['olderDecisions']}, {('b042-p0/A', 'same-span-and-role')})
+        # The separately named father only overlaps the decided child. He stays, unchanged, with the decision as evidence.
+        father = cases[R001 + '/p5']
+        self.assertEqual(father['status'], 'local_relative')
+        self.assertEqual([(d['olderPerson'], d['relation']) for d in father['olderDecisions']], [('b042-p0/A', 'overlap-only')])
+        self.assertEqual(father['olderDecisions'][0]['use'], 'review evidence only; not a decision about this person')
+        # Rava is printed in s2 and s3; a decided older person at s2 covers one mention. Rava stays with his candidates.
+        plain = self.build()[0][R001 + '/p2']
+        cases, _ = self.build(spans=older('רבא'), decisions=decisions)
+        rava = cases[R001 + '/p2']
+        self.assertEqual((rava['status'], rava['candidates']), (plain['status'], plain['candidates']))
+        self.assertEqual([(d['olderPerson'], d['relation']) for d in rava['olderDecisions']], [('b042-p0/A', 'same-span-and-role')])
 
     def test_older_reading_of_the_same_words(self):
         # Built for this test from reading 001's own context segment: an older passage holding exactly that

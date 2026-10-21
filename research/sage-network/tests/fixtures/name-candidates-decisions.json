@@ -1,0 +1,529 @@
+{
+  "provenance": "Real records copied byte for byte from live revision sage-graph-8b0f4c2d379702e96afa: the records that decide five chosen people, the claims a human exclusion names, the screening-only records of one person, and one identity_review with no registrySlug. Expected answers were worked out over the whole revision. Nothing edited.",
+  "revision": "sage-graph-8b0f4c2d379702e96afa",
+  "snapshotSha256": "71e7168b7dc0fba7a45c1adc26a868f2a431995d2be97b6de7b6bf50af3ad2d3",
+  "columns": [
+    "record_id",
+    "kind",
+    "passage_id",
+    "ref",
+    "subject_id",
+    "object_id",
+    "authority",
+    "decision",
+    "payload_sha256",
+    "payload_json"
+  ],
+  "people": {
+    "nestedIdentityDecision": "b042-p0/A",
+    "graphNodePersonKeys": "b008-p0/D",
+    "identityGroup": "b004-p4/A",
+    "humanExclusionThroughClaim": "b199-p7/B",
+    "screeningOnly": "b100-p0/A"
+  },
+  "expected": {
+    "b042-p0/A": [
+      {
+        "recordId": "accepted_identity:b042-p0/A",
+        "payloadSha256": "83233e5d8c4eb87582418fb427211a5cfd24b41acb4c6c3aced86e1a7b505227",
+        "authority": "source_review",
+        "decision": "accepted"
+      },
+      {
+        "recordId": "connection:b042-p0/review/answer",
+        "payloadSha256": "51a7e48131e95b3ef8b6c1b508d794e0b69c992274cebc275c6f0ed925ebe663",
+        "authority": "user_correction",
+        "decision": "supported"
+      },
+      {
+        "recordId": "connection:b042-p0/review/question",
+        "payloadSha256": "1b1931ceb44b77368305aab2220a542e1b210ea32ede1f2dc1fa6e180dab4cce",
+        "authority": "user_correction",
+        "decision": "supported"
+      },
+      {
+        "recordId": "graph_node:shmuel-(amora)",
+        "payloadSha256": "52a20929f429364527725e1f99af7731042c6ae069c251f8e8684e4ca896f41c",
+        "authority": "source_review",
+        "decision": "resolved"
+      },
+      {
+        "recordId": "name_occurrence:10",
+        "payloadSha256": "56290fbfd5578495022c64c7803a315cebd4157a62a2b389ccc047c5e7b3b3e7",
+        "authority": "source_review",
+        "decision": "page_placement_pending"
+      },
+      {
+        "recordId": "page_placement:10",
+        "payloadSha256": "3b109d80d3e66560df4d40159408cf165f9af6a8c9b715e02115bc78b0f7aff9",
+        "authority": "source_review",
+        "decision": "matching_segment_letters"
+      }
+    ],
+    "b008-p0/D": [
+      {
+        "recordId": "graph_node:local:b008-p0/D",
+        "payloadSha256": "331fd3864d2f46fb3172c28f288f87bf1e6ec3d022126229edc11a35ebb320c1",
+        "authority": "source_review",
+        "decision": "accepted_local"
+      },
+      {
+        "recordId": "identity_assessment:case-e40c0044e49a1f5c0f76",
+        "payloadSha256": "1eef309ed497c747bd0dfacc2e78689918fcb18cbf0c30a73cd188755377b20f",
+        "authority": "source_review",
+        "decision": "reviewed"
+      },
+      {
+        "recordId": "identity_assignment:name-00/b008-p0/D",
+        "payloadSha256": "b629efe17bcea29bce27114f5fb7108909946d5a296c6eb415b5337b48d47270",
+        "authority": "source_review",
+        "decision": "supported"
+      },
+      {
+        "recordId": "identity_finding:0",
+        "payloadSha256": "f4e54d999c37a1482b2a8880a1b624094a3fd9bfa3604f3d195db6da93f66915",
+        "authority": "source_review",
+        "decision": null
+      },
+      {
+        "recordId": "identity_finding:11",
+        "payloadSha256": "61c484ea65b0b2742129007da35a99f9313301833d1ea4929e752efdcfddbc0e",
+        "authority": "source_review",
+        "decision": null
+      },
+      {
+        "recordId": "identity_finding:24",
+        "payloadSha256": "8a94068a5d615d30ccc0de191d99bc4ebe4229b0968f1186e43e18822db80eae",
+        "authority": "source_review",
+        "decision": null
+      },
+      {
+        "recordId": "identity_finding:28",
+        "payloadSha256": "39d9a0c5bb23c05efaddcf935cdd886bcb4f51867b4b2a072ac6213e29c67f9e",
+        "authority": "source_review",
+        "decision": null
+      },
+      {
+        "recordId": "identity_group:name-00/g3",
+        "payloadSha256": "e3e68d9822c299c6a88dd24eacaa47a8a71e1efad7b5c5935bb490a48834b4ec",
+        "authority": "source_review",
+        "decision": "proposed"
+      },
+      {
+        "recordId": "name_occurrence:b008-p0/D:177",
+        "payloadSha256": "ebb84e23ec69234b41f11d9dcadc943022ddb752425e5e0dc7c0b91637515314",
+        "authority": "source_review",
+        "decision": "accepted_local"
+      },
+      {
+        "recordId": "source_identity:b008-p0/D",
+        "payloadSha256": "952251036404b20519bceac21e019b421b4f8f55fd639411b0dfea49ac6cb139",
+        "authority": "source_review",
+        "decision": "accepted_local"
+      }
+    ],
+    "b004-p4/A": [
+      {
+        "recordId": "graph_node:rav-huna-b-natan",
+        "payloadSha256": "005de22b7573d3cae14e273589dfd0b6be79f26aa5adf7414daa855c0c641deb",
+        "authority": "source_review",
+        "decision": "accepted_local"
+      },
+      {
+        "recordId": "identity_assignment:name-00/b004-p4/A",
+        "payloadSha256": "e81efd24072cfdb3059bfb07e5d7ba6684511baa20699dcafd405a5cec88f212",
+        "authority": "source_review",
+        "decision": "supported"
+      },
+      {
+        "recordId": "identity_finding:0",
+        "payloadSha256": "f4e54d999c37a1482b2a8880a1b624094a3fd9bfa3604f3d195db6da93f66915",
+        "authority": "source_review",
+        "decision": null
+      },
+      {
+        "recordId": "identity_finding:11",
+        "payloadSha256": "61c484ea65b0b2742129007da35a99f9313301833d1ea4929e752efdcfddbc0e",
+        "authority": "source_review",
+        "decision": null
+      },
+      {
+        "recordId": "identity_finding:24",
+        "payloadSha256": "8a94068a5d615d30ccc0de191d99bc4ebe4229b0968f1186e43e18822db80eae",
+        "authority": "source_review",
+        "decision": null
+      },
+      {
+        "recordId": "identity_finding:28",
+        "payloadSha256": "39d9a0c5bb23c05efaddcf935cdd886bcb4f51867b4b2a072ac6213e29c67f9e",
+        "authority": "source_review",
+        "decision": null
+      },
+      {
+        "recordId": "identity_group:name-00/g3",
+        "payloadSha256": "e3e68d9822c299c6a88dd24eacaa47a8a71e1efad7b5c5935bb490a48834b4ec",
+        "authority": "source_review",
+        "decision": "proposed"
+      },
+      {
+        "recordId": "name_occurrence:b004-p4/A:4",
+        "payloadSha256": "d24f7b949ba4c4be6368a36fd5a98ebfb4318aea68395706faffdfd8661b2a53",
+        "authority": "source_review",
+        "decision": "accepted_local"
+      },
+      {
+        "recordId": "source_identity:b004-p4/A",
+        "payloadSha256": "8a22f815131db3231794cf00fd1225cf273edbc3469f90afba46d2144d8f9df7",
+        "authority": "source_review",
+        "decision": "accepted_registry_identity"
+      }
+    ],
+    "b199-p7/B": [
+      {
+        "recordId": "exclusion:0",
+        "payloadSha256": "c6951d7b20d845530e4fa3314154275205afb8a4a23396b7f92f332093d8c22e",
+        "authority": "user_correction",
+        "decision": "excluded"
+      }
+    ],
+    "b100-p0/A": []
+  },
+  "rows": [
+    [
+      "accepted_identity:b042-p0/A",
+      "accepted_identity",
+      "b042-p0",
+      "Ketubot 22a:11",
+      "shmuel-(amora)",
+      null,
+      "source_review",
+      "accepted",
+      "83233e5d8c4eb87582418fb427211a5cfd24b41acb4c6c3aced86e1a7b505227",
+      "{\"generation\":\"amora-bavel-1\",\"generationBasis\":\"existing_registry\",\"identityDecision\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"בעא מיניה שמואל מרב אמרה טמאה אני וחזרה ואמרה טהורה אני מהו אמר ליה אף בזו אם נתנה\"}],\"occurrences\":[{\"end\":15,\"quote\":\"שמואל\",\"start\":10}],\"personKey\":\"b042-p0/A\",\"personSha256\":\"9e259521006bca1b03ed53a918f1f688f833325d01329d6d8f4d82b9bd00c57c\",\"reason\":\"The named Shmuel directly asks Rav a legal question. This is the Amora, not the biblical prophet.\",\"registrySlug\":\"shmuel-(amora)\",\"sourceSha256\":\"1fd05dd35b28827850858ad4b32f447524bb8f10bd3586848bfa7f9964aae6af\",\"status\":\"accepted\"},\"label\":\"Shmuel (Amora)\",\"personId\":\"shmuel-(amora)\",\"personKey\":\"b042-p0/A\"}"
+    ],
+    [
+      "claim:b042-p0/s0",
+      "claim",
+      "b042-p0",
+      "Ketubot 22a:11",
+      "b042-p0/A",
+      "b042-p0/B",
+      "classification",
+      "supported",
+      "a040a8c63b5e9e2b3785cc3953c6f0c1bba2657df3b2e39b012592fd4b29fc0a",
+      "{\"claim\":{\"addressee\":\"B\",\"addressee_basis\":\"text\",\"field\":\"speech\",\"id\":\"s0\",\"kind\":\"asked\",\"note\":\"The woman's statements are part of a legal question.\",\"quote\":\"בעא מיניה שמואל מרב אמרה טמאה אני וחזרה ואמרה טהורה אני מהו\",\"quoteLocation\":\"passage\",\"speaker\":\"A\",\"speaker_basis\":\"text\"},\"classification\":{\"decision\":\"supported\",\"flags\":[],\"groups\":[\"words\",\"views\"],\"id\":\"s0\",\"mode\":\"stated\"},\"graphReady\":false,\"historicalIdentityStatus\":\"unresolved\",\"id\":\"b042-p0/s0\",\"packSha256\":\"5d478de326f47ae01c99a12e5ee238efe4af574b33cac63a4f26e5ceff1d3da5\",\"participants\":[{\"historicalId\":null,\"id\":\"A\",\"label\":\"שמואל\",\"localId\":\"b042-p0/A\",\"named\":\"name\",\"quote\":\"שמואל\",\"quoteLocation\":\"passage\"},{\"historicalId\":null,\"id\":\"B\",\"label\":\"רב\",\"localId\":\"b042-p0/B\",\"named\":\"name\",\"quote\":\"מרב\",\"quoteLocation\":\"passage\"}],\"passageId\":\"b042-p0\",\"ref\":\"Ketubot 22a:11\",\"reviewReasons\":[],\"sourcePack\":\"b042\"}"
+    ],
+    [
+      "claim:b042-p0/s3",
+      "claim",
+      "b042-p0",
+      "Ketubot 22a:11",
+      "b042-p0/B",
+      "b042-p0/A",
+      "classification",
+      "supported",
+      "6ac54a8fa669f0f467a8012492b171973cfad7a3839244f5e38d3a9be0380f33",
+      "{\"claim\":{\"addressee\":\"A\",\"addressee_basis\":\"context\",\"field\":\"speech\",\"id\":\"s3\",\"kind\":\"answered\",\"note\":\"Read as רב replying to שמואל in the preceding question; neither name is repeated.\",\"quote\":\"אמר ליה אף בזו אם נתנה\",\"quoteLocation\":\"passage\",\"speaker\":\"B\",\"speaker_basis\":\"context\"},\"classification\":{\"decision\":\"supported\",\"flags\":[\"context\"],\"groups\":[\"words\",\"views\"],\"id\":\"s3\",\"mode\":\"stated\"},\"graphReady\":false,\"historicalIdentityStatus\":\"unresolved\",\"id\":\"b042-p0/s3\",\"packSha256\":\"5d478de326f47ae01c99a12e5ee238efe4af574b33cac63a4f26e5ceff1d3da5\",\"participants\":[{\"historicalId\":null,\"id\":\"B\",\"label\":\"רב\",\"localId\":\"b042-p0/B\",\"named\":\"name\",\"quote\":\"מרב\",\"quoteLocation\":\"passage\"},{\"historicalId\":null,\"id\":\"A\",\"label\":\"שמואל\",\"localId\":\"b042-p0/A\",\"named\":\"name\",\"quote\":\"שמואל\",\"quoteLocation\":\"passage\"}],\"passageId\":\"b042-p0\",\"ref\":\"Ketubot 22a:11\",\"reviewReasons\":[\"context\"],\"sourcePack\":\"b042\"}"
+    ],
+    [
+      "claim:b199-p7/s2",
+      "claim",
+      "b199-p7",
+      "Sanhedrin 6b:15",
+      "b199-p7/B",
+      "b199-p7/C",
+      "classification",
+      "rejected",
+      "9035f9271b70b2930c1cdc61429b48318a1ea7cc50f1e44d6750dc08ccd5a3b4",
+      "{\"claim\":{\"addressee\":\"C\",\"addressee_basis\":\"text\",\"field\":\"speech\",\"id\":\"s2\",\"kind\":\"taught\",\"note\":\"The addressee belongs to the sample judicial declaration inside Rav's teaching, not to a narrated trial conducted by Rav.\",\"quote\":\"אמר רב איש פלוני אתה חייב\",\"quoteLocation\":\"passage\",\"speaker\":\"B\",\"speaker_basis\":\"text\"},\"classification\":{\"decision\":\"rejected\",\"flags\":[\"hypothetical\",\"generic\",\"unsupported\"],\"groups\":[\"words\",\"views\"],\"id\":\"s2\",\"mode\":\"hypothetical\",\"reason\":\"The sample litigant is not established as an addressee of Rav's teaching; the sample judge is unnamed.\"},\"graphReady\":false,\"historicalIdentityStatus\":\"unresolved\",\"id\":\"b199-p7/s2\",\"packSha256\":\"bec22fa5cae45e9c73961332e2d6fbdac4aca2545ec4db5c2751d361b4510966\",\"participants\":[{\"historicalId\":null,\"id\":\"B\",\"label\":\"רב\",\"localId\":\"b199-p7/B\",\"named\":\"name\",\"quote\":\"אמר רב\",\"quoteLocation\":\"passage\"},{\"historicalId\":null,\"id\":\"C\",\"label\":\"איש פלוני addressed as liable\",\"localId\":\"b199-p7/C\",\"named\":\"described\",\"quote\":\"איש פלוני אתה חייב\",\"quoteLocation\":\"passage\"}],\"passageId\":\"b199-p7\",\"ref\":\"Sanhedrin 6b:15\",\"reviewReasons\":[\"claim_rejected\",\"unsupported\"],\"sourcePack\":\"b199\"}"
+    ],
+    [
+      "claim:b199-p7/s3",
+      "claim",
+      "b199-p7",
+      "Sanhedrin 6b:15",
+      "b199-p7/B",
+      "b199-p7/D",
+      "classification",
+      "rejected",
+      "b023ca6dcd30289bcb4c5693897fa890270006c554edd34c3c59ecda141bdafd",
+      "{\"claim\":{\"addressee\":\"D\",\"addressee_basis\":\"text\",\"field\":\"speech\",\"id\":\"s3\",\"kind\":\"taught\",\"note\":\"The explicit attribution אמר רב governs this second sample declaration as well. The addressee is hypothetical.\",\"quote\":\"איש פלוני אתה זכאי\",\"quoteLocation\":\"passage\",\"speaker\":\"B\",\"speaker_basis\":\"text\"},\"classification\":{\"decision\":\"rejected\",\"flags\":[\"hypothetical\",\"generic\",\"unsupported\"],\"groups\":[\"words\",\"views\"],\"id\":\"s3\",\"mode\":\"hypothetical\",\"reason\":\"The sample litigant is not established as an addressee of Rav's teaching; the sample judge is unnamed.\"},\"graphReady\":false,\"historicalIdentityStatus\":\"unresolved\",\"id\":\"b199-p7/s3\",\"packSha256\":\"bec22fa5cae45e9c73961332e2d6fbdac4aca2545ec4db5c2751d361b4510966\",\"participants\":[{\"historicalId\":null,\"id\":\"B\",\"label\":\"רב\",\"localId\":\"b199-p7/B\",\"named\":\"name\",\"quote\":\"אמר רב\",\"quoteLocation\":\"passage\"},{\"historicalId\":null,\"id\":\"D\",\"label\":\"איש פלוני addressed as entitled\",\"localId\":\"b199-p7/D\",\"named\":\"described\",\"quote\":\"איש פלוני אתה זכאי\",\"quoteLocation\":\"passage\"}],\"passageId\":\"b199-p7\",\"ref\":\"Sanhedrin 6b:15\",\"reviewReasons\":[\"claim_rejected\",\"unsupported\"],\"sourcePack\":\"b199\"}"
+    ],
+    [
+      "connection:b042-p0/review/answer",
+      "connection",
+      "b042-p0",
+      "Ketubot 22a:11",
+      "rav",
+      "shmuel-(amora)",
+      "user_correction",
+      "supported",
+      "51a7e48131e95b3ef8b6c1b508d794e0b69c992274cebc275c6f0ed925ebe663",
+      "{\"a\":\"rav\",\"b\":\"shmuel-(amora)\",\"claimIds\":[\"b042-p0/s3\"],\"decision\":\"supported\",\"evidence\":[{\"location\":\"passage\",\"quote\":\"אמר ליה אף בזו אם נתנה\"}],\"historicalIdentityResolved\":true,\"id\":\"b042-p0/review/answer\",\"mode\":\"stated\",\"outcome\":\"occurred\",\"passageId\":\"b042-p0\",\"reason\":\"The continuing reply identifies Rav answering Shmuel. Repeated names are not required.\",\"ref\":\"Ketubot 22a:11\",\"sourcePersonKey\":\"b042-p0/B\",\"sourceRowSha256\":\"da478136b9804b3c9929e47e7c39c80aa5b78cd9525c322968f423fe28c96186\",\"sourceSha256\":\"1fd05dd35b28827850858ad4b32f447524bb8f10bd3586848bfa7f9964aae6af\",\"targetPersonKey\":\"b042-p0/A\",\"type\":\"encounter\"}"
+    ],
+    [
+      "connection:b042-p0/review/question",
+      "connection",
+      "b042-p0",
+      "Ketubot 22a:11",
+      "shmuel-(amora)",
+      "rav",
+      "user_correction",
+      "supported",
+      "1b1931ceb44b77368305aab2220a542e1b210ea32ede1f2dc1fa6e180dab4cce",
+      "{\"a\":\"shmuel-(amora)\",\"b\":\"rav\",\"claimIds\":[\"b042-p0/s0\"],\"decision\":\"supported\",\"evidence\":[{\"location\":\"passage\",\"quote\":\"בעא מיניה שמואל מרב\"}],\"historicalIdentityResolved\":true,\"id\":\"b042-p0/review/question\",\"mode\":\"stated\",\"outcome\":\"occurred\",\"passageId\":\"b042-p0\",\"reason\":\"The hypothetical woman is inside Shmuel’s actual question to Rav.\",\"ref\":\"Ketubot 22a:11\",\"sourcePersonKey\":\"b042-p0/A\",\"sourceRowSha256\":\"da478136b9804b3c9929e47e7c39c80aa5b78cd9525c322968f423fe28c96186\",\"sourceSha256\":\"1fd05dd35b28827850858ad4b32f447524bb8f10bd3586848bfa7f9964aae6af\",\"targetPersonKey\":\"b042-p0/B\",\"type\":\"encounter\"}"
+    ],
+    [
+      "exclusion:0",
+      "exclusion",
+      "b199-p7",
+      "Sanhedrin 6b:15",
+      null,
+      null,
+      "user_correction",
+      "excluded",
+      "c6951d7b20d845530e4fa3314154275205afb8a4a23396b7f92f332093d8c22e",
+      "{\"claimIds\":[\"s2\",\"s3\"],\"evidence\":[{\"location\":\"passage\",\"quote\":\"אמר רב איש פלוני אתה חייב\"},{\"location\":\"passage\",\"quote\":\"איש פלוני אתה זכאי\"}],\"passageId\":\"b199-p7\",\"reason\":\"Sample judicial declarations do not create real litigant interactions.\",\"sourceRowSha256\":\"7c520ec40684b7d8b979ff372b9f68f5ba5159387948ac0747088251927d4da4\"}"
+    ],
+    [
+      "graph_node:local:b008-p0/D",
+      "graph_node",
+      "b008-p0",
+      "Shabbat 116b:8",
+      "local:b008-p0/D",
+      null,
+      "source_review",
+      "accepted_local",
+      "331fd3864d2f46fb3172c28f288f87bf1e6ec3d022126229edc11a35ebb320c1",
+      "{\"generation\":null,\"generationBasis\":null,\"id\":\"local:b008-p0/D\",\"identityResolved\":false,\"label\":\"Huna son of Natan explaining the ruling\",\"labelHe\":\"רב הונא בריה דרב נתן המסביר את הדין\",\"personKeys\":[\"b008-p0/D\"],\"sourceProfile\":{\"name\":\"Huna son of Natan explaining the ruling\",\"nameHe\":\"רב הונא בריה דרב נתן המסביר את הדין\",\"personKey\":\"b008-p0/D\",\"quote\":\"מאי בינייהו איכא בינייהו דמנח אפתורא דדהבא אי נמי יומא דאסתנא ורבי ישמעאל בנו של רבי יוחנן בן ברוקה האי פעל ה' למענהו מאי עביד ליה שלא יוציא את האימורין קודם הפשטת העור מ\\\"ט אמר רב הונא בריה דרב נתן משום נימין\",\"summary\":\"He explains the ruling. This passage gives no conversation partner that would distinguish the proposed earlier and later people with this name.\",\"summaryHe\":\"הוא מסביר את הדין. בקטע זה אין בן שיח שמאפשר להבחין בין הדמויות המוקדמת והמאוחרת שהוצעו בשם זה.\"}}"
+    ],
+    [
+      "graph_node:rav-huna-b-natan",
+      "graph_node",
+      "b004-p4",
+      "Gittin 7a:10",
+      "rav-huna-b-natan",
+      null,
+      "source_review",
+      "accepted_local",
+      "005de22b7573d3cae14e273589dfd0b6be79f26aa5adf7414daa855c0c641deb",
+      "{\"generation\":\"amora-bavel-5\",\"generationBasis\":\"existing_registry_not_new_dating\",\"id\":\"rav-huna-b-natan\",\"identityResolved\":true,\"label\":\"Rav Huna b. Natan\",\"labelHe\":\"רב הונא בריה דרב נתן\",\"personKeys\":[\"b004-p4/A\",\"b201-p4/B\"]}"
+    ],
+    [
+      "graph_node:shmuel-(amora)",
+      "graph_node",
+      null,
+      null,
+      "shmuel-(amora)",
+      null,
+      "source_review",
+      "resolved",
+      "52a20929f429364527725e1f99af7731042c6ae069c251f8e8684e4ca896f41c",
+      "{\"generation\":\"amora-bavel-1\",\"generationBasis\":\"existing_registry\",\"id\":\"shmuel-(amora)\",\"identityResolved\":true,\"label\":\"Shmuel (Amora)\",\"personKeys\":[\"b042-p0/A\",\"b509-p5/D\",\"b547-p6/D\",\"b283-p6/G\",\"b517-p7/B\"]}"
+    ],
+    [
+      "identity_assessment:case-e40c0044e49a1f5c0f76",
+      "identity_assessment",
+      "b008-p0",
+      "Shabbat 116b:8",
+      "local:b008-p0/D",
+      null,
+      "source_review",
+      "reviewed",
+      "1eef309ed497c747bd0dfacc2e78689918fcb18cbf0c30a73cd188755377b20f",
+      "{\"acceptedPersonId\":null,\"evidence\":[{\"location\":\"passage\",\"quote\":\"אמר רב הונא בריה דרב נתן משום נימין\"}],\"generationDecision\":\"held\",\"generationReason\":\"No independent source check of the exact generation was completed. Candidate generation is not evidence.\",\"outcome\":\"held\",\"personKey\":\"b008-p0/D\",\"proposalId\":\"identity_proposal:wide-v1-recovery/case-e40c0044e49a1f5c0f76\",\"proposalPayloadSha256\":\"f7b9a72d9bfed3ac4ee615262b182bbeb58d0b2ca3ffd6dde53f83f5478af68c\",\"proposedPersonId\":\"rav-huna-b-natan\",\"reason\":\"The full patronymic is present, but the candidate biography itself notes that some scholars distinguish two Hunas son of Natan. This isolated teaching does not decide between them. Keep the local person without importing the combined biography.\",\"reviewSha256\":\"13efd659c2acaafc1825562ed07dee3d088ef5efd03712bbc46444e0b9a89d4e\",\"sources\":[\"https://www.sefaria.org/Shabbat_116b.8\"]}"
+    ],
+    [
+      "identity_assignment:name-00/b004-p4/A",
+      "identity_assignment",
+      "b004-p4",
+      "Gittin 7a:10",
+      null,
+      null,
+      "source_review",
+      "supported",
+      "e81efd24072cfdb3059bfb07e5d7ba6684511baa20699dcafd405a5cec88f212",
+      "{\"dossierId\":\"name-00\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b004-p4\",\"quote\":\"א\\\"ל רב הונא בר נתן לרב אשי\"}],\"groupIds\":[\"name-00/g3\"],\"historicalIdentityConfirmed\":false,\"passageId\":\"b004-p4\",\"personId\":\"A\",\"personKey\":\"b004-p4/A\",\"reason\":\"Explicit bar Natan and direct address to Rav Ashi anchor this occurrence.\",\"status\":\"supported\"}"
+    ],
+    [
+      "identity_assignment:name-00/b008-p0/D",
+      "identity_assignment",
+      "b008-p0",
+      "Shabbat 116b:8",
+      null,
+      null,
+      "source_review",
+      "supported",
+      "b629efe17bcea29bce27114f5fb7108909946d5a296c6eb415b5337b48d47270",
+      "{\"dossierId\":\"name-00\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b008-p0\",\"quote\":\"אמר רב הונא בריה דרב נתן משום נימין\"}],\"groupIds\":[\"name-00/g3\"],\"historicalIdentityConfirmed\":false,\"passageId\":\"b008-p0\",\"personId\":\"D\",\"personKey\":\"b008-p0/D\",\"reason\":\"Explicit bereh de-Rav Natan matches the paternal anchor; this is a teaching attribution, not a meeting with the preceding tannaim.\",\"status\":\"supported\"}"
+    ],
+    [
+      "identity_finding:0",
+      "identity_finding",
+      null,
+      null,
+      null,
+      null,
+      "source_review",
+      null,
+      "f4e54d999c37a1482b2a8880a1b624094a3fd9bfa3604f3d195db6da93f66915",
+      "{\"dossierId\":\"name-00\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b059-p9\",\"quote\":\"אמר רב הונא בדק לן רב הונא בר חיננא\"},{\"location\":\"passage\",\"passageId\":\"b011-p4\",\"quote\":\"רב הונא בריה דרב יהושע\"},{\"location\":\"passage\",\"passageId\":\"b004-p4\",\"quote\":\"רב הונא בר נתן\"},{\"location\":\"passage\",\"passageId\":\"b033-p0\",\"quote\":\"רב הונא בר יהודה\"},{\"location\":\"passage\",\"passageId\":\"b118-p7\",\"quote\":\"רב הונא בר חייא\"}],\"groupIds\":[\"name-00/g1\",\"name-00/g2\",\"name-00/g3\",\"name-00/g4\",\"name-00/g5\",\"name-00/g6\"],\"kind\":\"possible_namesakes\",\"reason\":\"The selected retrieval cannot be one undifferentiated historical identity: it contains several explicit paternal signatures, and the examination expressly distinguishes a reporting Huna from Huna bar Hinena. The patronymic clusters are proposed identities, not proof that every variant father name denotes a different historical father. Bare-name outliers remain unresolved.\"}"
+    ],
+    [
+      "identity_finding:11",
+      "identity_finding",
+      null,
+      null,
+      null,
+      null,
+      "source_review",
+      null,
+      "61c484ea65b0b2742129007da35a99f9313301833d1ea4929e752efdcfddbc0e",
+      "{\"dossierId\":\"name-00\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b201-p4\",\"quote\":\"אמימר שרא ליה לרב הונא בר נתן למינסב איתתא מחוזייתא\"},{\"location\":\"passage\",\"passageId\":\"b201-p4\",\"quote\":\"אפ\\\"ה לא קיבלה מיניה\"}],\"groupIds\":[\"name-00/g3\"],\"kind\":\"uncertain_assignment\",\"reason\":\"Amemar permits Huna bar Natan to marry a woman of Mehoza, and Rav Ashi challenges the reasoning. Permission and failure to accept an objection are not a statement that the marriage occurred, and no actual wife or completed family tie can be assigned from this passage.\"}"
+    ],
+    [
+      "identity_finding:24",
+      "identity_finding",
+      null,
+      null,
+      null,
+      null,
+      "source_review",
+      null,
+      "8a94068a5d615d30ccc0de191d99bc4ebe4229b0968f1186e43e18822db80eae",
+      "{\"dossierId\":\"name-00\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b470-p7\",\"quote\":\"אמר רב הונא בריה דרב יהושע חזינא ליה לרבא\"},{\"location\":\"passage\",\"passageId\":\"b470-p7\",\"quote\":\"אמר ליה רב הונא לרב אשי\"},{\"location\":\"passage\",\"passageId\":\"b011-p4\",\"quote\":\"אמר להו רב הונא הבו לי לדידי לברוך\"}],\"groupIds\":[\"name-00/g2\",\"name-00/g3\",\"name-00/g1\"],\"kind\":\"uncertain_assignment\",\"reason\":\"Shabbat 42a first names bar Yehoshua quoting an observation of Rava, then a bare Huna actually objects to Rav Ashi. Unlike the shared-meal passage, there is no unambiguous continuous scene establishing the shortening. It may be bar Yehoshua, bar Natan, the main Huna under a contested biography, or an unlisted Huna; two local entries do not themselves prove two people.\"}"
+    ],
+    [
+      "identity_finding:28",
+      "identity_finding",
+      null,
+      null,
+      null,
+      null,
+      "source_review",
+      null,
+      "39d9a0c5bb23c05efaddcf935cdd886bcb4f51867b4b2a072ac6213e29c67f9e",
+      "{\"dossierId\":\"name-00\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b543-p1\",\"quote\":\"רב הונא וחייא בר רב הוו יתבי קמיה דשמואל\"},{\"location\":\"passage\",\"passageId\":\"b470-p7\",\"quote\":\"חזינא ליה לרבא\"},{\"location\":\"passage\",\"passageId\":\"b004-p4\",\"quote\":\"א\\\"ל רב הונא בר נתן לרב אשי\"},{\"location\":\"passage\",\"passageId\":\"b521-p0\",\"quote\":\"רב פפא איקלע לבי רב הונא בריה דרב איקא\"},{\"location\":\"passage\",\"passageId\":\"b389-p6\",\"quote\":\"הונא מר בר מרימר קמיה דרבינא\"}],\"groupIds\":[\"name-00/g1\",\"name-00/g2\",\"name-00/g3\",\"name-00/g8\",\"name-00/g24\"],\"kind\":\"generation_constraint\",\"reason\":\"Actual dialogue and first-person observation constrain overlap only: the main cluster sits before Shmuel; bar Yehoshua observed Rava; bar Natan questions Rav Ashi; bar Ika hosts Rav Papa; bar Merimar discusses before Ravina. These distinct positive anchors are stronger than shared subject matter, but no equality of generations, absolute dates or formal study relationships follows from the encounters.\"}"
+    ],
+    [
+      "identity_group:name-00/g3",
+      "identity_group",
+      null,
+      null,
+      "rav-huna-b-natan",
+      null,
+      "source_review",
+      "proposed",
+      "e3e68d9822c299c6a88dd24eacaa47a8a71e1efad7b5c5935bb490a48834b4ec",
+      "{\"dossierId\":\"name-00\",\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b004-p4\",\"quote\":\"א\\\"ל רב הונא בר נתן לרב אשי\"},{\"location\":\"passage\",\"passageId\":\"b008-p0\",\"quote\":\"אמר רב הונא בריה דרב נתן משום נימין\"},{\"location\":\"passage\",\"passageId\":\"b201-p4\",\"quote\":\"אמימר שרא ליה לרב הונא בר נתן למינסב איתתא מחוזייתא\"},{\"location\":\"passage\",\"passageId\":\"b368-p9\",\"quote\":\"א\\\"ל רב הונא בריה דרב נתן לר\\\"פ\"}],\"historicalIdentityConfirmed\":false,\"id\":\"name-00/g3\",\"label\":\"Rav Huna son of Natan, interlocutor of Rav Ashi and Rav Papa\",\"reason\":\"Bar Natan and bereh de-Rav Natan are matching explicit patronymic forms. Direct exchanges with Rav Ashi and Rav Papa support the cluster. The passages do not establish his exilarch office or two numbered bearers; the biography suggesting two figures is not independent evidence for a further split.\",\"registrySlug\":\"rav-huna-b-natan\",\"status\":\"proposed\"}"
+    ],
+    [
+      "identity_proposal:wide-v1-recovery/case-d1afe62efec861b1538f",
+      "identity_proposal",
+      "b100-p0",
+      "Chagigah 10b:2",
+      "local:b100-p0/A",
+      null,
+      "screening",
+      "needs_review",
+      "aeadde23d2479c09ab3a663c224246480b9e81e96298a5bd79337b180bf5c424",
+      "{\"accepted\":false,\"answer\":{\"evidence\":[{\"location\":\"passage\",\"quote\":\"רב פפא לאביי\"}],\"generation\":\"amora-bavel-5\",\"id\":\"case-d1afe62efec861b1538f\",\"personId\":\"rav-pappa\",\"reason\":\"The passage names רב פפא addressing Abaye, matching Rav Pappa (רב פפא), who studied under Abaye. Rav Papi is רב פפי, a different name.\",\"status\":\"matched\"},\"audit\":null,\"case\":{\"candidates\":[{\"aliases\":[],\"bio\":\"Rav Papi was a Babylonian Amora of the fifth generation. He was a leading student of Rava, and a colleague and disputant of Rav Papa and Rav Huna b. Rav Yehoshua. Among his students were Rav Ashi and Rav Yirmeya of Difti.\",\"canonical\":\"Rav Papi\",\"canonicalHe\":\"רב פפי\",\"generation\":\"amora-bavel-5\",\"id\":\"rav-papi\",\"sources\":null},{\"aliases\":[\"Rav Pappa\"],\"bio\":\"Rav Pappa studied under Abaye and Rava, among others. He was wealthy and established his own academy in Naresh, not far from Sura. He is often remembered for his pithy aphorisms.\",\"canonical\":\"Rav Pappa\",\"canonicalHe\":\"רב פפא\",\"generation\":\"amora-bavel-5\",\"id\":\"rav-pappa\",\"sources\":null}],\"id\":\"case-d1afe62efec861b1538f\",\"person\":{\"id\":\"A\",\"label\":\"רב פפא\",\"named\":\"name\",\"quote\":\"רב פפא\",\"quoteLocation\":\"passage\"},\"personKey\":\"b100-p0/A\",\"ref\":\"Chagigah 10b:2\",\"source\":{\"after\":\"אלא מעתה דכתיב (שמות ה, א) ויחוגו לי במדבר הכי נמי דחוגו חגא הוא וכי תימא הכי נמי והכתיב (שמות י, כה) ויאמר משה גם אתה תתן בידינו זבחים ועולות\",\"before\":\"מלאכת מחשבת אסרה תורה ומלאכת מחשבת לא כתיבא:\",\"passage\":\"חגיגות: מיכתב כתיבן לא צריכא לכדאמר ליה רב פפא לאביי ממאי דהאי וחגותם אותו חג לה' זביחה דלמא חוגו חגא קאמר רחמנא\"}},\"error\":null,\"generationBasis\":\"candidate_metadata_not_verified\",\"inputSha256\":\"7095d79f4b7ba5ef44021f6eee8eef6736ae58282cf6fbd4001b694e8efef5a5\",\"recipe\":\"e2b6717450baa4be7c260a9a14a8d9d2e46ad4f2473ab081a60c8c9050ff47e9\",\"resultPath\":\"results/inputs-016/first/case-d1afe62efec861b1538f.json\",\"resultSha256\":\"8a5e2ccd38cf28ccaabd5fc8ccdbeaa3d2cb7fb3f9d491fedc06b1fd4ce3566b\",\"runId\":\"wide-v1-recovery\",\"sourceSha256\":\"c165aac71de912d280175a4eb1cd776a3089bfb11a25d33f625b07f14ac54042\",\"status\":\"complete\"}"
+    ],
+    [
+      "identity_review:groupComparisons/0",
+      "identity_review",
+      null,
+      null,
+      null,
+      null,
+      "source_review",
+      null,
+      "6bf0f60398bdd5d3e22ae02c422bd594ca9b50a19a9269c337c5aa20d7f44b3f",
+      "{\"answerSha256\":\"43b1e1da3b66bb303d3d508dcf3702929a665bd1c2a962e689c7c714bf6a606c\",\"dossierId\":\"name-00\",\"evidence\":[{\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b115-p9\",\"quote\":\"רב הונא בר מנוח ורב שמואל בר אידי ורב חייא מווסתניא הוו שכיחי קמיה דרבא כי נח נפשיה דרבא אתו לקמיה דרב פפא\"}],\"id\":\"g7\",\"label\":\"Rav Huna son of Manoah, attendee of Rava and subsequently Rav Papa\",\"reason\":\"The explicit patronymic and the narrative transition after Rava died anchor this working identity. It is kept separate from the bar Ika anchor because the supplied sources do not supply an alias bridge; this is provisional and does not disprove the registry biography that equates them.\",\"registrySlug\":\"rav-huna-b-manoach\",\"status\":\"proposed\"},{\"evidence\":[{\"location\":\"passage\",\"passageId\":\"b521-p0\",\"quote\":\"רב פפא איקלע לבי רב הונא בריה דרב איקא\"}],\"id\":\"g8\",\"label\":\"Rav Huna son of Rav Ika, host of Rav Papa\",\"reason\":\"The explicit son-of-Ika designation and the visit by Rav Papa support this candidate. Shared association with Rav Papa cannot independently identify him with bar Manoah, although the supplied biography proposes that alias. No brother or direct study under Rabbi Abbahu is established here.\",\"registrySlug\":\"rav-huna-son-of-rav-ika\",\"status\":\"proposed\"}],\"groupIds\":[\"g7\",\"g8\"],\"relation\":\"possible_same_person\",\"status\":\"unresolved\"}"
+    ],
+    [
+      "name_occurrence:10",
+      "name_occurrence",
+      "b042-p0",
+      "Ketubot 22a:11",
+      "shmuel-(amora)",
+      null,
+      "source_review",
+      "page_placement_pending",
+      "56290fbfd5578495022c64c7803a315cebd4157a62a2b389ccc047c5e7b3b3e7",
+      "{\"characterEnd\":15,\"characterStart\":10,\"generation\":\"amora-bavel-1\",\"generationBasis\":\"existing_registry\",\"pagePlacementVerified\":false,\"passageId\":\"b042-p0\",\"personId\":\"shmuel-(amora)\",\"personKey\":\"b042-p0/A\",\"quote\":\"שמואל\",\"ref\":\"Ketubot 22a:11\",\"sourceSha256\":\"1fd05dd35b28827850858ad4b32f447524bb8f10bd3586848bfa7f9964aae6af\"}"
+    ],
+    [
+      "name_occurrence:b004-p4/A:4",
+      "name_occurrence",
+      "b004-p4",
+      "Gittin 7a:10",
+      "rav-huna-b-natan",
+      null,
+      "source_review",
+      "accepted_local",
+      "d24f7b949ba4c4be6368a36fd5a98ebfb4318aea68395706faffdfd8661b2a53",
+      "{\"characterEnd\":18,\"characterStart\":4,\"generation\":\"amora-bavel-5\",\"generationBasis\":\"existing_registry_not_new_dating\",\"pagePlacementVerified\":false,\"passageId\":\"b004-p4\",\"personId\":\"rav-huna-b-natan\",\"personKey\":\"b004-p4/A\",\"quote\":\"רב הונא בר נתן\",\"ref\":\"Gittin 7a:10\",\"sourceSha256\":\"d6ec291f202fb9e8f1253293c8e34d16d3ec6bd171729a6ce3ca43f1bb2a43b2\"}"
+    ],
+    [
+      "name_occurrence:b008-p0/D:177",
+      "name_occurrence",
+      "b008-p0",
+      "Shabbat 116b:8",
+      "local:b008-p0/D",
+      null,
+      "source_review",
+      "accepted_local",
+      "ebb84e23ec69234b41f11d9dcadc943022ddb752425e5e0dc7c0b91637515314",
+      "{\"characterEnd\":197,\"characterStart\":177,\"generation\":null,\"generationBasis\":null,\"pagePlacementVerified\":false,\"passageId\":\"b008-p0\",\"personId\":\"local:b008-p0/D\",\"personKey\":\"b008-p0/D\",\"quote\":\"רב הונא בריה דרב נתן\",\"ref\":\"Shabbat 116b:8\",\"sourceSha256\":\"5e419eb8ee94aa0645b90d5d92277d367daa81229e09d1190c17a5f5a3ddb6da\"}"
+    ],
+    [
+      "namesake_scan:b100-p0/A",
+      "namesake_scan",
+      "b100-p0",
+      "Chagigah 10b:2",
+      "local:b100-p0/A",
+      null,
+      "screening",
+      "needs_review",
+      "897bac8c69e346f61848fdf1ef56a61be5815c54aaf33879a3df30984c2cefb0",
+      "{\"accepted\":false,\"acceptedSlug\":null,\"compareFullNames\":[],\"coverage\":{\"claimDispositions\":{\"classified_direct\":10237,\"denied\":52,\"excluded\":4,\"family\":7093,\"hypothetical\":3744,\"intellectual\":6763,\"needs_context\":721,\"no_identified_pair\":19958,\"other\":3638,\"proposed\":258,\"rejected\":19,\"superseded_by_review\":10,\"uncertain\":2114},\"inputClaims\":54611,\"inputPassages\":5971,\"inputPeople\":54806,\"selectedFamilies\":908,\"selectedMentions\":25444,\"selectedPassages\":5856},\"directPartnerLabels\":[\"אביי\"],\"evidenceRecords\":[{\"channel\":\"classified_direct\",\"classification\":{\"decision\":\"supported\",\"flags\":[],\"groups\":[\"words\",\"views\"],\"id\":\"s0\",\"mode\":\"stated\"},\"direction\":\"outgoing\",\"endpointNotes\":[{\"historicalId\":null,\"id\":\"A\",\"label\":\"רב פפא\",\"localId\":\"b100-p0/A\",\"named\":\"name\",\"quote\":\"רב פפא\",\"quoteLocation\":\"passage\"},{\"historicalId\":null,\"id\":\"B\",\"label\":\"אביי\",\"localId\":\"b100-p0/B\",\"named\":\"name\",\"quote\":\"לאביי\",\"quoteLocation\":\"passage\"}],\"location\":\"passage\",\"partnerAcceptedSlug\":null,\"partnerKey\":\"b100-p0/B\",\"partnerLabel\":\"אביי\",\"recordId\":\"claim:b100-p0/s0\",\"recordSha256\":\"422f403ed24b0f95d212737360a0f9c7e7532f82d9aa0e0e6e20add3525706c5\",\"relation\":null,\"speechKind\":\"asked\"}],\"exactNameCandidates\":[\"rav-pappa\"],\"existingAssessments\":[],\"family\":\"פפא\",\"fullDescriptor\":false,\"inputRecordSetSha256\":\"c66c04fe3ded5205dc681e54d5670ad5aaaeba6b7c4ea9e941977ce78a5cd560\",\"inputRevision\":\"sage-graph-16063fc34cd1c66c6c42\",\"label\":\"רב פפא\",\"limitations\":[\"Direct labels from classifications are screening evidence, not checked connections.\",\"Shared partner labels may themselves be namesakes. Shared partners do not confirm an identity.\",\"Different circles do not prove different people. Written full names may also name more than one person.\",\"Generation numbers are registry metadata, not independent chronological evidence.\",\"Only existing reviewed place evidence is included; this scan does not infer places.\",\"Coverage is the saved classified passages, not the entire Talmud.\"],\"nameKey\":\"רב פפא\",\"nodeId\":\"local:b100-p0/A\",\"otherSameFamilyPeople\":[],\"passageId\":\"b100-p0\",\"personKey\":\"b100-p0/A\",\"places\":[],\"priorReviews\":[],\"priority\":3,\"quarantinedClaimCount\":0,\"ref\":\"Chagigah 10b:2\",\"registrySha256\":\"67c4c99a47a8ee5d469654f2d1e6173e1177683f05bce30910df60511d2a66fe\",\"reviewReasons\":[\"no_full_name_partner_anchor\"],\"reviewedLocal\":false,\"schemaVersion\":1,\"sourceRecordId\":\"person:b100-p0/A\",\"sourceRecordSha256\":\"7719a17b3c3f6ee5fc8efcab880f96fccd3bab3425568aaca706c9d28436d1fb\",\"status\":\"needs_review\"}"
+    ],
+    [
+      "page_placement:10",
+      "page_placement",
+      "b042-p0",
+      "Ketubot 22a:11",
+      null,
+      null,
+      "source_review",
+      "matching_segment_letters",
+      "3b109d80d3e66560df4d40159408cf165f9af6a8c9b715e02115bc78b0f7aff9",
+      "{\"pageCharacterEnd\":26,\"pageCharacterStart\":17,\"pageQuote\":\"שְׁמוּאֵל\",\"pageSegmentSha256\":\"34c1b593af635faf5782b045b2d1f9e7f657a1bf15c80fb074e9ffa0f9a2af34\",\"personKey\":\"b042-p0/A\",\"ref\":\"Ketubot 22a:11\",\"sourceEnd\":15,\"sourceStart\":10,\"status\":\"matching_segment_letters\"}"
+    ],
+    [
+      "source_identity:b004-p4/A",
+      "source_identity",
+      "b004-p4",
+      "Gittin 7a:10",
+      "rav-huna-b-natan",
+      null,
+      "source_review",
+      "accepted_registry_identity",
+      "8a22f815131db3231794cf00fd1225cf273edbc3469f90afba46d2144d8f9df7",
+      "{\"evidence\":[{\"location\":\"passage\",\"quote\":\"א\\\"ל רב הונא בר נתן לרב אשי מאי דכתיב (יהושע טו, כב) קינה ודימונה ועדעדה א\\\"ל מתוותא דארץ ישראל קחשיב\"}],\"generationBasis\":\"existing_registry_not_new_dating\",\"historicalIdentityResolved\":true,\"personId\":\"rav-huna-b-natan\",\"personKey\":\"b004-p4/A\",\"reason\":\"The full patronymic and direct exchange with Rav Ashi support the later Huna son of Natan. This does not identify every person with that full name.\",\"sources\":[\"https://www.sefaria.org/Gittin_7a.10\",\"https://sefaria.jewishencyclopedia.com/articles/7937-huna-b-nathan\"],\"status\":\"accepted_registry_identity\"}"
+    ],
+    [
+      "source_identity:b008-p0/D",
+      "source_identity",
+      "b008-p0",
+      "Shabbat 116b:8",
+      "local:b008-p0/D",
+      null,
+      "source_review",
+      "accepted_local",
+      "952251036404b20519bceac21e019b421b4f8f55fd639411b0dfea49ac6cb139",
+      "{\"evidence\":[{\"location\":\"passage\",\"quote\":\"מאי בינייהו איכא בינייהו דמנח אפתורא דדהבא אי נמי יומא דאסתנא ורבי ישמעאל בנו של רבי יוחנן בן ברוקה האי פעל ה' למענהו מאי עביד ליה שלא יוציא את האימורין קודם הפשטת העור מ\\\"ט אמר רב הונא בריה דרב נתן משום נימין\"}],\"historicalIdentityResolved\":false,\"personId\":\"local:b008-p0/D\",\"personKey\":\"b008-p0/D\",\"reason\":\"He explains the ruling. This passage gives no conversation partner that would distinguish the proposed earlier and later people with this name.\",\"status\":\"accepted_passage_identity\"}"
+    ]
+  ]
+}
