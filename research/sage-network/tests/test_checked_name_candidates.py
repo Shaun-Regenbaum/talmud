@@ -34,29 +34,33 @@ OWNERSHIP = dict(imp.REVIEWED_OWNERSHIP, bavli=store_tests.OWNERSHIP['expectedMa
 MIGRATIONS = ROOT.parents[1] / 'packages/talmud/migrations-sage-graph'
 
 
-def checked_store(bundles=None):
+def checked_store(bundles=None, split=False):
     """The store owner's checked-store test, run up to its read-back in a temporary folder that is removed afterwards.
-    Returns the read-back file's bytes, the test selection's bytes and the approved artifacts by hash."""
+    With split, each reading comes in its own test-only selection, released one after the other, as the owner's own
+    two-selection test does. Returns the read-back file's bytes, the selections' bytes and the artifacts by hash."""
     case = store_tests.CheckedStoreTests('test_rows_keep_every_checked_field_and_list_each_other')
     case.setUp()
     try:
-        if bundles is not None:
-            case.bundles = bundles
-            case.selection, case.approvals, case.texts = store_tests.release_inputs(bundles)
-            case.pin = checked.sha(case.selection)
-        upgraded = case.upgraded()
-        changes = case.changes(upgraded['sourceReadingStore'], upgraded['revision'])
-        case.release(case.extend(changes, 'upgraded', 'first', checked_selections=[case.pin]), 'first')
+        bundles = case.bundles if bundles is None else bundles
+        current, label, inputs, texts = case.upgraded(), 'upgraded', [], {}
+        for i, group in enumerate([[b] for b in bundles] if split else [bundles]):
+            selection, approvals, group_texts = store_tests.release_inputs(group)
+            inputs.append(dict(selection=selection, pin=checked.sha(selection), approvals=approvals))
+            texts.update(group_texts)
+            existing = {r[0]: stores.item(r) for r in case.db.execute(
+                f'SELECT {stores.COLUMNS} FROM sage_graph_all_records WHERE revision_id=?', (current['revision'],))}
+            changes = case.changes(current['sourceReadingStore'], current['revision'], existing, selection, approvals, group_texts)
+            current = case.release(case.extend(changes, label, f'batch-{i}', checked_selections=[checked.sha(selection)]), f'batch-{i}')
+            label = f'batch-{i}'
         artifacts = case.root / 'artifacts'
         artifacts.mkdir()
-        for body in case.texts.values():
+        for body in texts.values():
             (artifacts / (checked.sha(body) + '.json')).write_text(body)
-        inputs = dict(selection=case.selection, pin=case.pin, approvals=case.approvals)
-        f = stores.readback(case.root / 'first.sql', case.root / 'first.json', artifacts, [store_tests.OWNERSHIP], inputs)
+        f = stores.readback(case.root / f'{label}.sql', case.root / f'{label}.json', artifacts, [store_tests.OWNERSHIP], inputs)
     finally:
         case.doCleanups()
-    return dict(file=raw_tests.file_bytes(f), selection=case.selection.encode(),
-                artifacts={checked.sha(body): body.encode() for body in case.texts.values()})
+    return dict(file=raw_tests.file_bytes(f), selections=[x['selection'].encode() for x in inputs],
+                artifacts={checked.sha(body): body.encode() for body in texts.values()})
 
 
 def with_roles(roles):
@@ -80,22 +84,23 @@ def parent(extra=()):
                       recordSetSha256=nc.sha(imp.d1_encode([list(r[:-1]) for r in rows])))
 
 
-def pins_for(manifest, store, version=imp.PINS_V2):
-    """Root's pins for one read-back file, as root would write them for a release; here the test writes them."""
+def pins_for(manifest, store, version=imp.PINS_V2, selections=None):
+    """Root's pins for one read-back file, as root would write them for a release; here the test writes them.
+    selections: the selection files the pin lists, if not the store's own."""
     f = json.loads(store['file'])
     pin = dict(sha256=nc.sha256_bytes(store['file']), store=f['store'], database=f['readBack']['database'], revision=f['revision'],
                recordSetSha256=f['recordSetSha256'], parentRevision=f['parentRevision'], exportSha256=f['readBack']['exportSha256'],
                ownershipManifestSha256=OWNERSHIP[f['store']], revisionState='verified',
                producer=dict(commit='this test', codeSha256=nc.sha256_file(stores.__file__)))
     if version == imp.PINS_V2:
-        pin['checkedSelectionSha256'] = nc.sha256_bytes(store['selection'])
+        pin['checkedSelectionSha256s'] = sorted({nc.sha256_bytes(x) for x in (store['selections'] if selections is None else selections)})
     return dict(version=version, graph=dict(revision=manifest['revision'], recordSetSha256=manifest['recordSetSha256']), readbacks=[pin])
 
 
 def build_on(rows, store, manifest=None, pins=None, **given):
     manifest = manifest or dict(revision='test-parent-of-real-rows', recordCount=len(rows),
                                 recordSetSha256=nc.sha(imp.d1_encode([list(r[:-1]) for r in sorted(rows)])))
-    inputs = dict(dict(checked_selection=store['selection'], artifacts=store['artifacts']), **given)
+    inputs = dict(dict(checked_selections=store['selections'], artifacts=store['artifacts']), **given)
     return imp.build(sorted(rows), manifest, [store['file']], pins or pins_for(manifest, store), raw_tests.ALIASES,
                      raw_tests.DUPLICATES, OWNERSHIP, **inputs)
 
@@ -134,7 +139,7 @@ class CheckedNameCandidateTests(unittest.TestCase):
         rows, manifest = parent()
         store = store or STORE
         return imp.validate_changes(changes, rows, manifest, [store['file']], pins_for(manifest, store), raw_tests.ALIASES,
-                                    raw_tests.DUPLICATES, OWNERSHIP, checked_selection=store['selection'], artifacts=store['artifacts'])
+                                    raw_tests.DUPLICATES, OWNERSHIP, checked_selections=store['selections'], artifacts=store['artifacts'])
 
     def test_the_read_back_carries_the_stored_rows(self):
         f = json.loads(STORE['file'])
@@ -179,7 +184,7 @@ class CheckedNameCandidateTests(unittest.TestCase):
             self.assertEqual({c['status'] for c in d['coverage']}, {'partial'})  # the test plan marks every source partial
         producer = changes['nameCandidateInputs']
         self.assertEqual(producer['checkedRulesSha256'], nc.checked_rules_sha())
-        self.assertEqual(producer['sources'][0]['checkedSelectionSha256'], nc.sha256_bytes(STORE['selection']))
+        self.assertEqual(producer['sources'][0]['checkedSelectionSha256s'], [nc.sha256_bytes(STORE['selections'][0])])
 
     def test_only_owned_printed_names_are_looked_up(self):
         # Test only: one printed name of R. Abba bar Memel becomes an actor description, and both of R. Yochanan's become
@@ -198,7 +203,7 @@ class CheckedNameCandidateTests(unittest.TestCase):
                            reason='No owned printed name to look up'), changes['held'])
         # Test only: the reading's owned units narrowed so that R. Abba bar Memel's printed names fall outside them.
         rows, manifest = parent()
-        _, cases, _ = imp.readback_passages([store['file']], pins_for(manifest, store), OWNERSHIP, store['selection'], store['artifacts'])
+        _, cases, _ = imp.readback_passages([store['file']], pins_for(manifest, store), OWNERSHIP, store['selections'], store['artifacts'])
         pid, row = person_row(json.loads(store['file']), 'Rabbi Abba bar Memel')
         reading = copy.deepcopy(cases[pid])
         printed = {m['segmentId'] for m in row['data']['mentions']}
@@ -226,21 +231,61 @@ class CheckedNameCandidateTests(unittest.TestCase):
         self.assertNotIn(key, {r['subject_id'] for r in changes['records']})
         self.assertEqual([b['recordId'] for b in next(h for h in changes['held'] if h['personKey'] == key)['decidedBy']], [real[0]])
 
-    def test_the_selection_and_artifacts_come_from_the_caller_and_match_roots_pins(self):
+    def test_the_selections_and_artifacts_come_from_the_caller_and_match_roots_pins(self):
         rows, manifest = parent()
-        with self.assertRaisesRegex(ValueError, 'need a version-2 pin'):
-            self.build(pins=pins_for(manifest, STORE, imp.PINS))
-        for given in (dict(checked_selection=None), dict(checked_selection=STORE['selection'] + b' ')):
-            with self.assertRaisesRegex(ValueError, 'checked selection differs from its pin'):
+        mine = STORE['selections']
+        # Test only: another selection, holding only the first reading.
+        other = store_tests.release_inputs([make_bundle(store_tests.JOBS[0])])[0].encode()
+        refused = [
+            (dict(pins=pins_for(manifest, STORE, imp.PINS), checked_selections=[]), 'need a version-2 pin'),
+            (dict(pins=pins_for(manifest, STORE, imp.PINS)), 'A checked selection is given that no pin lists'),
+            (dict(checked_selections=[]), 'A pinned checked selection is not given'),
+            (dict(checked_selections=[mine[0] + b' ']), 'A pinned checked selection is not given'),
+            (dict(checked_selections=mine + mine), 'A checked selection is given twice'),
+            (dict(checked_selections=mine + [other]), 'A checked selection is given that no pin lists'),
+            # The pin lists a selection, but not the one these readings name.
+            (dict(pins=pins_for(manifest, STORE, selections=[other]), checked_selections=[other]), 'names a selection its pin does not list'),
+            # The pin lists one selection more than the file holds.
+            (dict(pins=pins_for(manifest, STORE, selections=mine + [other]), checked_selections=mine + [other]),
+             'lists a checked selection this read-back does not hold'),
+        ]
+        for given, message in refused:
+            with self.subTest(message), self.assertRaisesRegex(ValueError, message):
                 self.build(**given)
-        # Test only: another selection, pinned as if root had chosen it, that does not hold these readings.
-        other = dict(STORE, selection=store_tests.release_inputs([make_bundle(store_tests.JOBS[0])])[0].encode())
-        with self.assertRaisesRegex(ValueError, "not in root's pinned selection"):
-            self.build(other)
         first = sorted(STORE['artifacts'])[0]
         for artifacts in ({k: v for k, v in STORE['artifacts'].items() if k != first}, dict(STORE['artifacts'], **{first: STORE['artifacts'][first] + b' '})):
             with self.assertRaisesRegex(ValueError, 'approved artifact is missing or differs'):
                 self.build(artifacts=artifacts)
+
+    def test_a_store_with_two_selections(self):
+        two = checked_store(split=True)
+        self.assertEqual(len(set(two['selections'])), 2)
+        changes = self.build(two)
+        self.check(changes, two)
+        answer = lambda c: sorted((r['subject_id'], r['data']['status'], r['data']['suggestion']) for r in c['records'])
+        self.assertEqual(answer(changes), answer(self.build()))
+        self.assertEqual(changes['nameCandidateInputs']['sources'][0]['checkedSelectionSha256s'], sorted(nc.sha256_bytes(x) for x in two['selections']))
+        rows, manifest = parent()
+        for given, message in [
+            (dict(checked_selections=two['selections'][:1]), 'A pinned checked selection is not given'),
+            (dict(pins=pins_for(manifest, two, selections=two['selections'][:1]), checked_selections=two['selections'][:1]),
+             'names a selection its pin does not list'),
+        ]:
+            with self.subTest(message), self.assertRaisesRegex(ValueError, message):
+                self.build(two, **given)
+        # Test only: one reading's envelope re-pointed at the other pinned selection, its hashes made to fit. Its case
+        # is looked up only in the selection it names, where its job is absent.
+        f = json.loads(two['file'])
+        names = {pid: next(r for r in p['rows'] if r['kind'] == 'checked_reading') for pid, p in f['checkedPassages'].items()}
+        pid, row = sorted(names.items())[0]
+        other = next(r['data']['selectionSha256'] for k, r in names.items() if k != pid)
+
+        def misbound(f):
+            row = next(r for r in f['checkedPassages'][pid]['rows'] if r['kind'] == 'checked_reading')
+            row['data']['selectionSha256'] = other
+            restore_hash(f, pid, row)
+        with self.assertRaisesRegex(ValueError, 'absent from the selection it names'):
+            self.build(refit(two, misbound))
 
     def test_edited_rows_are_refused_even_when_the_receipt_is_refit(self):
         f = json.loads(STORE['file'])
@@ -290,7 +335,7 @@ class CheckedNameCandidateTests(unittest.TestCase):
         # Test only: a store raw reading of the same raw result, given beside the real checked readings. It is left
         # out and listed as superseded; nothing is built from it.
         rows, manifest = parent()
-        held, cases, sources = imp.readback_passages([STORE['file']], pins_for(manifest, STORE), OWNERSHIP, STORE['selection'], STORE['artifacts'])
+        held, cases, sources = imp.readback_passages([STORE['file']], pins_for(manifest, STORE), OWNERSHIP, STORE['selections'], STORE['artifacts'])
         store_raw = dict(store='bavli', revision=f['revision'], stored={}, v1Sha256={},
                          v1=[dict(kind='source_reading', data=dict(provenance=dict(resultSha256=raw_result)))])
         with mock.patch.object(imp, 'readback_passages', return_value=({'sr1-store-copy': store_raw}, cases, sources)):
@@ -338,10 +383,10 @@ class CheckedNameCandidateTests(unittest.TestCase):
             (root / (out + '.json')).write_text(json.dumps(build_on(rows, store, manifest, pins), ensure_ascii=False))
             return prepare(root / 'parent.sql', root / 'manifest.json', root / (out + '.json'), root / out, shared=True,
                            name_candidate_pins=pins, readbacks=[store['file']], **kw)
-        inputs = lambda store: dict(name_candidate_selection=store['selection'], name_candidate_artifacts=store['artifacts'])
+        inputs = lambda store: dict(name_candidate_selections=store['selections'], name_candidate_artifacts=store['artifacts'])
         # The hook reads the reviewed ownership manifests; for this test store, its own manifest stands in.
         with mock.patch.dict(imp.REVIEWED_OWNERSHIP, OWNERSHIP):
-            with self.assertRaisesRegex(ValueError, 'checked selection differs from its pin'):
+            with self.assertRaisesRegex(ValueError, 'A pinned checked selection is not given'):
                 release(STORE, 'no-selection')
             # A bare "רב" fits 140 registry entries, and its record is too large for one database statement, so the
             # whole batch is refused. Six such people in the real 57 hit this too.
