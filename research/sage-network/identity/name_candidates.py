@@ -363,6 +363,11 @@ def build_case(person_row, passage_row, reading_row, registry, duplicates, paren
         return dict(base, status='local_relative', namedInsidePatronymicOf=[passage['id'] + '/' + c for c in children],
                     reason='Named only as a father inside a patronymic. Kept as a local relative. '
                            "A father's name alone is not matched to the registry.")
+    return decide(base, mentions, registry, duplicates)
+
+
+def decide(base, mentions, registry, duplicates):
+    """The decision for one named person from its matched mentions: tentative, alternatives or unresolved."""
     hit = lambda m, h, match: dict(occurrenceKey=m['occurrenceKey'], match=match, via=h.get('via', 'canonicalHe'), form=h['form'],
                                    registryName=h['registryName'], rules=h['rules'] + h.get('registryRules', []),
                                    registryLabels=h.get('registryLabels', []), readings=h.get('readings', []), nameShape=m['nameShape'])
@@ -523,14 +528,24 @@ def build(rows_by_passage, registry, duplicates, parent, spans=None, decisions=N
                 skipped.append(dict(personKey=key, reason='A reviewed or human decision already covers this person', decidedBy=own))
                 continue
             case = build_case(row, passage, source_reading, registry, duplicates, parent)
-            older = prior_reading(case['mentions'], reading['form'], spans or {})
-            evidence = older_decisions(older, decisions)
-            if {x['occurrenceKey'] for x in older['covered']} == {m['occurrenceKey'] for m in case['mentions']}:
-                # The only way another person's record outranks this one: the same words and role at every mention.
-                skipped.append(dict(personKey=key, reason='Older readings already placed every mention of this person, at the same words '
-                                    'and in the same role', olderReading=older, olderDecisions=evidence))
-                continue
-            cases.append(dict(case, olderReading=older, olderDecisions=evidence))
+            place(case, key, reading['form'], spans, decisions, cases, skipped)
+    cross_link(cases)
+    return cases, skipped
+
+
+def place(case, key, form, spans, decisions, cases, skipped):
+    """Keep a case unless older readings cover every mention at the same words and role."""
+    older = prior_reading(case['mentions'], form, spans or {})
+    evidence = older_decisions(older, decisions)
+    if {x['occurrenceKey'] for x in older['covered']} == {m['occurrenceKey'] for m in case['mentions']}:
+        # The only way another person's record outranks this one: the same words and role at every mention.
+        skipped.append(dict(personKey=key, reason='Older readings already placed every mention of this person, at the same words '
+                            'and in the same role', olderReading=older, olderDecisions=evidence))
+        return
+    cases.append(dict(case, olderReading=older, olderDecisions=evidence))
+
+
+def cross_link(cases):
     by_occurrence = defaultdict(set)
     for c in cases:
         for m in c['mentions']:
@@ -538,6 +553,106 @@ def build(rows_by_passage, registry, duplicates, parent, spans=None, decisions=N
     for c in cases:
         c['sameOccurrenceIn'] = sorted({k for m in c['mentions'] for k in by_occurrence[m['occurrenceKey']]} - {c['personKey']})
         c['contextOnly'] = not any(m['primary'] for m in c['mentions'])
+
+
+CHECKED_BASIS = 'checked-reading'
+CHECKED_BINDING_FORMAT = ('A checked reading has no v1 rows, so v1PayloadSha256 is null. store, revision, payloadSha256 and '
+                          'payloadFormat: the checked_person and checked_reading rows exactly as stored, set only by the importer '
+                          'from a pinned read-back. artifact: the approved R2 artifact the rows were rebuilt from, pinned by root.')
+
+
+def checked_anchor(mention, source):
+    """A checked mention as the anchor match_mention checks: quote at its span, offsets, occurrence and key from the text."""
+    require(source['text'][mention['start']:mention['end']] == mention['quote'] and mention['sourceSha256'] == source['sha256'] ==
+            sha(source['text']), 'Checked mention is not at its span in the approved artifact: ' + mention['quote'])
+    _, raw_start, _, _ = source_unit(source)
+    require((raw_start + mention['start'], raw_start + mention['end']) == (mention['segmentStart'], mention['segmentEnd']) and
+            mention['segmentId'] == source['provenance']['segment_id'] and mention['edition'] == source['edition'],
+            'Checked mention offsets or segment differ from the artifact: ' + mention['quote'])
+    occurrence = sum(1 for i in range(mention['start'] + 1) if source['text'].startswith(mention['quote'], i))
+    return dict(quote=mention['quote'], start=mention['start'], end=mention['end'], occurrence=occurrence,
+                occurrenceKey=occurrence_key(source, mention['start'], mention['end']), source_id=mention['sourceId'],
+                segmentId=mention['segmentId'], edition=mention['edition'], ref=source['ref'], source_sha256=mention['sourceSha256'],
+                primary=True)
+
+
+def build_checked_case(person_row, reading, registry, duplicates, parent):
+    """One checked person, read as typed: only owned `printed_name` mentions are looked up; every other mention is kept
+    with its role and why it was not looked up. Returns None when no owned printed name is left to look up."""
+    person, pid = person_row['data'], reading['passageId']
+    key = pid + '/' + person['id']
+    require(person_row['record_id'] == 'checked_person:' + key and person['readingId'] == reading['row']['data']['readingId'],
+            'Checked person belongs to another reading: ' + key)
+    require(person['kind'] == 'person' and person['form'] in ('named', 'embedded_parent'), 'Not a named person: ' + key)
+    owned = lambda m: any(u['segmentId'] == m['segmentId'] and u['rawStart'] <= m['segmentStart'] and m['segmentEnd'] <= u['rawEnd']
+                          for u in reading['ownership']['ownedUnits'])
+    looked, other = [], []
+    for m in person['mentions']:
+        anchor = checked_anchor(m, reading['sources'][m['sourceId']])
+        if m['role'] != 'printed_name':
+            other.append(dict(role=m['role'], quote=m['quote'], sourceId=m['sourceId'], start=m['start'], end=m['end'],
+                              why='Only a printed name is looked up'))
+        elif not owned(m):
+            other.append(dict(role=m['role'], quote=m['quote'], sourceId=m['sourceId'], start=m['start'], end=m['end'],
+                              why="Outside the reading's owned units"))
+        else:
+            looked.append(anchor)
+    if not looked:
+        return None
+    mentions = [match_mention(a, reading['sources'][a['source_id']], registry) for a in looked]
+    empty = lambda record_id: dict(recordId=record_id, v1PayloadSha256=None, store=None, revision=None, payloadSha256=None, payloadFormat=None)
+    rd = reading['row']['data']
+    coverage = {c['sourceId']: c for c in reading['coverage']['sourceCoverage']}
+    base = dict(version=VERSION, basis=CHECKED_BASIS, personKey=key, passageId=pid, sourceReadingId='checked_reading:' + pid,
+                ref=reading['row']['ref'],
+                bindings=dict(format=CHECKED_BINDING_FORMAT, person=empty(person_row['record_id']), reading=empty(reading['row']['record_id']),
+                              artifact=dict(sha256=rd['artifact']['sha256'], bytes=rd['artifact']['bytes'])),
+                checkedDecision={k: person['decision'][k] for k in ('id', 'action', 'beforeHash', 'reviewHashes')},
+                coverage=[coverage[sid] for sid in sorted({a['source_id'] for a in looked}) if sid in coverage],
+                otherMentions=other, readingLabel=person['label'], readingForm=person['form'], readingReason=person['reason'],
+                readingAlternatives=[], parentRevision=parent, accepted=False, historicalIdentityResolved=False,
+                candidateMetadataVerified=False, note=NOT_MATCHED, mentions=mentions, nameShapes=sorted({m['nameShape'] for m in mentions}),
+                namedInsidePatronymicOf=[], suggestion=None, candidates=[], fromLessClearMentions=[], abbreviationGuesses=[],
+                clearestShape=None)
+    if person['form'] == 'embedded_parent':
+        printed = lambda p: [m for m in p['mentions'] if m['role'] == 'printed_name']
+        children = sorted({p['id'] for p in reading['people'] if p['id'] != person['id'] and p['kind'] == 'person' and p['form'] == 'named'
+                           for c in printed(p) for m in printed(person)
+                           if c['sourceId'] == m['sourceId'] and c['start'] <= m['start'] and m['end'] <= c['end']})
+        return dict(base, status='local_relative', namedInsidePatronymicOf=[pid + '/' + c for c in children],
+                    reason='Named only as a father inside a patronymic. Kept as a local relative. '
+                           "A father's name alone is not matched to the registry.")
+    return decide(base, mentions, registry, duplicates)
+
+
+def build_checked(readings, registry, duplicates, parent, spans=None, decisions=None):
+    """readings: one dict per checked reading: passageId, row (its checked_reading row), people (its checked_person rows),
+    ownership and coverage (their payloads), holds (its checked_decision rows), and sources (the approved artifact's job
+    sources by source_id). The same rules as build(): a reviewed or human decision on this person, or a checked hold,
+    leaves it out; older readings outrank it only at the same words and role at every mention."""
+    cases, skipped = [], []
+    for reading in readings:
+        held = {h['data']['originalId'] for h in reading['holds'] if h['data']['kind'] == 'person' and h['data']['action'] == 'hold'}
+        people = [r['data'] for r in reading['people']]
+        for row in reading['people']:
+            person = row['data']
+            key = reading['passageId'] + '/' + person['id']
+            if person['kind'] != 'person' or person['form'] not in ('named', 'embedded_parent'):
+                skipped.append(dict(personKey=key, reason=f'{person["kind"]}/{person["form"]} is not matched to the registry'))
+                continue
+            if person['decision']['originalId'] in held:
+                skipped.append(dict(personKey=key, reason='The checked review held this person'))
+                continue
+            own = decisions.about(key) if decisions else []
+            if own:
+                skipped.append(dict(personKey=key, reason='A reviewed or human decision already covers this person', decidedBy=own))
+                continue
+            case = build_checked_case(row, dict(reading, people=people), registry, duplicates, parent)
+            if case is None:
+                skipped.append(dict(personKey=key, reason='No owned printed name to look up'))
+                continue
+            place(case, key, person['form'], spans, decisions, cases, skipped)
+    cross_link(cases)
     return cases, skipped
 
 
@@ -549,6 +664,11 @@ def rules_sha():
                        decidingAuthorities=DECIDING_AUTHORITIES, noCandidate=NO_CANDIDATE, decisionScope='possible_eras.scoped_rows',
                        decisionScopeSha256=sha256_file(possible_eras.__file__),
                        quotes=sorted(QUOTES.items()), bindingFormat=BINDING_FORMAT))
+
+
+def checked_rules_sha():
+    """The rules for checked readings: everything in rules_sha, plus what only a checked reading needs."""
+    return digest(dict(base=rules_sha(), basis=CHECKED_BASIS, bindingFormat=CHECKED_BINDING_FORMAT, lookedUp='owned printed_name only'))
 
 
 def sha256_bytes(data):

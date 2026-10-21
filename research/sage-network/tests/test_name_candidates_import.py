@@ -246,9 +246,10 @@ class NameCandidateImportTests(unittest.TestCase):
             changed['readBackSha256'] = imp.d1_hash(changed['readBack'])
             with self.assertRaisesRegex(ValueError, message):
                 self.build(rows, manifest, [file_bytes(changed)])
-        # Checked readings are never read as original rows. A file holding any is refused whole; so is an unknown field.
-        for edit, message in ((lambda f: f.update(checkedPassages={'cs1-' + '0' * 64: {}}), 'does not read checked readings'),
-                              (lambda f: f['readBack'].update(checkedPassages=1), 'does not read checked readings'),
+        # Checked readings are never read as original rows. Under a version-1 pin a file holding any is refused whole; so
+        # is an unknown field.
+        for edit, message in ((lambda f: f.update(checkedPassages={'cs1-' + '0' * 64: {}}), 'need a version-2 pin'),
+                              (lambda f: f['readBack'].update(checkedPassages=1), 'need a version-2 pin'),
                               (lambda f: f.update(somethingNew=[]), 'fields this version does not know')):
             changed = copy.deepcopy(READBACK)
             edit(changed)

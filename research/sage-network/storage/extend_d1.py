@@ -416,7 +416,8 @@ def validate_identity_assessment(key, row, data, rows, parent_keys, member):
 
 
 def prepare(export, manifest_path, changes_path, output, *, shared=False, checked_selections=(),
-            name_candidate_pins=None, readbacks=()):
+            name_candidate_pins=None, readbacks=(),
+            name_candidate_selection=None, name_candidate_artifacts=None):
     parent = json.loads(manifest_path.read_text())
     verify(export, manifest_path)
     changes = json.loads(changes_path.read_text())
@@ -464,7 +465,8 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False, checke
             if names.strict_json(changes_path.read_bytes()) != changes:
                 raise ValueError('The changes file does not read the same strictly')
             names.validate_changes(changes, [rows[k] for k in sorted(rows)], parent, list(readbacks), name_candidate_pins,
-                                   (names.DATA / 'rabbi-he-aliases.json').read_bytes(), (names.DATA / 'rabbi-duplicates.json').read_bytes())
+                                   (names.DATA / 'rabbi-he-aliases.json').read_bytes(), (names.DATA / 'rabbi-duplicates.json').read_bytes(),
+                                   checked_selection=name_candidate_selection, artifacts=name_candidate_artifacts)
         elif any(item['kind'] == 'name_candidates' for item in changes['records']):
             raise ValueError('name_candidates records come only in a name_candidates batch')
         binding_batch = 'sourceBindingManifests' in changes
