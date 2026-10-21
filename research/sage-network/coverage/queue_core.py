@@ -203,8 +203,10 @@ def config_check(config, manifest, recipe, concurrency):
                 config.get('executionMode') != 'full' or approved > 16 or config['budgetUsd'] > 5 or
                 config.get('qualityBridgeHash') != file_hash(Path(__file__).with_name('quality_bridge.py'))):
             raise ValueError('Invalid bounded source-reading quality trial')
-    if (config.get('providerRecovery') is not None or config.get('sourceUnitTrial') is not None or config.get('reviewedTrial') is not None) and config.get('comparisonTrial') is None:
+    if (config.get('providerRecovery') is not None or config.get('sourceUnitTrial') is not None or config.get('reviewedTrial') is not None) and config.get('comparisonTrial') is None and not (config.get('reviewedTrial') is not None and config.get('sampleBudget') is not None):
         raise ValueError('Provider recovery requires the shared comparison budget')
+    if config.get('sampleBudget') is not None and config.get('reviewedTrial') is None:
+        raise ValueError('Sample allowance requires a reviewed plan')
     if config.get('comparisonTrial') is not None:
         from matched_transition import bounds
         bounds(config, manifest)
@@ -411,7 +413,7 @@ def saved(job, directory, config, adapter):
 def verified_carry(config, output):
     expected_scope = dict(runId=config['runId'], configHash=digest(config))
     carried_unknown = config.get('carriedUnknownReservedUsd', 0)
-    if carried_unknown or config.get('qualityTrial') or config.get('comparisonTrial'):
+    if carried_unknown or config.get('qualityTrial') or config.get('comparisonTrial') or config.get('sampleBudget'):
         prior = config.get('priorRun', {})
         archive = output/'budget-history'/(prior.get('configHash', '') + '-' + digest(config) + '.json')
         receipt = load(archive)
