@@ -70,6 +70,20 @@ export interface InitialRelationship {
   reading: ReadingClaim['claim']['reading'];
   evidence: ReadingAnchor[];
 }
+/** A first registry lookup of a checked person's printed name, from the graph's name_candidates record. */
+export interface NameSuggestion {
+  /** The name_candidates record, its stored payload hash and its person: the proof a later step must cite. */
+  id: string;
+  payloadSha256: string;
+  personKey: string;
+  status: 'tentative' | 'alternatives' | 'unresolved' | 'local_relative';
+  reason: string;
+  /** Only for one exact full name: a possible identity, not a confirmed one. */
+  candidate?: { id: string; name: string; nameHe: string };
+  /** For a short name: the registry entries it fits, the first few and how many in all. None is chosen. */
+  registryEntries?: { listed: { id: string; name: string; nameHe: string }[]; total: number };
+  evidence: ReadingAnchor[];
+}
 export interface InitialReading {
   checked?: {
     artifactHash: string;
@@ -82,14 +96,14 @@ export interface InitialReading {
     reviewDecision?: string;
     reason: string;
     candidate?: { id: string; name: string; nameHe: string };
-    /** Registry entries a short printed name fits: the first few, and how many in all. None is a match. */
-    registryEntries?: { listed: { id: string; name: string; nameHe: string }[]; total: number };
     alternatives: string[];
     eraReason?: string;
     evidence: ReadingAnchor[];
     sourceWarning: boolean;
   }[];
   reviewedPeople?: { id: string; name: string }[];
+  /** A checked person's first registry lookup of their printed name. Never an accepted identity. */
+  nameSuggestion?: NameSuggestion;
   reason: string;
   alternatives: { id: string | null; reason: string }[];
   relationships: InitialRelationship[];

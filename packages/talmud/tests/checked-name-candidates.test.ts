@@ -2,8 +2,9 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
+import graphParent from '../../../research/sage-network/tests/fixtures/name-candidates-import-parent.json';
 import { decodeCheckedPassage } from '../src/lib/sage-graph/checked-readings';
-import { checkedNameProposal, LISTED_ENTRIES } from '../src/lib/sage-graph/name-candidates';
+import { checkedNameSuggestion, LISTED_ENTRIES } from '../src/lib/sage-graph/name-candidates';
 import { canonicalJson, type StoredRow, sha256 } from '../src/lib/sage-graph/source-reading-store';
 import { sageGraph } from '../src/worker/sage-graph';
 import suggestions from './fixtures/checked-name-candidates.json';
@@ -21,11 +22,39 @@ const parts = (r: StoredRow) => {
   const [passageId, localId] = r.subject_id!.split('/');
   return { passageId, localId };
 };
-const proposalFor = async (r: StoredRow, store = 'bavli', passageRows?: StoredRow[]) => {
+const proposalFor = async (
+  r: StoredRow,
+  store = 'bavli',
+  passageRows?: StoredRow[],
+  scope: StoredRow[] = [],
+) => {
   const { passageId, localId } = parts(r);
   const passage = await decodeCheckedPassage(passageId, passageRows ?? rowsOf(passageId));
-  return checkedNameProposal(r, passage, localId, store);
+  return checkedNameSuggestion(r, passage, localId, store, scope);
 };
+// The real human correction connection:b042-p0/review/answer from live revision 8b0f4c, as the importer tests use it.
+const [correction] = graphParent.rows
+  .filter((r) => r[0] === 'connection:b042-p0/review/answer')
+  .map(
+    (r) =>
+      ({
+        record_id: r[0],
+        kind: r[1],
+        passage_id: r[2],
+        ref: r[3],
+        subject_id: r[4],
+        object_id: r[5],
+        authority: r[6],
+        decision: r[7],
+        payload_sha256: r[8],
+        payload_json: r[9],
+      }) as StoredRow,
+  );
+/** That correction re-pointed at one person by its subject column only, as the importer tests do. Test only. */
+const correctionAbout = (personKey: string) => ({
+  ...correction,
+  subject_id: `local:${personKey}`,
+});
 async function edited(r: StoredRow, change: (data: ReturnType<typeof JSON.parse>) => void) {
   const data = JSON.parse(r.payload_json);
   change(data);
@@ -41,7 +70,13 @@ describe('first registry suggestions on checked person cards', () => {
       name: 'Rav Rami bar Hama',
       nameHe: 'רמי בר חמא',
     });
-    expect(p.reviewDecision).toBeUndefined();
+    expect(p.status).toBe('tentative');
+    const r = record('רמי בר חמא');
+    expect([p.id, p.payloadSha256, p.personKey]).toEqual([
+      r.record_id,
+      r.payload_sha256,
+      r.subject_id,
+    ]);
     expect(p.registryEntries).toBeUndefined();
     expect(p.reason).toContain('first suggestion only');
     expect(p.evidence.map((e) => [e.role, e.quote])).toEqual([['printed_name', 'רמי בר חמא']]);
@@ -61,6 +96,39 @@ describe('first registry suggestions on checked person cards', () => {
       expect([p.candidate, p.registryEntries]).toEqual([undefined, undefined]);
       expect(p.reason.length).toBeGreaterThan(0);
     }
+  });
+  it('shows nothing once a reviewed or human decision covers the person, even a later one', async () => {
+    const r = record('רמי בר חמא');
+    expect(correction.authority).toBe('user_correction');
+    expect(await proposalFor(r, 'bavli', undefined, [correction])).toBeTruthy();
+    expect(
+      await proposalFor(r, 'bavli', undefined, [correctionAbout(r.subject_id!)]),
+    ).toBeUndefined();
+    // Test only: a withheld passage, and a reviewed assessment naming the person in its payload.
+    const { passageId } = parts(r);
+    const payload = canonicalJson({ personKey: r.subject_id });
+    for (const row of [
+      {
+        ...correction,
+        record_id: 'withheld:test',
+        kind: 'withheld',
+        passage_id: passageId,
+        subject_id: null,
+        authority: 'screening',
+      },
+      {
+        ...correction,
+        record_id: 'identity_assessment:test',
+        kind: 'identity_assessment',
+        subject_id: null,
+        authority: 'source_review',
+        payload_json: payload,
+        payload_sha256: await sha256(payload),
+      },
+    ])
+      expect(await proposalFor(r, 'bavli', undefined, [row as StoredRow])).toBeUndefined();
+    // Too many scope rows to check them all: nothing is shown.
+    expect(await proposalFor(r, 'bavli', undefined, Array(2001).fill(correction))).toBeUndefined();
   });
   it('shows nothing unless the record cites the exact checked rows on the card', async () => {
     const r = record('רמי בר חמא');
@@ -218,18 +286,30 @@ it('serves the suggestion on the existing checked person card', async () => {
       );
       expect(response.status).toBe(200);
       return (await response.json()) as {
-        initialReading: { checked: unknown; proposals?: { candidate?: { id: string } }[] };
+        initialReading: {
+          checked: unknown;
+          proposals?: unknown[];
+          nameSuggestion?: { candidate?: { id: string } };
+        };
       };
     };
     const shown = await card(gid);
     expect(shown.initialReading.checked).toBeTruthy();
-    expect(shown.initialReading.proposals?.map((p) => p.candidate?.id)).toEqual([
-      'rav-rami-bar-hama',
+    expect(shown.initialReading.nameSuggestion?.candidate?.id).toBe('rav-rami-bar-hama');
+    // It is its own field, never one of the reviewed proposals.
+    expect(shown.initialReading.proposals).toBeUndefined();
+    // A later revision that keeps the record and adds a human decision about this person shows no suggestion.
+    publish(graph, `${gid}-corrected`, {}, [
+      ...records,
+      correctionAbout(`${passageId}/${localId}`),
     ]);
+    const corrected = await card(`${gid}-corrected`);
+    expect(corrected.initialReading.checked).toBeTruthy();
+    expect(corrected.initialReading.nameSuggestion).toBeUndefined();
     // A graph revision without the record shows the same checked card, with no suggestion.
     const without = await card(`${gid}-none`);
     expect(without.initialReading.checked).toBeTruthy();
-    expect(without.initialReading.proposals).toBeUndefined();
+    expect(without.initialReading.nameSuggestion).toBeUndefined();
     // A suggestion lookup that fails leaves the checked card as it is.
     const failing = binding(graph);
     const prepare = failing.prepare;
@@ -245,7 +325,7 @@ it('serves the suggestion on the existing checked person card', async () => {
     env.SAGE_GRAPH_DB = failing;
     const broken = await card(gid);
     expect(broken.initialReading.checked).toBeTruthy();
-    expect(broken.initialReading.proposals).toBeUndefined();
+    expect(broken.initialReading.nameSuggestion).toBeUndefined();
   } finally {
     graph.close();
     bavli.close();
