@@ -38,6 +38,8 @@ import type {
   CheckedNode,
   CheckedOccurrence,
 } from '../lib/sage-graph/types';
+import { loadConditionalProfile } from './conditional-person-profile';
+import { readIndexIdentityCandidate } from './index-identity-link';
 import {
   NOT_A_STORE_REVISION,
   resolveSourceStores,
@@ -756,6 +758,7 @@ async function readCheckedName(
       .prepare(POSSIBLE_ERA_SCOPE_SQL)
       .bind(revisionId, passage.id, key, key, key, key, key, key)
       .all<StoredRow>();
+    if (scope.success !== true) throw Error('Could not read current identity decisions');
     return await checkedNameSuggestion(row, passage, localId, store, scope.results);
   } catch {
     // A missing or unreadable suggestion must not replace the checked person card.
@@ -879,7 +882,29 @@ sageGraph.get('/person', async (c) => {
         match[2],
         sourceStore,
       );
-      if (suggestion) person.initialReading.nameSuggestion = suggestion;
+      if (suggestion) {
+        person.initialReading.nameSuggestion = suggestion;
+        if (suggestion.candidate && suggestion.registrySha256)
+          person.conditionalProfile = await loadConditionalProfile(db, saved.id, {
+            id: suggestion.candidate.id,
+            registrySha256: suggestion.registrySha256,
+            proof: {
+              recordId: suggestion.id,
+              payloadSha256: suggestion.payloadSha256,
+              personKey: suggestion.personKey,
+            },
+          });
+      }
+      if (!suggestion?.candidate) {
+        const linked = await readIndexIdentityCandidate(
+          db,
+          saved.id,
+          reading.checked,
+          match[2],
+          sourceStore,
+        );
+        if (linked) person.conditionalProfile = await loadConditionalProfile(db, saved.id, linked);
+      }
     }
     if (person?.initialReading && reading && !reading.checked)
       person.initialReading.reviewedPeople = await reviewedPeopleAtSameWords(

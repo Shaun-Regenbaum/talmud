@@ -2,10 +2,14 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
+import bridgeFixture from '../../../research/sage-network/tests/fixtures/index-identity-link-yitzhak.json';
 import graphParent from '../../../research/sage-network/tests/fixtures/name-candidates-import-parent.json';
 import { decodeCheckedPassage } from '../src/lib/sage-graph/checked-readings';
 import { checkedNameSuggestion, LISTED_ENTRIES } from '../src/lib/sage-graph/name-candidates';
+import { POSSIBLE_ERA_SCOPE_SQL } from '../src/lib/sage-graph/possible-era';
 import { canonicalJson, type StoredRow, sha256 } from '../src/lib/sage-graph/source-reading-store';
+import type { SourcePerson } from '../src/lib/sage-graph/types';
+import { RABBI_PLACES } from '../src/worker/rabbi-places';
 import { sageGraph } from '../src/worker/sage-graph';
 import suggestions from './fixtures/checked-name-candidates.json';
 import additional from './fixtures/checked-source-additional.json';
@@ -236,13 +240,16 @@ function publish(d: DatabaseSync, id: string, manifest: object, data: StoredRow[
 interface Statement {
   bind: (...v: string[]) => Statement;
   first: () => Promise<unknown>;
-  all: () => Promise<{ results: unknown[] }>;
+  all: () => Promise<{ results: unknown[]; success: boolean }>;
 }
-function binding(d: DatabaseSync) {
+function binding(d: DatabaseSync, failScope = false) {
   const statement = (sql: string, v: string[] = []): Statement => ({
     bind: (...a) => statement(sql, a),
     first: async () => d.prepare(sql).get(...v) ?? null,
-    all: async () => ({ results: d.prepare(sql).all(...v) }),
+    all: async () =>
+      sql === POSSIBLE_ERA_SCOPE_SQL && failScope
+        ? { results: [], success: false }
+        : { results: d.prepare(sql).all(...v), success: true },
   });
   return { prepare: (sql: string) => statement(sql) };
 }
@@ -252,7 +259,20 @@ it('serves the suggestion on the existing checked person card', async () => {
     other = db();
   try {
     const gid = 'sage-graph-checked-name-test';
-    publish(graph, gid, {}, records);
+    const registryPayload = canonicalJson(RABBI_PLACES.rabbis['rav-rami-bar-hama']);
+    const registryRow: StoredRow = {
+      record_id: 'registry_person:rav-rami-bar-hama',
+      kind: 'registry_person',
+      passage_id: null,
+      ref: null,
+      subject_id: 'rav-rami-bar-hama',
+      object_id: null,
+      authority: 'registry',
+      decision: null,
+      payload_json: registryPayload,
+      payload_sha256: await sha256(registryPayload),
+    };
+    publish(graph, gid, {}, [...records, registryRow]);
     publish(graph, `${gid}-none`, {}, []);
     const store = fixture.stores.bavli;
     const bavliIds = new Set(
@@ -285,31 +305,34 @@ it('serves the suggestion on the existing checked person card', async () => {
         env,
       );
       expect(response.status).toBe(200);
-      return (await response.json()) as {
-        initialReading: {
-          checked: unknown;
-          proposals?: unknown[];
-          nameSuggestion?: { candidate?: { id: string } };
-        };
-      };
+      return (await response.json()) as SourcePerson;
     };
     const shown = await card(gid);
-    expect(shown.initialReading.checked).toBeTruthy();
-    expect(shown.initialReading.nameSuggestion?.candidate?.id).toBe('rav-rami-bar-hama');
+    expect(shown.initialReading!.checked).toBeTruthy();
+    expect(shown.initialReading!.nameSuggestion?.candidate?.id).toBe('rav-rami-bar-hama');
+    expect(shown.conditionalProfile).toMatchObject({
+      status: 'available',
+      bio: RABBI_PLACES.rabbis['rav-rami-bar-hama'].bio,
+      registry: { payloadSha256: registryRow.payload_sha256 },
+      accepted: false,
+    });
     // It is its own field, never one of the reviewed proposals.
-    expect(shown.initialReading.proposals).toBeUndefined();
+    expect(shown.initialReading!.proposals).toBeUndefined();
     // A later revision that keeps the record and adds a human decision about this person shows no suggestion.
     publish(graph, `${gid}-corrected`, {}, [
       ...records,
+      registryRow,
       correctionAbout(`${passageId}/${localId}`),
     ]);
     const corrected = await card(`${gid}-corrected`);
-    expect(corrected.initialReading.checked).toBeTruthy();
-    expect(corrected.initialReading.nameSuggestion).toBeUndefined();
+    expect(corrected.initialReading!.checked).toBeTruthy();
+    expect(corrected.initialReading!.nameSuggestion).toBeUndefined();
+    expect(corrected.conditionalProfile).toBeUndefined();
     // A graph revision without the record shows the same checked card, with no suggestion.
     const without = await card(`${gid}-none`);
-    expect(without.initialReading.checked).toBeTruthy();
-    expect(without.initialReading.nameSuggestion).toBeUndefined();
+    expect(without.initialReading!.checked).toBeTruthy();
+    expect(without.initialReading!.nameSuggestion).toBeUndefined();
+    expect(without.conditionalProfile).toBeUndefined();
     // A suggestion lookup that fails leaves the checked card as it is.
     const failing = binding(graph);
     const prepare = failing.prepare;
@@ -324,8 +347,83 @@ it('serves the suggestion on the existing checked person card', async () => {
     };
     env.SAGE_GRAPH_DB = failing;
     const broken = await card(gid);
-    expect(broken.initialReading.checked).toBeTruthy();
-    expect(broken.initialReading.nameSuggestion).toBeUndefined();
+    expect(broken.initialReading!.checked).toBeTruthy();
+    expect(broken.initialReading!.nameSuggestion).toBeUndefined();
+  } finally {
+    graph.close();
+    bavli.close();
+    other.close();
+  }
+});
+
+it('serves the exact Yitzhak bridge without choosing from short-name alternatives', async () => {
+  const graph = db(),
+    bavli = db(),
+    other = db();
+  try {
+    const columns = [
+      'record_id',
+      'kind',
+      'passage_id',
+      'ref',
+      'subject_id',
+      'object_id',
+      'authority',
+      'decision',
+      'payload_sha256',
+      'payload_json',
+    ];
+    const graphRows = bridgeFixture.graphRows.map(
+      (r) => Object.fromEntries(columns.map((k, i) => [k, r[i]])) as unknown as StoredRow,
+    );
+    const key = bridgeFixture.artifact.personKey;
+    const store = fixture.stores.bavli;
+    const gid = 'sage-graph-yitzhak-bridge-test';
+    publish(graph, gid, {}, [...graphRows, bridgeFixture.linkRow as StoredRow]);
+    publish(graph, `${gid}-corrected`, {}, [
+      ...graphRows,
+      bridgeFixture.linkRow as StoredRow,
+      correctionAbout(key),
+    ]);
+    publish(
+      bavli,
+      store.revision,
+      { sourceReadingStore: store.block },
+      bridgeFixture.currentCheckedRows as StoredRow[],
+    );
+    publish(
+      other,
+      fixture.stores.other.revision,
+      { sourceReadingStore: fixture.stores.other.block },
+      [],
+    );
+    const card = async (revision: string, failScope = false) => {
+      const response = await sageGraph.request(
+        `/person?id=${encodeURIComponent(`reading:${key}`)}&revision=${revision}&bavliRevision=${store.revision}&otherRevision=${fixture.stores.other.revision}`,
+        {},
+        {
+          SAGE_GRAPH_DB: binding(graph, failScope),
+          SOURCE_READINGS_BAVLI_DB: binding(bavli),
+          SOURCE_READINGS_OTHER_DB: binding(other),
+        },
+      );
+      expect(response.status).toBe(200);
+      return (await response.json()) as SourcePerson;
+    };
+    const shown = await card(gid);
+    expect(shown.initialReading?.nameSuggestion?.candidate).toBeUndefined();
+    expect(shown.initialReading?.nameSuggestion?.registryEntries?.total).toBe(9);
+    expect(shown.conditionalProfile).toMatchObject({
+      status: 'available',
+      candidateId: 'rabbi-yitzhak-nappaha',
+      accepted: false,
+      places: ['Caesarea'],
+    });
+    expect(JSON.stringify(shown.initialReading)).toContain('יוחנן');
+    for (const withheld of [await card(`${gid}-corrected`), await card(gid, true)]) {
+      expect(withheld.conditionalProfile).toBeUndefined();
+      expect(withheld.initialReading?.checked).toBeTruthy();
+    }
   } finally {
     graph.close();
     bavli.close();

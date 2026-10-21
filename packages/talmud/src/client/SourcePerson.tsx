@@ -43,6 +43,14 @@ export function SourcePerson(props: {
       }
     },
   );
+  const profile = () => {
+    const value = person()?.conditionalProfile;
+    return value?.status === 'available' ? value : undefined;
+  };
+  const conditionalLabel = () =>
+    t('person.conditionalProfile', {
+      name: lang() === 'he' ? (profile()?.nameHe ?? '') : (profile()?.name ?? ''),
+    });
   return (
     <section
       class="source-person"
@@ -87,18 +95,61 @@ export function SourcePerson(props: {
                 )}
               </For>
             </Show>
-            <Show when={p().initialReading?.nameSuggestion}>
-              {(suggestion) => <NameSuggestion suggestion={suggestion()} />}
+            <Show when={p().conditionalProfile?.status === 'unavailable'}>
+              <PersonStatus error onRetry={() => void refetch()}>
+                {t('person.profileUnavailable')}
+              </PersonStatus>
+            </Show>
+            <Show
+              when={
+                profile() &&
+                !p().possibleEra &&
+                !p().era &&
+                (!p().generation || p().generation === 'unknown')
+              }
+            >
+              <p class="source-person-note">{conditionalLabel()}</p>
             </Show>
             <PersonEra
-              reviewed={p().era}
-              generation={p().generation}
+              reviewed={p().era ?? (!p().possibleEra ? profile()?.era : undefined)}
+              generation={
+                p().possibleEra || (p().generation && p().generation !== 'unknown')
+                  ? p().generation
+                  : profile()?.generation
+              }
+              uncertain={
+                !!profile() &&
+                !p().possibleEra &&
+                !p().era &&
+                (!p().generation || p().generation === 'unknown')
+              }
               possible={p().possibleEra}
               revision={p().revision}
             />
             <section class="person-biography">
               <h4>{t('person.biography')}</h4>
-              <PersonStatus>{t('person.bioEmpty')}</PersonStatus>
+              <Show when={profile()}>
+                <p class="source-person-note">{conditionalLabel()}</p>
+              </Show>
+              <Show
+                when={profile()?.bio}
+                fallback={
+                  <Show when={p().conditionalProfile?.status !== 'unavailable'}>
+                    <PersonStatus>{t('person.bioEmpty')}</PersonStatus>
+                  </Show>
+                }
+              >
+                <p lang="en" dir="ltr">
+                  {profile()?.bio}
+                </p>
+                <For each={profile()?.sources}>
+                  {(source) => (
+                    <a href={source.url} target="_blank" rel="noopener noreferrer">
+                      {source.title}
+                    </a>
+                  )}
+                </For>
+              </Show>
               <p>{lang() === 'he' ? p().summaryHe : p().summary}</p>
               <details class="person-passage">
                 <summary>{p().ref}</summary>
@@ -127,7 +178,25 @@ export function SourcePerson(props: {
             <Show when={p().initialReading}>
               {(reading) => (
                 <>
-                  <PersonReadingBasis reading={reading()} pins={linkPins(p(), props.pins)} />
+                  <PersonReadingBasis reading={reading()} pins={linkPins(p(), props.pins)}>
+                    <Show when={profile()?.proposal.recordId.startsWith('identity_link_evidence:')}>
+                      <p>
+                        <span lang="en" dir="ltr">
+                          {profile()?.identityReason}
+                        </span>{' '}
+                        <a
+                          href={`/api/sage-graph/records?revision=${encodeURIComponent(profile()!.proposal.revision)}&id=${encodeURIComponent(profile()!.proposal.recordId)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {t('person.profileProof')}
+                        </a>
+                      </p>
+                    </Show>
+                    <Show when={reading().nameSuggestion}>
+                      {(suggestion) => <NameSuggestion suggestion={suggestion()} />}
+                    </Show>
+                  </PersonReadingBasis>
                   <InitialInteractions
                     id={p().id}
                     name={lang() === 'he' ? p().nameHe : p().name}
@@ -150,7 +219,15 @@ export function SourcePerson(props: {
               <h4>{t('person.places')}</h4>
               <Show
                 when={p().places?.length}
-                fallback={<PersonStatus>{t('person.placesEmpty')}</PersonStatus>}
+                fallback={
+                  <Show
+                    when={
+                      !profile()?.places.length && p().conditionalProfile?.status !== 'unavailable'
+                    }
+                  >
+                    <PersonStatus>{t('person.placesEmpty')}</PersonStatus>
+                  </Show>
+                }
               >
                 <RabbiTrajectoryMap
                   journeyControls
@@ -210,6 +287,23 @@ export function SourcePerson(props: {
                     </details>
                   )}
                 </For>
+              </Show>
+              <Show when={profile()?.places.length}>
+                <p class="source-person-note">
+                  {conditionalLabel()} {t('person.profilePlaces')}
+                </p>
+                <RabbiTrajectoryMap
+                  journeyControls
+                  data={{
+                    primaryStudyPlaces: [],
+                    movements: [],
+                    notablePlaces: (profile()?.places ?? []).map((place) => ({
+                      place,
+                      event: t('person.savedProfilePlace'),
+                    })),
+                  }}
+                  evidence={[]}
+                />
               </Show>
             </section>
           </>

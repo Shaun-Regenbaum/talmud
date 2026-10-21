@@ -1,14 +1,19 @@
-import { For, Show } from 'solid-js';
+import { For, type JSX, Show } from 'solid-js';
 import type { InitialReading } from '../lib/sage-graph/initial-readings';
 import { type ReadingPins, sourcePersonHash } from '../lib/sage-graph/reading-pins';
 import { lang, t } from './i18n';
 import { PersonStatus } from './PersonStatus';
 
-export function PersonReadingBasis(props: { reading: InitialReading; pins?: ReadingPins }) {
+export function PersonReadingBasis(props: {
+  reading: InitialReading;
+  pins?: ReadingPins;
+  children?: JSX.Element;
+}) {
   return (
     <details class="person-passage">
       <summary>{t('initial.basis')}</summary>
       <p>{props.reading.reason}</p>
+      {props.children}
       <Show when={props.reading.checked && !props.reading.checked.wholeReadingFullyChecked}>
         <p>{t('checked.partial')}</p>
       </Show>
