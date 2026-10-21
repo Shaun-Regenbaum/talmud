@@ -14,6 +14,7 @@ export interface VerifiedProfileCandidate {
   id: string;
   proof: { recordId: string; payloadSha256: string; personKey: string };
   registrySha256: string;
+  reason?: string;
 }
 const source = z.object({ title: z.string().min(1), url: z.string().url().startsWith('https://') });
 const entryShape = z.object({
@@ -95,6 +96,7 @@ export async function loadConditionalProfile(
       generation: entry.generation ?? null,
       ...(entry.era ? { era: entry.era } : {}),
       bio: entry.bio || null,
+      ...(candidate.reason ? { identityReason: candidate.reason } : {}),
       places: entry.places,
       sources: entry.sources ?? (entry.wiki ? [{ title: entry.canonical, url: entry.wiki }] : []),
       proposal: { ...candidate.proof, revision },

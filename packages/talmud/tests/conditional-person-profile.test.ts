@@ -108,6 +108,7 @@ describe('conditional saved profile', () => {
     expect(result).toMatchObject({
       status: 'available',
       candidateId: 'rabbi-yitzhak-nappaha',
+      identityReason: linked!.reason,
       generation: 'amora-ey-2',
       places: ['Caesarea'],
       accepted: false,

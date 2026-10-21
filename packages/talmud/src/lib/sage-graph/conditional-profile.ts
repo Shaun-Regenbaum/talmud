@@ -11,6 +11,7 @@ export interface ConditionalProfile {
   generation: string | null;
   era?: ReviewedEra;
   bio: string | null;
+  identityReason?: string;
   places: string[];
   sources: { title: string; url: string }[];
   proposal: { recordId: string; payloadSha256: string; personKey: string; revision: string };

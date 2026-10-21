@@ -181,7 +181,9 @@ export function SourcePerson(props: {
                   <PersonReadingBasis reading={reading()} pins={linkPins(p(), props.pins)}>
                     <Show when={profile()?.proposal.recordId.startsWith('identity_link_evidence:')}>
                       <p>
-                        {t('person.profileBridgeReason')}{' '}
+                        <span lang="en" dir="ltr">
+                          {profile()?.identityReason}
+                        </span>{' '}
                         <a
                           href={`/api/sage-graph/records?revision=${encodeURIComponent(profile()!.proposal.revision)}&id=${encodeURIComponent(profile()!.proposal.recordId)}`}
                           target="_blank"
