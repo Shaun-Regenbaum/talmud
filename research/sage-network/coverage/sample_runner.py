@@ -15,7 +15,7 @@ MODEL = 'deepseek/deepseek-v4.1-flash'
 MAX_OUTPUT = 32768
 RUN_CAP = 3.0
 KEY_CAP = 100.0
-REASONING_EFFORT = 'low'
+REASONING_EFFORT = 'none'
 
 
 def canonical(value):
