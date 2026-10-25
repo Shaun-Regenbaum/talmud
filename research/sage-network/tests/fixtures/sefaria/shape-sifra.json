@@ -1,0 +1,2513 @@
+[
+  {
+    "isComplex": true,
+    "section": "Halakhah",
+    "length": 278,
+    "chapters": [
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ברייתא דרבי ישמעאל",
+        "title": "Sifra, Baraita DeRabbi Yishmael",
+        "length": 1,
+        "chapters": 18,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק א",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 1",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק ב",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 2",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה ב",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 2",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק ג",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 3",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה ג",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 3",
+        "length": 1,
+        "chapters": 15,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק ד",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 4",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה ד",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 4",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק ה",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 5",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק ו",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 6",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה ה",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 5",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק ז",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 7",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה ו",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 6",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק ח",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 8",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה ז",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 7",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק ט",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 9",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה ח",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 8",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק י",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 10",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה ט",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 9",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק יא",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 11",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה י",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 10",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק יב",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 12",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה יא",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 11",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק יג",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 13",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה יב",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 12",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק יד",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 14",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה יג",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 13",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק טו",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 15",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק טז",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 16",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק יז",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 17",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרשה יד",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Section 14",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק יח",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 18",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק יט",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 19",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דנדבה, פרק כ",
+        "title": "Sifra, Vayikra Dibbura DeNedavah, Chapter 20",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה א",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 1",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק א",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 1",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה ב",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 2",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק ב",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 2",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק ג",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 3",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה ג",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 3",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק ד",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 4",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק ה",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 5",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה ד",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 4",
+        "length": 1,
+        "chapters": 17,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק ו",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 6",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה ה",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 5",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק ז",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 7",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה ו",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 6",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק ח",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 8",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק ט",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 9",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה ז",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 7",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק י",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 10",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק יא",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 11",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה ח",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 8",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק יב",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 12",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק יג",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 13",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה ט",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 9",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק יד",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 14",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק טו",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 15",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק טז",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 16",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק יז",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 17",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה י",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 10",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק יח",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 18",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק יט",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 19",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה יא",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 11",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק כ",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 20",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה יב",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 12",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק כא",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 21",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק כב",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 22",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרשה יג",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Section 13",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, ויקרא דבורא דחובה, פרק כג",
+        "title": "Sifra, Vayikra Dibbura DeChovah, Chapter 23",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק א",
+        "title": "Sifra, Tzav, Chapter 1",
+        "length": 1,
+        "chapters": 16,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק ב",
+        "title": "Sifra, Tzav, Chapter 2",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרשה ב",
+        "title": "Sifra, Tzav, Section 2",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק ג",
+        "title": "Sifra, Tzav, Chapter 3",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרשה ג",
+        "title": "Sifra, Tzav, Section 3",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק ד",
+        "title": "Sifra, Tzav, Chapter 4",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק ה",
+        "title": "Sifra, Tzav, Chapter 5",
+        "length": 1,
+        "chapters": 4,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרשה ד",
+        "title": "Sifra, Tzav, Section 4",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק ו",
+        "title": "Sifra, Tzav, Chapter 6",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק ז",
+        "title": "Sifra, Tzav, Chapter 7",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק ח",
+        "title": "Sifra, Tzav, Chapter 8",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרשה ה",
+        "title": "Sifra, Tzav, Section 5",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק ט",
+        "title": "Sifra, Tzav, Chapter 9",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק י",
+        "title": "Sifra, Tzav, Chapter 10",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרשה ו",
+        "title": "Sifra, Tzav, Section 6",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק יא",
+        "title": "Sifra, Tzav, Chapter 11",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרשה ז",
+        "title": "Sifra, Tzav, Section 7",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק יב",
+        "title": "Sifra, Tzav, Chapter 12",
+        "length": 1,
+        "chapters": 15,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרשה ח",
+        "title": "Sifra, Tzav, Section 8",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק יג",
+        "title": "Sifra, Tzav, Chapter 13",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרשה ט",
+        "title": "Sifra, Tzav, Section 9",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק יד",
+        "title": "Sifra, Tzav, Chapter 14",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק טו",
+        "title": "Sifra, Tzav, Chapter 15",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרשה י",
+        "title": "Sifra, Tzav, Section 10",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרשה יא",
+        "title": "Sifra, Tzav, Section 11",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק טז",
+        "title": "Sifra, Tzav, Chapter 16",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק יז",
+        "title": "Sifra, Tzav, Chapter 17",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, פרק יח",
+        "title": "Sifra, Tzav, Chapter 18",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, צו, מכילתא דמילואים א",
+        "title": "Sifra, Tzav, Mekhilta DeMiluim I",
+        "length": 1,
+        "chapters": 38,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, מכילתא דמילואים ב",
+        "title": "Sifra, Shemini, Mekhilta DeMiluim II",
+        "length": 1,
+        "chapters": 43,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרשה א",
+        "title": "Sifra, Shemini, Section 1",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק א",
+        "title": "Sifra, Shemini, Chapter 1",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק ב",
+        "title": "Sifra, Shemini, Chapter 2",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרשה ב",
+        "title": "Sifra, Shemini, Section 2",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק ג",
+        "title": "Sifra, Shemini, Chapter 3",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק ד",
+        "title": "Sifra, Shemini, Chapter 4",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרשה ג",
+        "title": "Sifra, Shemini, Section 3",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק ה",
+        "title": "Sifra, Shemini, Chapter 5",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרשה ד",
+        "title": "Sifra, Shemini, Section 4",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק ו",
+        "title": "Sifra, Shemini, Chapter 6",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרשה ה",
+        "title": "Sifra, Shemini, Section 5",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק ז",
+        "title": "Sifra, Shemini, Chapter 7",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרשה ו",
+        "title": "Sifra, Shemini, Section 6",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק ח",
+        "title": "Sifra, Shemini, Chapter 8",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרשה ז",
+        "title": "Sifra, Shemini, Section 7",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק ט",
+        "title": "Sifra, Shemini, Chapter 9",
+        "length": 1,
+        "chapters": 2,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרשה ח",
+        "title": "Sifra, Shemini, Section 8",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק י",
+        "title": "Sifra, Shemini, Chapter 10",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרשה ט",
+        "title": "Sifra, Shemini, Section 9",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק יא",
+        "title": "Sifra, Shemini, Chapter 11",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרשה י",
+        "title": "Sifra, Shemini, Section 10",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, שמיני, פרק יב",
+        "title": "Sifra, Shemini, Chapter 12",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת יולדת, פרשה א",
+        "title": "Sifra, Tazria Parashat Yoledet, Section 1",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת יולדת, פרק א",
+        "title": "Sifra, Tazria Parashat Yoledet, Chapter 1",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת יולדת, פרק ב",
+        "title": "Sifra, Tazria Parashat Yoledet, Chapter 2",
+        "length": 1,
+        "chapters": 4,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת יולדת, פרק ג",
+        "title": "Sifra, Tazria Parashat Yoledet, Chapter 3",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת יולדת, פרק ד",
+        "title": "Sifra, Tazria Parashat Yoledet, Chapter 4",
+        "length": 1,
+        "chapters": 3,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק א",
+        "title": "Sifra, Tazria Parashat Negaim, Section 1",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק ב",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 2",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרשה ב",
+        "title": "Sifra, Tazria Parashat Negaim, Section 2",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק ב*",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 2*",
+        "length": 1,
+        "chapters": 17,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרשה ג",
+        "title": "Sifra, Tazria Parashat Negaim, Section 3",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק ג",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 3",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק ד",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 4",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק ה",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 5",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק ו",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 6",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרשה ד",
+        "title": "Sifra, Tazria Parashat Negaim, Section 4",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק ז",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 7",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרשה ה",
+        "title": "Sifra, Tazria Parashat Negaim, Section 5",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק ח",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 8",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק ט",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 9",
+        "length": 1,
+        "chapters": 16,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק י",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 10",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק יא",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 11",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק יב",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 12",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק יג",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 13",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק יד",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 14",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק טו",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 15",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, תזריע פרשת נגעים, פרק טז",
+        "title": "Sifra, Tazria Parashat Negaim, Chapter 16",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרשה א",
+        "title": "Sifra, Metzora, Section 1",
+        "length": 1,
+        "chapters": 15,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרק א",
+        "title": "Sifra, Metzora, Chapter 1",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרשה ב",
+        "title": "Sifra, Metzora, Section 2",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרק ב",
+        "title": "Sifra, Metzora, Chapter 2",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרשה ג",
+        "title": "Sifra, Metzora, Section 3",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרק ג",
+        "title": "Sifra, Metzora, Chapter 3",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרשה ד",
+        "title": "Sifra, Metzora, Section 4",
+        "length": 1,
+        "chapters": 16,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרשה ה",
+        "title": "Sifra, Metzora, Section 5",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרשה ו",
+        "title": "Sifra, Metzora, Section 6",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרק ד",
+        "title": "Sifra, Metzora, Chapter 4",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרשה ז",
+        "title": "Sifra, Metzora, Section 7",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע, פרק ה",
+        "title": "Sifra, Metzora, Chapter 5",
+        "length": 1,
+        "chapters": 17,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרשה א",
+        "title": "Sifra, Metzora Parashat Zavim, Section 1",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרק א",
+        "title": "Sifra, Metzora Parashat Zavim, Chapter 1",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרק ב",
+        "title": "Sifra, Metzora Parashat Zavim, Chapter 2",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרשה ב",
+        "title": "Sifra, Metzora Parashat Zavim, Section 2",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרק ג",
+        "title": "Sifra, Metzora Parashat Zavim, Chapter 3",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרק ד",
+        "title": "Sifra, Metzora Parashat Zavim, Chapter 4",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרשה ג",
+        "title": "Sifra, Metzora Parashat Zavim, Section 3",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרק ה",
+        "title": "Sifra, Metzora Parashat Zavim, Chapter 5",
+        "length": 1,
+        "chapters": 16,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרק ו",
+        "title": "Sifra, Metzora Parashat Zavim, Chapter 6",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרשה ד",
+        "title": "Sifra, Metzora Parashat Zavim, Section 4",
+        "length": 1,
+        "chapters": 15,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרק ז",
+        "title": "Sifra, Metzora Parashat Zavim, Chapter 7",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרשה ה",
+        "title": "Sifra, Metzora Parashat Zavim, Section 5",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרק ח",
+        "title": "Sifra, Metzora Parashat Zavim, Chapter 8",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, מצורע פרשת זבים, פרק ט",
+        "title": "Sifra, Metzora Parashat Zavim, Chapter 9",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרשה א",
+        "title": "Sifra, Acharei Mot, Section 1",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק א",
+        "title": "Sifra, Acharei Mot, Chapter 1",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרשה ב",
+        "title": "Sifra, Acharei Mot, Section 2",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק ב",
+        "title": "Sifra, Acharei Mot, Chapter 2",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק ג",
+        "title": "Sifra, Acharei Mot, Chapter 3",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרשה ג",
+        "title": "Sifra, Acharei Mot, Section 3",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק ד",
+        "title": "Sifra, Acharei Mot, Chapter 4",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרשה ד",
+        "title": "Sifra, Acharei Mot, Section 4",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק ה",
+        "title": "Sifra, Acharei Mot, Chapter 5",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק ו",
+        "title": "Sifra, Acharei Mot, Chapter 6",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרשה ה",
+        "title": "Sifra, Acharei Mot, Section 5",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק ז",
+        "title": "Sifra, Acharei Mot, Chapter 7",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק ח",
+        "title": "Sifra, Acharei Mot, Chapter 8",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרשה ו",
+        "title": "Sifra, Acharei Mot, Section 6",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק ט",
+        "title": "Sifra, Acharei Mot, Chapter 9",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק י",
+        "title": "Sifra, Acharei Mot, Chapter 10",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרשה ז",
+        "title": "Sifra, Acharei Mot, Section 7",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק יא",
+        "title": "Sifra, Acharei Mot, Chapter 11",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק יב",
+        "title": "Sifra, Acharei Mot, Chapter 12",
+        "length": 1,
+        "chapters": 15,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרשה ח",
+        "title": "Sifra, Acharei Mot, Section 8",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אחרי מות, פרק יג",
+        "title": "Sifra, Acharei Mot, Chapter 13",
+        "length": 1,
+        "chapters": 23,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרשה א",
+        "title": "Sifra, Kedoshim, Section 1",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק א",
+        "title": "Sifra, Kedoshim, Chapter 1",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק ב",
+        "title": "Sifra, Kedoshim, Chapter 2",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק ג",
+        "title": "Sifra, Kedoshim, Chapter 3",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרשה ב",
+        "title": "Sifra, Kedoshim, Section 2",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק ד",
+        "title": "Sifra, Kedoshim, Chapter 4",
+        "length": 1,
+        "chapters": 18,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק ה",
+        "title": "Sifra, Kedoshim, Chapter 5",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרשה ג",
+        "title": "Sifra, Kedoshim, Section 3",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק ו",
+        "title": "Sifra, Kedoshim, Chapter 6",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק ז",
+        "title": "Sifra, Kedoshim, Chapter 7",
+        "length": 1,
+        "chapters": 15,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק ח",
+        "title": "Sifra, Kedoshim, Chapter 8",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרשה ד",
+        "title": "Sifra, Kedoshim, Section 4",
+        "length": 1,
+        "chapters": 15,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק ט",
+        "title": "Sifra, Kedoshim, Chapter 9",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק י",
+        "title": "Sifra, Kedoshim, Chapter 10",
+        "length": 1,
+        "chapters": 15,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק יא",
+        "title": "Sifra, Kedoshim, Chapter 11",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, קדושים, פרק יב",
+        "title": "Sifra, Kedoshim, Chapter 12",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה א",
+        "title": "Sifra, Emor, Section 1",
+        "length": 1,
+        "chapters": 16,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק א",
+        "title": "Sifra, Emor, Chapter 1",
+        "length": 1,
+        "chapters": 18,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה ב",
+        "title": "Sifra, Emor, Section 2",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק ב",
+        "title": "Sifra, Emor, Chapter 2",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה ג",
+        "title": "Sifra, Emor, Section 3",
+        "length": 1,
+        "chapters": 15,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק ג",
+        "title": "Sifra, Emor, Chapter 3",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה ד",
+        "title": "Sifra, Emor, Section 4",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק ד",
+        "title": "Sifra, Emor, Chapter 4",
+        "length": 1,
+        "chapters": 18,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה ה",
+        "title": "Sifra, Emor, Section 5",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה ו",
+        "title": "Sifra, Emor, Section 6",
+        "length": 1,
+        "chapters": 1,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק ה",
+        "title": "Sifra, Emor, Chapter 5",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק ו",
+        "title": "Sifra, Emor, Chapter 6",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה ז",
+        "title": "Sifra, Emor, Section 7",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק ז",
+        "title": "Sifra, Emor, Chapter 7",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה ח",
+        "title": "Sifra, Emor, Section 8",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק ח",
+        "title": "Sifra, Emor, Chapter 8",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק ט",
+        "title": "Sifra, Emor, Chapter 9",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה ט",
+        "title": "Sifra, Emor, Section 9",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק י",
+        "title": "Sifra, Emor, Chapter 10",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק יא",
+        "title": "Sifra, Emor, Chapter 11",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה י",
+        "title": "Sifra, Emor, Section 10",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק יב",
+        "title": "Sifra, Emor, Chapter 12",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק יג",
+        "title": "Sifra, Emor, Chapter 13",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה יא",
+        "title": "Sifra, Emor, Section 11",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק יד",
+        "title": "Sifra, Emor, Chapter 14",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה יב",
+        "title": "Sifra, Emor, Section 12",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק טו",
+        "title": "Sifra, Emor, Chapter 15",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק טז",
+        "title": "Sifra, Emor, Chapter 16",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק יז",
+        "title": "Sifra, Emor, Chapter 17",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה יג",
+        "title": "Sifra, Emor, Section 13",
+        "length": 1,
+        "chapters": 12,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק יח",
+        "title": "Sifra, Emor, Chapter 18",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרשה יד",
+        "title": "Sifra, Emor, Section 14",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק יט",
+        "title": "Sifra, Emor, Chapter 19",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, אמור, פרק כ",
+        "title": "Sifra, Emor, Chapter 20",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרשה א",
+        "title": "Sifra, Behar, Section 1",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרק א",
+        "title": "Sifra, Behar, Chapter 1",
+        "length": 1,
+        "chapters": 11,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרשה ב",
+        "title": "Sifra, Behar, Section 2",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרק ב",
+        "title": "Sifra, Behar, Chapter 2",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרק ג",
+        "title": "Sifra, Behar, Chapter 3",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרשה ג",
+        "title": "Sifra, Behar, Section 3",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרק ד",
+        "title": "Sifra, Behar, Chapter 4",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרק ה",
+        "title": "Sifra, Behar, Chapter 5",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרשה ד",
+        "title": "Sifra, Behar, Section 4",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרק ו",
+        "title": "Sifra, Behar, Chapter 6",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרשה ה",
+        "title": "Sifra, Behar, Section 5",
+        "length": 1,
+        "chapters": 4,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרק ז",
+        "title": "Sifra, Behar, Chapter 7",
+        "length": 1,
+        "chapters": 4,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרשה ו",
+        "title": "Sifra, Behar, Section 6",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרק ח",
+        "title": "Sifra, Behar, Chapter 8",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בהר, פרק ט",
+        "title": "Sifra, Behar, Chapter 9",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרשה א",
+        "title": "Sifra, Bechukotai, Section 1",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק א",
+        "title": "Sifra, Bechukotai, Chapter 1",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק ב",
+        "title": "Sifra, Bechukotai, Chapter 2",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק ג",
+        "title": "Sifra, Bechukotai, Chapter 3",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרשה ב",
+        "title": "Sifra, Bechukotai, Section 2",
+        "length": 1,
+        "chapters": 3,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק ד",
+        "title": "Sifra, Bechukotai, Chapter 4",
+        "length": 1,
+        "chapters": 5,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק ה",
+        "title": "Sifra, Bechukotai, Chapter 5",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק ו",
+        "title": "Sifra, Bechukotai, Chapter 6",
+        "length": 1,
+        "chapters": 7,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק ז",
+        "title": "Sifra, Bechukotai, Chapter 7",
+        "length": 1,
+        "chapters": 6,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק ח",
+        "title": "Sifra, Bechukotai, Chapter 8",
+        "length": 1,
+        "chapters": 10,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרשה ג",
+        "title": "Sifra, Bechukotai, Section 3",
+        "length": 1,
+        "chapters": 14,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק ט",
+        "title": "Sifra, Bechukotai, Chapter 9",
+        "length": 1,
+        "chapters": 16,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרשה ד",
+        "title": "Sifra, Bechukotai, Section 4",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק י",
+        "title": "Sifra, Bechukotai, Chapter 10",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק יא",
+        "title": "Sifra, Bechukotai, Chapter 11",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרשה ה",
+        "title": "Sifra, Bechukotai, Section 5",
+        "length": 1,
+        "chapters": 9,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק יב",
+        "title": "Sifra, Bechukotai, Chapter 12",
+        "length": 1,
+        "chapters": 13,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      },
+      {
+        "section": "Halakhah",
+        "heTitle": "ספרא, בחוקתי, פרק יג",
+        "title": "Sifra, Bechukotai, Chapter 13",
+        "length": 1,
+        "chapters": 8,
+        "book": "Sifra",
+        "heBook": "ספרא"
+      }
+    ],
+    "book": "Sifra",
+    "heBook": "ספרא"
+  }
+]
