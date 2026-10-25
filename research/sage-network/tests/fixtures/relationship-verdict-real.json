@@ -1,0 +1,2183 @@
+{
+  "note": "Real source text from the live revision sage-graph-2ae38b2df7aee0cc75ec. Answers are one reader's hand verdicts (manual controls, not gold). They test the request and validator; they do not measure accuracy.",
+  "sourceJobsSha256": "1772328328cf05d3dd4ce9739f211b2d415cdb4eb17ce1cd1794595d8b1a2161",
+  "handVerdictsSha256": "37dbbae12a7f811ad813486002f9b46515a7beb3851c2446a7ec0def00d3e695",
+  "cases": [
+    {
+      "controlId": "mc-01",
+      "tests": "family tie with an odd linking word: keep the tie, do not endorse the claim",
+      "job": {
+        "binding": {
+          "claims": {
+            "b000-p4/r0": {
+              "payloadSha256": "3f89b33cdf43dc957023dadc4b6ff040d729d597992c805d3333ea3d735c3414",
+              "predecessor": {
+                "b279": "3f89b33cdf43dc957023dadc4b6ff040d729d597992c805d3333ea3d735c3414",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b000-p4/r0"
+            }
+          },
+          "passagePayloadSha256": "fec8d07d4f6d5f8a0379575a26137175c8a26b691ef8c8f8a8adb76100a8f7c0",
+          "passagePredecessor": {
+            "b279": "fec8d07d4f6d5f8a0379575a26137175c8a26b691ef8c8f8a8adb76100a8f7c0",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b000-p4",
+          "people": {
+            "D": "791ae756383eb53cae01b70c7b93e2aca94e54f68703448a470f14671213c352",
+            "E": "646ee83d546609b08fada818ceef095f7fca222e7f9504e44b45055fb46f80dc"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b000-p4/r0",
+            "field": "relations",
+            "from": "D",
+            "kind": "child_of",
+            "quote": "רבי יוסי כד רבי בון",
+            "source_id": "passage",
+            "spans": [[359, 378]],
+            "to": "E"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-01",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b000-p4",
+        "people": [
+          {
+            "id": "A",
+            "mention": "אמר רבי חנינה",
+            "source_id": "passage",
+            "spans": [[0, 13]]
+          },
+          {
+            "id": "B",
+            "mention": "רב חסדא",
+            "source_id": "passage",
+            "spans": [[247, 254]]
+          },
+          {
+            "id": "C",
+            "mention": "התיב ר' ירמיה",
+            "source_id": "passage",
+            "spans": [[292, 305]]
+          },
+          {
+            "id": "D",
+            "mention": "רבי יוסי כד רבי בון",
+            "source_id": "passage",
+            "spans": [[359, 378]]
+          },
+          {
+            "id": "E",
+            "mention": "רבי יוסי כד רבי בון",
+            "source_id": "passage",
+            "spans": [[359, 378]]
+          },
+          {
+            "id": "F",
+            "mention": "בשם רבי לוי",
+            "source_id": "passage",
+            "spans": [[379, 390]]
+          },
+          {
+            "id": "G",
+            "mention": "שאמר לו הרוג את איש פלוני",
+            "source_id": "passage",
+            "spans": [[141, 166]]
+          },
+          {
+            "id": "H",
+            "mention": "שאמר לו הרוג את איש פלוני",
+            "source_id": "passage",
+            "spans": [[141, 166]]
+          },
+          {
+            "id": "I",
+            "mention": "הרוג את איש פלוני",
+            "source_id": "passage",
+            "spans": [[149, 166]]
+          },
+          {
+            "id": "J",
+            "mention": "יצא רובו אין נוגעין בו",
+            "source_id": "passage",
+            "spans": [[61, 83], [312, 334]]
+          },
+          {
+            "id": "K",
+            "mention": "להציל את הגדול בנפשו של קטון",
+            "source_id": "passage",
+            "spans": [[263, 291]]
+          },
+          {
+            "id": "L",
+            "mention": "להציל את הגדול בנפשו של קטון",
+            "source_id": "passage",
+            "spans": [[263, 291]]
+          }
+        ],
+        "reference": {
+          "captured": "Jerusalem Talmud Avodah Zarah 2:2:10",
+          "current": "Jerusalem Talmud Avodah Zarah 2:2:10"
+        },
+        "sample_id": "rvt-011",
+        "sources": [
+          {
+            "sha256": "fad4e8fbb4a071e55a7591bc08dd3b16c67787201a03f81c1f61c1e576db2090",
+            "source_id": "before",
+            "text": "הותרה ואפילו להתרפות. ולא סוף דבר שאמר לו הבא לי אשת איש אלא אפילו לשמוע את קולה כהדא חד בר נש רחם איתא ביומוי דרבי לעזר וסכן אתון שאלון לרבי לעזר מהו דתיעבור קומוי וייחי אמר לון ימות ולא כן מהו דישמע קלה וייחי אמר לון ימות ולא כן ומה הוות רבי יעקב בר אידי ורבי יצחק בר נחמן חד אמר אשת איש הוויי וח\"א פנויה. מאן דמר אשת איש ניחא ומאן דמר פנויה והא בר כוחא נגרא רחם איתתא ביומוי דרבי לעזר וסכן כאן באשת איש כאן בפנויה. ואפי' תימא כאן וכאן בפנויה וכאן וכאן באשת איש תיפתר שנתן עיניו בה עד שהיא אשת איש. אית דבעי מימר איתה רובה הוות ולא הוות משמע ליה וכל מה דהותה מעבד באיסור הוה מעבד בגין כן לא שרא ליה"
+          },
+          {
+            "sha256": "951123557e2b0919b312d41eab5fb6f119a5bcfaa24d0cc4aff1352906b1ae2c",
+            "source_id": "passage",
+            "text": "אמר רבי חנינה זאת אומרת שאין מתרפין משפיכות דמים. דתנינן תמן יצא רובו אין נוגעין בו וכו' חיישינן שלא ימות ואין דוחין נפש מפני נפש לא סוף דבר שאמר לו הרוג את איש פלוני אלא אמר לו חמוס את איש פלוני. עכו\"ם בעכו\"ם עכו\"ם בישראל חייב ישראל בעכו\"ם פטור. רב חסדא בעי מהו להציל את הגדול בנפשו של קטון התיב ר' ירמיה והתנן יצא רובו אין נוגעין בו שאין דוחין נפש מפני נפש רבי יוסי כד רבי בון בשם רבי לוי שנייא היא תמן דלא נודע מי הורג את מי."
+          },
+          {
+            "sha256": "194a7c19c9f4708ee9dc6565b18bda77ad400b07b4f13dec9e19367221141ca1",
+            "source_id": "after",
+            "text": "מעשה באלעזר בן דמא שנשכו נחש ובא יעקב איש כפר סמא לרפותו. אמר לו רבי ישמעאל אי אתה רשאי בן דמא. אמר לו אני אביא ראיה שירפאני לא הספיק להביא ראיה עד שמת. אמר לו רבי ישמעאל אשריך בן דמא שיצאת בשלום מן העולם ולא פרצת גדירן של חכמים לקיים מה שנאמר ופורץ גדר ישכנו נחש ולא נחש נשכו אלא שלא ישכנו לעתיד לבוא. ומה הוה ליה למימר אשר יעשה אותם האדם וחי בהם."
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-01",
+        "verdicts": [
+          {
+            "claim_id": "b000-p4/r0",
+            "claim_as_written": "uncertain",
+            "supported_kind": "family",
+            "direction": "as_written",
+            "family_degree": "as_written",
+            "verdict": "fam",
+            "reason": "The phrase reads like a name with a father's name: R. Yosi, son of R. Bun. But the linking word is כד, not a clear son-of form, so the family reading stays tentative and the text is not normalized.",
+            "uncertain_detail": [
+              {
+                "aspect": "text_reading",
+                "status": "unclear",
+                "note": "כד stands where the usual form has בי (son of)"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-02",
+      "tests": "real exchange, speaker known only from the turn order",
+      "job": {
+        "binding": {
+          "claims": {
+            "b000-p0/s2": {
+              "payloadSha256": "c30276c64b6c15d002dbc7b506bbf7057c386786dd27798d320f4669e290c42e",
+              "predecessor": {
+                "b279": "c30276c64b6c15d002dbc7b506bbf7057c386786dd27798d320f4669e290c42e",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b000-p0/s2"
+            }
+          },
+          "passagePayloadSha256": "9ffd494b60f26d2ea46fba8d769ac053dbf9cb26b8745309e1b9ec5c7a459c40",
+          "passagePredecessor": {
+            "b279": "9ffd494b60f26d2ea46fba8d769ac053dbf9cb26b8745309e1b9ec5c7a459c40",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b000-p0",
+          "people": {
+            "A": "407964445a4ddb618f2a0419f958980fa5ac94511c96c965ed2c8e371f7fcaa0",
+            "B": "6456ea909dfedeae66e880666f79ffad40ff2c99a41cad63dbb2a98ca4c58bc0"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b000-p0/s2",
+            "field": "speech",
+            "from": "A",
+            "kind": "asked",
+            "quote": "אפילו בדרב ושמואל",
+            "source_id": "passage",
+            "spans": [[57, 74]],
+            "to": "B"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-02",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b000-p0",
+        "people": [
+          {
+            "id": "A",
+            "mention": "רבינא",
+            "source_id": "passage",
+            "spans": [[4, 9]]
+          },
+          {
+            "id": "B",
+            "mention": "לרב אשי",
+            "source_id": "passage",
+            "spans": [[10, 17]]
+          },
+          {
+            "id": "C",
+            "mention": "ר' חייא",
+            "source_id": "passage",
+            "spans": [[29, 36]]
+          },
+          {
+            "id": "D",
+            "mention": "רבי אושעיא",
+            "source_id": "passage",
+            "spans": [[38, 48]]
+          },
+          {
+            "id": "E",
+            "mention": "אפילו בדרב ושמואל",
+            "source_id": "passage",
+            "spans": [[57, 74]]
+          },
+          {
+            "id": "F",
+            "mention": "אפילו בדרב ושמואל",
+            "source_id": "passage",
+            "spans": [[57, 74]]
+          },
+          {
+            "id": "G",
+            "mention": "אפילו טעה בר' חייא ורבי אושעיא",
+            "source_id": "passage",
+            "spans": [[18, 48]]
+          }
+        ],
+        "reference": {
+          "captured": "Sanhedrin 33a:6",
+          "current": "Sanhedrin 33a:6"
+        },
+        "sample_id": "rvt-002",
+        "sources": [
+          {
+            "sha256": "df1e9bd8f92c68c59172d9c22c2cb2fce31f9a9df57c9e854d62f71b9eea8183",
+            "source_id": "before",
+            "text": "רב ששת אמר כאן שטעה בדבר משנה כאן שטעה בשיקול הדעת דאמר רב ששת אמר רב אסי טעה בדבר משנה חוזר טעה בשיקול הדעת אינו חוזר"
+          },
+          {
+            "sha256": "0b658236f46c03d31f85fff94612fb573dc010365cf56ce52e183cd79e00b915",
+            "source_id": "passage",
+            "text": "א\"ל רבינא לרב אשי אפילו טעה בר' חייא ורבי אושעיא א\"ל אין אפילו בדרב ושמואל אמר ליה אין אפילו בדידי ודידך א\"ל אטו אנן קטלי קני באגמא אנן"
+          },
+          {
+            "sha256": "d5520fc1f00e5ddf3a478ed150afbdbbdf95036a99ccd1f41d4b1962b9df73e1",
+            "source_id": "after",
+            "text": "היכי דמי שיקול הדעת אמר רב פפא כגון תרי תנאי או תרי אמוראי דפליגי אהדדי ולא איתמר הלכתא לא כמר ולא כמר ואיקרי ועבד כחד מינייהו וסוגיא דשמעת' אזלי כאידך היינו שיקול הדעת"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-02",
+        "verdicts": [
+          {
+            "claim_id": "b000-p0/s2",
+            "claim_as_written": "supported",
+            "supported_kind": "direct_interaction",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "ok",
+            "reason": "Ravina and Rav Ashi trade short questions and answers. This line has no verb or name, but the turn order makes it Ravina's next question.",
+            "uncertain_detail": [
+              {
+                "aspect": "speaker",
+                "status": "unclear",
+                "note": "no verb or name on the line; assigned by turn order"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-03",
+      "tests": "named sages discussing a hypothetical legal case: the discussion is real",
+      "job": {
+        "binding": {
+          "claims": {
+            "b203-p6/s0": {
+              "payloadSha256": "549f970c3c1258bc40987eefde4c1888e9a7b6753dba56b59eca3b477a544197",
+              "predecessor": {
+                "b279": "549f970c3c1258bc40987eefde4c1888e9a7b6753dba56b59eca3b477a544197",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b203-p6/s0"
+            }
+          },
+          "passagePayloadSha256": "467323317b2f071071e610f844be9c0c2d574d85459b669a60474732d2393c29",
+          "passagePredecessor": {
+            "b279": "467323317b2f071071e610f844be9c0c2d574d85459b669a60474732d2393c29",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b203-p6",
+          "people": {
+            "A": "37831cfcdcd43449d0b2a679f671a7aa4ff5678c785ba0d827fdf7d7026dc36a",
+            "B": "011c4cfb3fde68768d4669c81b9e173b52cbf2d75181fa92c016c542bfcf76db"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b203-p6/s0",
+            "field": "speech",
+            "from": "A",
+            "kind": "asked",
+            "quote": "ר' אבון בעא קומי רבי מנא עבדי שניות מהו שיאכלו בתרומה.",
+            "source_id": "passage",
+            "spans": [[0, 54]],
+            "to": "B"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-03",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b203-p6",
+        "people": [
+          {
+            "id": "A",
+            "mention": "ר' אבון",
+            "source_id": "passage",
+            "spans": [[0, 7]]
+          },
+          {
+            "id": "B",
+            "mention": "רבי מנא",
+            "source_id": "passage",
+            "spans": [[17, 24]]
+          },
+          {
+            "id": "C",
+            "mention": "עבדי שניות",
+            "source_id": "passage",
+            "spans": [[25, 35]]
+          },
+          {
+            "id": "D",
+            "mention": "שניות",
+            "source_id": "passage",
+            "spans": [[30, 35]]
+          },
+          {
+            "id": "E",
+            "mention": "היא אוכלת",
+            "source_id": "passage",
+            "spans": [[76, 85]]
+          }
+        ],
+        "reference": {
+          "captured": "Jerusalem Talmud Yevamot 9:4:6",
+          "current": "Jerusalem Talmud Yevamot 9:4:6"
+        },
+        "sample_id": "rvt-014",
+        "sources": [
+          {
+            "sha256": "7afbc6bfa109c2b2f3ca3da8302a0e42edae0c93fc5edd1c766e09f2510e3904",
+            "source_id": "before",
+            "text": "א\"ר יוסה כל שעה הויא רבי אילה אמר לי תני מתניתך יורשה ומיטמא לה. ותני כן מטמא הוא אדם לאשתו הכשירה. ואינו מיטמא באשתו פסולה."
+          },
+          {
+            "sha256": "cf6d78e43d316a015e72a4db661d19162b70737f8d62a5536b27b0bf8784bd76",
+            "source_id": "passage",
+            "text": "ר' אבון בעא קומי רבי מנא עבדי שניות מהו שיאכלו בתרומה. אמר ליה שתוק ויפה לך היא אוכלת ועבדיה אינן אוכלין."
+          },
+          {
+            "sha256": "2b334ca6acfaf1eb85723e475148b2f60b52bf4f4e4f7a9c5f83ebef27083593",
+            "source_id": "after",
+            "text": "תמן תנינן גט מעושה בישראל כשר ובגוים פסול. שמואל אמר פסול ופוסל לכהונה. ומר שמואל אכרזון בקרויבון פסול ופוסל בכהונה. שמואל אמר אין מעשין אלא לפסולין. שמואל אמר אין מעשין אלא כגון אלמנה לכהן גדול גרושה וחלוצה לכהן הדיוט. והא תנינן שניות. לא בגין דא אמר שמואל. והא תנינן המדיר את אשתו מליהנות לו עד שלשים יום יעמיד פרנס יותר מיכן יוציא ויתן כתובה. שמענו שהוא מוציא שמענו כופין."
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-03",
+        "verdicts": [
+          {
+            "claim_id": "b203-p6/s0",
+            "claim_as_written": "supported",
+            "supported_kind": "direct_interaction",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "ok",
+            "reason": "R. Avun puts a legal question to R. Mana and R. Mana answers him. The case asked about is general, but the exchange is told as real.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-04",
+      "tests": "an imagined reply is not a real exchange",
+      "job": {
+        "binding": {
+          "claims": {
+            "b126-p1/s2": {
+              "payloadSha256": "6da797d548139c4e470952724ea6466be8606873985ff31d7573eb767e7022ca",
+              "predecessor": {
+                "b279": "6da797d548139c4e470952724ea6466be8606873985ff31d7573eb767e7022ca",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b126-p1/s2"
+            }
+          },
+          "passagePayloadSha256": "7b06e0732cd5ccf9350f502e311254704ed3ea4ac750adaed23ee89d8baa2c4e",
+          "passagePredecessor": {
+            "b279": "7b06e0732cd5ccf9350f502e311254704ed3ea4ac750adaed23ee89d8baa2c4e",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b126-p1",
+          "people": {
+            "B": "f3a8a59656e408f6049eb2a1ae3cbf74b04d2b579b671e4d047f80bf1f330d7c",
+            "C": "49d5f6f37befd649afa6d5c4499560512f8a0032b4c24ff0dc2db268d3f93522",
+            "D": "ee3e04c789a26bf3f6dabbf686acab0cb885dd81ba32660af8add47e54f9d2e0",
+            "E": "1e4d23f9db14b2e46e36978561bd7ebdac972101dc3462c0fa6e856304b73074"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b126-p1/s2",
+            "field": "speech",
+            "from": "E",
+            "kind": "objected",
+            "quote": "דו יכיל מימיר ליה הרי פסחו של ראובן ששחטו לשם שמעון הרי שינהו לדבר כשר ותימר חייב",
+            "source_id": "passage",
+            "spans": [[160, 241]],
+            "to": "D"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-04",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b126-p1",
+        "people": [
+          {
+            "id": "A",
+            "mention": "אמרין",
+            "source_id": "passage",
+            "spans": [[0, 5]]
+          },
+          {
+            "id": "B",
+            "mention": "רבי ליעזר",
+            "source_id": "passage",
+            "spans": [[15, 24]]
+          },
+          {
+            "id": "C",
+            "mention": "רבי יהושע",
+            "source_id": "passage",
+            "spans": [[35, 44]]
+          },
+          {
+            "id": "D",
+            "mention": "רבי יושוע",
+            "source_id": "passage",
+            "spans": [[129, 138]]
+          },
+          {
+            "id": "E",
+            "mention": "רבי אליעזר",
+            "source_id": "passage",
+            "spans": [[149, 159]]
+          },
+          {
+            "id": "F",
+            "mention": "ראובן",
+            "source_id": "passage",
+            "spans": [[190, 195]]
+          },
+          {
+            "id": "G",
+            "mention": "שמעון",
+            "source_id": "passage",
+            "spans": [[206, 211]]
+          },
+          {
+            "id": "H",
+            "mention": "ששחטו לשם שמעון",
+            "source_id": "passage",
+            "spans": [[196, 211]]
+          }
+        ],
+        "reference": {
+          "captured": "Jerusalem Talmud Pesachim 6:5:3",
+          "current": "Jerusalem Talmud Pesachim 6:5:3"
+        },
+        "sample_id": "rvt-004",
+        "sources": [
+          {
+            "sha256": "75e2f91052d96d6859dd6194c934bb109423af62554efb8fc60d7fe951f6df21",
+            "source_id": "before",
+            "text": "מתניתא ביודע בו שהוא פסח ושחטו לשם שלמים היה יודע בו שהוא שלמים ושחטו לשם עולה רבי מנא אמר יש בעשייתו מצוה רבי יוסה אמר אין בעשייתו מצוה. אילי ציבור שהיה סבור שהן כבשים ושחטן לשם אילים שמא לא עלו לציבור לשם אילים. ותני כן אילי ציבור שהיה סבור שהן כבשים ושחטן לשם אילים כבר עלו לציבור לשם חובה. מתניתא בסבור בו שהוא פסח ושחטו לשם פסח היה יודע בו שהוא שלמים אלא שהיה סבור לומר שמותר לשנות שלמים לשם פסח רבי מנא אמר אין בעשייתו מצוה רבי יוסה אמר יש בעשייתו מצוה. מסתברא דר' מנא בקדמייתא ודרבי יוסה באחרייתא."
+          },
+          {
+            "sha256": "f599718315fe74e2a00469e6757ed685b8fdeb7644cdaad3b093b36d98feb2e6",
+            "source_id": "passage",
+            "text": "אמרין לית הדא דרבי ליעזר תתובה על דרבי יהושע דו יכיל מימיר ליה האיך את משיביני מדבר שדרכו לחלף על דבר שאין דרכו ליתחלף. ולא הדא דרבי יושוע תתובה על דרבי אליעזר דו יכיל מימיר ליה הרי פסחו של ראובן ששחטו לשם שמעון הרי שינהו לדבר כשר ותימר חייב."
+          },
+          {
+            "sha256": "4c4eb01139d41ad1bf5db2c5e072ce81839213961b3a027b0dc24b68bd22840e",
+            "source_id": "after",
+            "text": "רבי מאיר אומר השוחט לשם אימורי צבור פטור. א\"ר לעזר דברי רבי מאיר אפילו עגל את שמע מינה תרתיי. את שמע מינה דבר שאין לו קיצבה ודבר שאין דרכו להתחליף ויש בעשייתו מצוה. ר\"ש בן לקיש אמר יש בעשייתו מצוה כגון יבמתו נדה ובא עליה ר' יוחנן אמר אין בעשייתו מצוה כגון שני שפודין אחד של שחוטה ואחד של נבילה וביקש לוכל מזה ואכל מזה. מתניתא פליגא על רבי יומנן שבת ומל את שלאחר שבת בשבת רבי אליעזר מחייב חטאת ורבי יהושע פוטר הרי אין בעשייתו מצוה ור' יהושע פוטר. שמואל קפודקי' אמר למחר יש בעשייתה מצוה."
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-04",
+        "verdicts": [
+          {
+            "claim_id": "b126-p1/s2",
+            "claim_as_written": "contradicted",
+            "supported_kind": "hypothetical",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "hyp",
+            "reason": "Unnamed speakers say what R. Eliezer could answer R. Yehoshua. The text reports no real objection between them.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-05",
+      "tests": "named person and unnamed askers",
+      "job": {
+        "binding": {
+          "claims": {
+            "b003-p9/s0": {
+              "payloadSha256": "d2bf7323130cbf33f7781b06f375285f005a711cdcb65fb76105fc2d87203614",
+              "predecessor": {
+                "b279": "d2bf7323130cbf33f7781b06f375285f005a711cdcb65fb76105fc2d87203614",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b003-p9/s0"
+            }
+          },
+          "passagePayloadSha256": "f41064bc536845bad3f055832541b88dc516dc3e8beb8563b7a7da9e612ecba7",
+          "passagePredecessor": {
+            "b279": "f41064bc536845bad3f055832541b88dc516dc3e8beb8563b7a7da9e612ecba7",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b003-p9",
+          "people": {
+            "A": "d7894532fbe1b1f6cc83a580ef60930487de6f9547de3ab7dff4c37e12e5587d",
+            "B": "811de47bbea0273b1e23c7a17030e10d6a56a82cb7d276b18041e3026c60062d",
+            "F": "477768ca0c3149b69a337a1ba6a62ec904e402ac047ca6fd66a0e8a83a5029df"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b003-p9/s0",
+            "field": "speech",
+            "from": "A",
+            "kind": "asked",
+            "quote": "בעו מיניה מרב כהנא עובד כוכבים מהו שיוליך ענבים לגת",
+            "source_id": "passage",
+            "spans": [[0, 51]],
+            "to": "B"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-05",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b003-p9",
+        "people": [
+          {
+            "id": "A",
+            "mention": "בעו מיניה מרב כהנא",
+            "source_id": "passage",
+            "spans": [[0, 18]]
+          },
+          {
+            "id": "B",
+            "mention": "רב כהנא",
+            "source_id": "passage",
+            "spans": [[11, 18], [129, 136]]
+          },
+          {
+            "id": "C",
+            "mention": "עובד כוכבים",
+            "source_id": "passage",
+            "spans": [[19, 30], [137, 148]]
+          },
+          {
+            "id": "D",
+            "mention": "נזירא",
+            "source_id": "passage",
+            "spans": [[82, 87]]
+          },
+          {
+            "id": "E",
+            "mention": "אמרין נזירא",
+            "source_id": "passage",
+            "spans": [[76, 87]]
+          },
+          {
+            "id": "F",
+            "mention": "רב יימר",
+            "source_id": "passage",
+            "spans": [[120, 127]]
+          }
+        ],
+        "reference": {
+          "captured": "Avodah Zarah 59a:11",
+          "current": "Avodah Zarah 59a:11"
+        },
+        "sample_id": "rvt-009",
+        "sources": [
+          {
+            "sha256": "c72a92cdd8c7c2bb3c9e3346b5bfb0387f005145623a3768710ecf90cd8ac93c",
+            "source_id": "before",
+            "text": "ר' יוחנן כי הך לישנא ס\"ל דאמר רב שמואל בר רב יצחק אמר רב כל שאינו עולה לשולחן של מלכים ללפת בו את הפת אין בו משום בישולי עובדי כוכבים טעמא דאינן בני תורה הא בני תורה שרי"
+          },
+          {
+            "sha256": "bace26fdad5fc868920b3f24a74824ba9d276ca1653ae6a76fb764614b86fe68",
+            "source_id": "passage",
+            "text": "בעו מיניה מרב כהנא עובד כוכבים מהו שיוליך ענבים לגת אמר להו אסור משום לך לך אמרין נזירא סחור סחור לכרמא לא תקרב איתיביה רב יימר לרב כהנא עובד כוכבים שהביא ענבים לגת בסלין"
+          },
+          {
+            "sha256": "033bdd41f8067c670ae7fcc610c80bd6332465476f0152328a164c9182bfabbf",
+            "source_id": "after",
+            "text": "(end of section)"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-05",
+        "verdicts": [
+          {
+            "claim_id": "b003-p9/s0",
+            "claim_as_written": "supported",
+            "supported_kind": "direct_interaction",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "ok",
+            "reason": "Unnamed people ask Rav Kahana a legal question, and he answers them. The exchange is stated.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-06",
+      "tests": "readers disagreed (ok against teach); a reported teaching is transmission",
+      "job": {
+        "binding": {
+          "claims": {
+            "b597-p1/r2": {
+              "payloadSha256": "4985f7820474ec2f95ba69c792446196b6e16a152f7ecbd1496777b548fe3d6b",
+              "predecessor": {
+                "b279": "4985f7820474ec2f95ba69c792446196b6e16a152f7ecbd1496777b548fe3d6b",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b597-p1/r2"
+            }
+          },
+          "passagePayloadSha256": "4f8dbe73641dbe35082ff79c84df4c58a70abaff3a83bb1551ab0c2405db9a05",
+          "passagePredecessor": {
+            "b279": "4f8dbe73641dbe35082ff79c84df4c58a70abaff3a83bb1551ab0c2405db9a05",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b597-p1",
+          "people": {
+            "A": "a939351d51e556651490eba840f01f7fa2affa12ef369c23047bb77aef076f5b",
+            "C": "d4e5e60286b652322bd37c68cc08c7943c7ac53a686b6ba71f10a40ca0dc0ea8",
+            "F": "fd3fb9b541443f3597fb8ac21e69afa658995e375808fef60da0e95f396c1851",
+            "G": "73cdee903f29932ce3fe9bca47adce3d7cca539ec3bf3c339e390db228308513"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b597-p1/r2",
+            "field": "relations",
+            "from": "F",
+            "kind": "other:reports_interpretation_of",
+            "quote": "א\"ר יוסי קיימה ר' אבודמא נחותא",
+            "source_id": "passage",
+            "spans": [[648, 678]],
+            "to": "G"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-06",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b597-p1",
+        "people": [
+          {
+            "id": "A",
+            "mention": "רבי יסא",
+            "source_id": "passage",
+            "spans": [[0, 7]]
+          },
+          {
+            "id": "B",
+            "mention": "רבי יוחנן",
+            "source_id": "passage",
+            "spans": [[12, 21]]
+          },
+          {
+            "id": "C",
+            "mention": "ר' זעירא",
+            "source_id": "passage",
+            "spans": [[168, 176]]
+          },
+          {
+            "id": "D",
+            "mention": "רב חסדא",
+            "source_id": "passage",
+            "spans": [[226, 233], [380, 387]]
+          },
+          {
+            "id": "E",
+            "mention": "שמואל",
+            "source_id": "passage",
+            "spans": [[571, 576], [684, 689]]
+          },
+          {
+            "id": "F",
+            "mention": "א\"ר יוסי",
+            "source_id": "passage",
+            "spans": [[648, 656]]
+          },
+          {
+            "id": "G",
+            "mention": "ר' אבודמא נחותא",
+            "source_id": "passage",
+            "spans": [[663, 678]]
+          },
+          {
+            "id": "H",
+            "mention": "היו לו שתי שדות אחת ביהודה ואחת בגליל",
+            "source_id": "passage",
+            "spans": [[22, 59]]
+          },
+          {
+            "id": "I",
+            "mention": "הגר",
+            "source_id": "passage",
+            "spans": [[139, 142], [244, 247], [697, 700]]
+          },
+          {
+            "id": "J",
+            "mention": "נתכוון לקנות מן המיצר ושרע מיניה",
+            "source_id": "passage",
+            "spans": [[193, 225]]
+          },
+          {
+            "id": "K",
+            "mention": "החזיק בצפונן ע\"מ לזכות בדרומן",
+            "source_id": "passage",
+            "spans": [[248, 277]]
+          },
+          {
+            "id": "L",
+            "mention": "גר שמת",
+            "source_id": "passage",
+            "spans": [[388, 394]]
+          },
+          {
+            "id": "M",
+            "mention": "ישראל",
+            "source_id": "passage",
+            "spans": [[403, 408]]
+          },
+          {
+            "id": "N",
+            "mention": "המחזיק בקרקע",
+            "source_id": "passage",
+            "spans": [[418, 430]]
+          },
+          {
+            "id": "O",
+            "mention": "המחזיק בקמה",
+            "source_id": "passage",
+            "spans": [[440, 451]]
+          },
+          {
+            "id": "P",
+            "mention": "ותלש כל שהוא",
+            "source_id": "passage",
+            "spans": [[554, 566], [631, 643]]
+          }
+        ],
+        "reference": {
+          "captured": "Jerusalem Talmud Kiddushin 1:5:11",
+          "current": "Jerusalem Talmud Kiddushin 1:5:11"
+        },
+        "sample_id": "rvt-007",
+        "sources": [
+          {
+            "sha256": "10c58878710b0a6ebd8dd0be76a584fe0df869f75070f6e38e921b96b52c4123",
+            "source_id": "before",
+            "text": "תמן תנינן קרקע כל שהוא חייב בפיאה ובביכורים דברי ר\"ע קרקע כל שהוא מהו טב א\"ר מתנייה תיפתר שהיה שם מקום שיבולת אחת ומרגלית טמונה בו"
+          },
+          {
+            "sha256": "d2adbe5ba42b59f1ba596b24af488093dcd36b2269ea4949e032de26006856e2",
+            "source_id": "passage",
+            "text": "רבי יסא בשם רבי יוחנן היו לו שתי שדות אחת ביהודה ואחת בגליל החזיק בזו שביהודה לזכות בזו שבגליל או בזו שבגליל לזכות בזו שביהודה קנה ובניכסי הגר לא קנה אפילו מיצר בנתיים ר' זעירא בעא קומי ר' יסא נתכוון לקנות מן המיצר ושרע מיניה רב חסדא אמר ניכסי הגר החזיק בצפונן ע\"מ לזכות בדרומן בדרומן ע\"מ לזכות בצפונן לא נתכוין לקנות באמצעיתן לא קנה עד שעה שיתכוין לקנות באמצעיתן מתניתא פליגא על רב חסדא גר שמת וביזבזו ישראל את נכסיו המחזיק בקרקע חייב בכל המחזיק בקמה חייב בלקט שכחה ופיאה ופטור מן המעשרות ואין אויר מפסיק בין שיבולת לשיבולת תמן תנינן אם היה מחובר לקרקע ותלש כל שהוא קנה שמואל אמר לא קנה אלא אותו קלח בלבד והתנן אם היה מחובר לקרקע ותלש כל שהוא קנה א\"ר יוסי קיימה ר' אבודמא נחותא מודה שמואל בניכסי הגר"
+          },
+          {
+            "sha256": "eaad0497e9781985d9e17c49f2e99d0c8c7b8af7b51d7f9406d091b6265df917",
+            "source_id": "after",
+            "text": "רבי יוחנן בעי המטלטלין מהו שיקנו בגרירה אמר ר' בא בר ממל מה צריכה ליה בעורות הקשים אבל בעורות הרכים לא קנה עד שיגביה מתניתא פליגא על רבי בא בר ממל הגונב כיסו של חבירו והוציאו בשבת חייב שכבר נתחייב בגניבתו של כיס עד שלא קידשה עליו השבת אבל אם היה גורר בו ויוצא פטור מפני שחלה עליו מיתה ותשלומין כאחת הא אם לא חלה עליו מיתה ותשלומין כאחת חייב אמר רבי מתנייה תיפתר באילין כיסייא רברבייא דאורחיהון מתגררה"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-06",
+        "verdicts": [
+          {
+            "claim_id": "b597-p1/r2",
+            "claim_as_written": "supported",
+            "supported_kind": "teaching_transmission",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "teach",
+            "reason": "R. Yosi reports how R. Avudma settled Shmuel's view. He passes on R. Avudma's teaching. It does not show the two met.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-07",
+      "tests": "human-kept control the machine rejected; engagement kept, the objection denied, a meeting not certain",
+      "job": {
+        "binding": {
+          "claims": {
+            "b489-p3/s0": {
+              "payloadSha256": "e105bfa4f204d032985af40127fd87558075c743c57443540756c40fb8348a2b",
+              "predecessor": {
+                "b279": "e105bfa4f204d032985af40127fd87558075c743c57443540756c40fb8348a2b",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b489-p3/s0"
+            }
+          },
+          "passagePayloadSha256": "9de4ce7127e1f372fe528ea4a280433e35d941edc07f63700567624d0dd0ca3a",
+          "passagePredecessor": {
+            "b279": "9de4ce7127e1f372fe528ea4a280433e35d941edc07f63700567624d0dd0ca3a",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b489-p3",
+          "people": {
+            "A": "407964445a4ddb618f2a0419f958980fa5ac94511c96c965ed2c8e371f7fcaa0",
+            "B": "c5a437b3879668396741fab09ff91e96b8c54b293f1b56cb3614346cbe11df95"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b489-p3/s0",
+            "field": "speech",
+            "from": "A",
+            "kind": "objected",
+            "quote": "והא אותביה רבינא לרבא",
+            "source_id": "passage",
+            "spans": [[0, 21]],
+            "to": "B"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-07",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b489-p3",
+        "people": [
+          {
+            "id": "A",
+            "mention": "רבינא",
+            "source_id": "passage",
+            "spans": [[11, 16]]
+          },
+          {
+            "id": "B",
+            "mention": "רבא",
+            "source_id": "passage",
+            "spans": [[18, 21]]
+          }
+        ],
+        "reference": {
+          "captured": "Avodah Zarah 22a:7",
+          "current": "Avodah Zarah 22a:7"
+        },
+        "sample_id": "rvt-005",
+        "sources": [
+          {
+            "sha256": "aaad378957ea5f6e47be141d6c5c6370cc3f804d3df63b5f19cd7d0be334647e",
+            "source_id": "before",
+            "text": "רב גביהה מבי כתיל אמר הנהו שתילי דערלה הוה עובד כוכבים אכיל שני דערלה וישראל שני דהתירא אתו לקמיה דרבא שרא להו"
+          },
+          {
+            "sha256": "f594124465519073ffaf194903cc2eb0f5622c38008949f091258508e8c05f75",
+            "source_id": "passage",
+            "text": "והא אותביה רבינא לרבא לסיועי סייעיה והא אכסיף לא היו דברים מעולם"
+          },
+          {
+            "sha256": "a1ab95d2e44c73b320c8b7ef555977e4eeef098fbe1db4ed531637a688e7766c",
+            "source_id": "after",
+            "text": "איבעיא להו סתמא מאי ת\"ש אם התנו מתחילה מותר הא סתמא אסור"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-07",
+        "verdicts": [
+          {
+            "claim_id": "b489-p3/s0",
+            "claim_as_written": "contradicted",
+            "supported_kind": "response_to_teaching",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "teach",
+            "reason": "The text asks whether Ravina challenged Rava and answers that he supported him. Ravina did engage Rava's ruling, but not as an objection, and the text does not say they met.",
+            "uncertain_detail": [
+              {
+                "aspect": "kind",
+                "status": "contradicted",
+                "note": "the text recasts the objection as support"
+              },
+              {
+                "aspect": "presence",
+                "status": "unclear",
+                "note": "the text does not say they met in person"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-08",
+      "tests": "rejected control: the other person is not in the line",
+      "job": {
+        "binding": {
+          "claims": {
+            "b407-p8/r5": {
+              "payloadSha256": "477dd83759263a99c627cf82c8d326bffb81b190aa14624f1b3e26d2903af0fc",
+              "predecessor": {
+                "b279": "477dd83759263a99c627cf82c8d326bffb81b190aa14624f1b3e26d2903af0fc",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b407-p8/r5"
+            }
+          },
+          "passagePayloadSha256": "cfd46c0bcc1ee5b930be1f70c79f6241f920e0bf482a088bbd496571e3a9218d",
+          "passagePredecessor": {
+            "b279": "cfd46c0bcc1ee5b930be1f70c79f6241f920e0bf482a088bbd496571e3a9218d",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b407-p8",
+          "people": {
+            "H": "88daaa3c085b8e4410802676d1699d42570b4bb717be4bba7690c0b92ecc7a22",
+            "I": "61337ac5e31aa8d40e8106685d069cec2c882a8609d5ea81f66158a14eec021f",
+            "J": "bc7d49b9b6581754406c6d55015347c8e986f93b029bd3a0dac51462de20c669",
+            "K": "dbc44d4826803492509882acca83f6f51578b659ca8f84a022aaf5128087e87f",
+            "L": "63d3581bb8f85dac005d8af881819ec5352f6a20cc64cadb9a0a53f9d5b91772",
+            "M": "db3e6a8239a03bfd51fafd70af72f3f6a923c01c33fb45b027081283e1e1d035",
+            "N": "fd2be6a5f3ca6bf14c8b4e2457ba9668f8300a1b35d0a9daef42aae3aba7ed37",
+            "O": "378f507e190b9e0e5335163ec822e584fd3de28991c63e306632878bc467bd8e",
+            "P": "65d976ea53850ecb359c406b737d52913eede9f1a69938a6ce4a30b6ccd2acad",
+            "Q": "47651f436cdf0d178e9741536752db823000d19eed7aad951a2a2fb97afaa3cb"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b407-p8/r5",
+            "field": "relations",
+            "from": "O",
+            "kind": "other:saw",
+            "quote": "ר' סמיי חמונה נפיק בלילי תעניתא לבוש סוליסה",
+            "source_id": "passage",
+            "spans": [[457, 500]],
+            "to": "N"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-08",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b407-p8",
+        "people": [
+          {
+            "id": "A",
+            "mention": "כל אלו שאמרו אסורין בנעילת הסנדל",
+            "source_id": "passage",
+            "spans": [[18, 50]]
+          },
+          {
+            "id": "B",
+            "mention": "יצא לדרך נועל הגיע לכרך חולץ",
+            "source_id": "passage",
+            "spans": [[51, 79]]
+          },
+          {
+            "id": "C",
+            "mention": "באבל",
+            "source_id": "passage",
+            "spans": [[84, 88]]
+          },
+          {
+            "id": "D",
+            "mention": "במנודה",
+            "source_id": "passage",
+            "spans": [[93, 99]]
+          },
+          {
+            "id": "E",
+            "mention": "אית תניי תני יוצאין באמפליא ביום הכפורים",
+            "source_id": "passage",
+            "spans": [[100, 140]]
+          },
+          {
+            "id": "F",
+            "mention": "ואית תניי תני אין יוצאין",
+            "source_id": "passage",
+            "spans": [[141, 165]]
+          },
+          {
+            "id": "G",
+            "mention": "רב חסדא",
+            "source_id": "passage",
+            "spans": [[170, 177]]
+          },
+          {
+            "id": "H",
+            "mention": "ר' יצחק בר נחמן",
+            "source_id": "passage",
+            "spans": [[243, 258]]
+          },
+          {
+            "id": "I",
+            "mention": "ר' יצחק בר נחמן",
+            "source_id": "passage",
+            "spans": [[243, 258]]
+          },
+          {
+            "id": "J",
+            "mention": "רבי יהושע בן לוי",
+            "source_id": "passage",
+            "spans": [[268, 284]]
+          },
+          {
+            "id": "K",
+            "mention": "בן לוי",
+            "source_id": "passage",
+            "spans": [[278, 284]]
+          },
+          {
+            "id": "L",
+            "mention": "רבי שמואל בר נחמן",
+            "source_id": "passage",
+            "spans": [[357, 374]]
+          },
+          {
+            "id": "M",
+            "mention": "רבי שמואל בר נחמן",
+            "source_id": "passage",
+            "spans": [[357, 374]]
+          },
+          {
+            "id": "N",
+            "mention": "ריב\"ל",
+            "source_id": "passage",
+            "spans": [[385, 390], [582, 587], [596, 601]]
+          },
+          {
+            "id": "O",
+            "mention": "ר' סמיי",
+            "source_id": "passage",
+            "spans": [[457, 464]]
+          },
+          {
+            "id": "P",
+            "mention": "חד תלמיד מן דרבי מנא",
+            "source_id": "passage",
+            "spans": [[501, 521]]
+          },
+          {
+            "id": "Q",
+            "mention": "רבי מנא",
+            "source_id": "passage",
+            "spans": [[514, 521]]
+          },
+          {
+            "id": "R",
+            "mention": "חד מן קריבויי דנשיא",
+            "source_id": "passage",
+            "spans": [[528, 547]]
+          },
+          {
+            "id": "S",
+            "mention": "דנשיא",
+            "source_id": "passage",
+            "spans": [[542, 547]]
+          }
+        ],
+        "reference": {
+          "captured": "Jerusalem Talmud Yoma 8:1:9",
+          "current": "Jerusalem Talmud Yoma 8:1:9"
+        },
+        "sample_id": "rvt-003",
+        "sources": [
+          {
+            "sha256": "7a34516a35c9e0dab71585024129286791752979dd0c48b1fe68f7237ad1303e",
+            "source_id": "before",
+            "text": "מניין שהוא מחוור בעשה אר\"א בשם רבי סמיי (דברים כו) ולא נתתי ממנו למת מה נן קיימין אם להביא לו ארון ותכריכין לחי הוא אסור כל שכן למת ואיזה דבר שמותר לחי ואסור למת הוי אומר זו סיכה."
+          },
+          {
+            "sha256": "e283ec1b3cfac177d54ac4b44756870a8663e87d76f9f37edd75853de387040e",
+            "source_id": "passage",
+            "text": "ובנעילת הסנדל תני כל אלו שאמרו אסורין בנעילת הסנדל יצא לדרך נועל הגיע לכרך חולץ וכן באבל וכן במנודה אית תניי תני יוצאין באמפליא ביום הכפורים ואית תניי תני אין יוצאין אמר רב חסדא מאן דאמר יוצאין באמפליא של בגד ומאן דאמר אין יוצא באמפליא של עור ר' יצחק בר נחמן סלק לגבי רבי יהושע בן לוי בלילי צומא רבא נפק לגביה לבוש סוליסה אמר ליה מה הוא דין א\"ל איסתניס אנא רבי שמואל בר נחמן סלק לגביה ריב\"ל בלילי תעניתא נפק לגביה לבוש סוליסה א\"ל מה הוא דין א\"ל איסתניס אני ר' סמיי חמונה נפיק בלילי תעניתא לבוש סוליסה חד תלמיד מן דרבי מנא הורי לחד מן קריבויי דנשיא מלבש סוליסה א\"ל אן מן הדה א\"ל מן דריב\"ל הוא א\"ל ריב\"ל איסתניס הוה:"
+          },
+          {
+            "sha256": "2d605a931ca4dbed4ebc459a338f64790e7befd91759ab40e1ea49a51cef5f2c",
+            "source_id": "after",
+            "text": "ובתשמיש המטה. אתי חמי ברחיצה הוא אסור בתשמיש המטה לא כל שכן תפתר במקום שאין טובלין או קודם שהתקין עזרא טבילה לבעלי קריין רבי יעקב בר אחא ר' ייסה בשם ריב\"ל אין קרי אלא מתשמיש המטה רב הונא אמר אפילו ראה עצמו ניאות תוך חלום הוו בעיין מימר ובלבד מאשה ר' יונה ור' יוסא תרוויהון אמרין אפי' מדבר אחר והא תנינן יה\"כ אסור באכילה ובשתייה וברחיצה ובסיכה ובנעילת הסנדל ובתשמיש המטה ותני עלה בעלי קריין טובלין כדרכן בצנעה ביה\"כ לית הדא פליגא אדריב\"ל דריב\"ל אמר אין קרי אלא מתשמיש המטה פתר לה בששימש מטתו מבעוד יום ושכח ולא טבל והא תני מעשה בר' יוסי בר חלפתא שראו אותו טובל בצנעה ביה\"כ אית לך למימר באותו הגוף הקדו"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-08",
+        "verdicts": [
+          {
+            "claim_id": "b407-p8/r5",
+            "claim_as_written": "contradicted",
+            "supported_kind": "none",
+            "direction": "undetermined",
+            "family_degree": "not_applicable",
+            "verdict": "bad",
+            "reason": "The line says people saw R. Samai going out in slippers. R. Samai sees no one here, and R. Yehoshua ben Levi is not named in this line.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-09",
+      "tests": "long held passage; captured and corrected reference kept apart",
+      "job": {
+        "binding": {
+          "claims": {
+            "b421-p8/s5": {
+              "payloadSha256": "da0ea4c6711017d7d480eb76337ace52b78ca30b45a77fa5f62b2b70df34cabc",
+              "predecessor": {
+                "b279": "4a26942ed0ae7d64e7cec7a7d064369be66ce8f88286ef7a2a23de85914b3aae",
+                "replaces": "4a26942ed0ae7d64e7cec7a7d064369be66ce8f88286ef7a2a23de85914b3aae",
+                "rule": "referenceCorrection.replacesPayloadSha256 equals the b279 payload hash"
+              },
+              "record": "claim:b421-p8/s5"
+            }
+          },
+          "passagePayloadSha256": "a21cb511e46993f8ef2d50eef3ae81d2fde8e85fae213fba7477c01c500b5416",
+          "passagePredecessor": {
+            "b279": "a15885e43889a888c490ef358e45cbf40f373a8783e8becdef42d447b076d605",
+            "replaces": "a15885e43889a888c490ef358e45cbf40f373a8783e8becdef42d447b076d605",
+            "rule": "referenceCorrection.replacesPayloadSha256 equals the b279 payload hash"
+          },
+          "passageRecord": "passage:b421-p8",
+          "people": {
+            "B": "dcf3947252e4b4497f48d63f197cb85bb09c05111085d8b3f2dea3345afc39cc",
+            "C": "be56c6634a92834e40e3eb95b83703b5fd71fe8211dd98156d7ae44b259391f4"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b421-p8/s5",
+            "field": "speech",
+            "from": "C",
+            "kind": "objected",
+            "quote": "אמר לו ר' עקיבה אף הן נחמרין ומתבשלין מתוכו אלא תולין חוצה לו.",
+            "source_id": "passage",
+            "spans": [[981, 1043]],
+            "to": "B"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-09",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b421-p8",
+        "people": [
+          {
+            "id": "A",
+            "mention": "ר' יאשיה",
+            "source_id": "passage",
+            "spans": [[503, 511]]
+          },
+          {
+            "id": "B",
+            "mention": "ר' יוסי הגלילי",
+            "source_id": "passage",
+            "spans": [[966, 980]]
+          },
+          {
+            "id": "C",
+            "mention": "ר' עקיבה",
+            "source_id": "passage",
+            "spans": [[988, 996]]
+          },
+          {
+            "id": "D",
+            "mention": "ר' ישמעאל",
+            "source_id": "passage",
+            "spans": [[1044, 1053]]
+          },
+          {
+            "id": "E",
+            "mention": "ר' טרפון",
+            "source_id": "passage",
+            "spans": [[1075, 1083]]
+          },
+          {
+            "id": "F",
+            "mention": "הנודר מן המבושל",
+            "source_id": "passage",
+            "spans": [[517, 532]]
+          },
+          {
+            "id": "G",
+            "mention": "אם אכל ממנו נא",
+            "source_id": "passage",
+            "spans": [[220, 234]]
+          },
+          {
+            "id": "H",
+            "mention": "צלי מותר לך ושאר הכל אסור לך",
+            "source_id": "passage",
+            "spans": [[84, 112]]
+          },
+          {
+            "id": "I",
+            "mention": "הייתי אומר",
+            "source_id": "passage",
+            "spans": [[157, 167]]
+          },
+          {
+            "id": "J",
+            "mention": "היה מביא את ראשו ואת כרעיו ואת בני מעיו לתוכו",
+            "source_id": "passage",
+            "spans": [[915, 960]]
+          },
+          {
+            "id": "K",
+            "mention": "אל תאכלו ממנו נא",
+            "source_id": "passage",
+            "spans": [[0, 16], [119, 135], [200, 216]]
+          }
+        ],
+        "reference": {
+          "captured": "Mekhilta DeRabbi Shimon Ben Yochai 6b:12:9",
+          "current": "Mekhilta DeRabbi Shimon Ben Yochai 12:9"
+        },
+        "sample_id": "rvt-012",
+        "sources": [
+          {
+            "sha256": "d3ad1218b0ebac9e575b395c1836963e3a45cf85c718dfdf8885288aa6b6c584",
+            "source_id": "before",
+            "text": "אומר כשם של עץ אין נשרף כך של מתכת אין מרתיח: אמרו לו אין דומה של עץ חם מקצתו לא חם כולו ושל מתכת חם מקצתו חם כולו. צלי אש מכלל שנאמר כי אם צלי אש ראשו על כרעיו ועל קרבו מצוה לצלותו כולו כאחד מנין אם רצה מנתחו ומטילו אבר אבר על גחלים ת\"ל צלי אש מכל מקום: על מצות ומרורים. ריבה כאן מרורים הרבה החזרת והעלשין ותמכה וחרחבונה ומרור: ר' יהודה אומר אף חרוילין וחזרת גלים: ר'(אלעזר) [אלעאי] משום רבי אליעזר [אומר] אף העירקבילין וחזרתי על כל תלמידיו ובקשתי לי חבר ולא מצאתי: על מצות ומרורים יאכלוהו מצוה לאוכלן כולן כאחד: הלל הזקן היה כורכן זה בזה ואוכלן: יכול יהו מעכבין זה את זה ת\"ל יאכלוהו אפילו אחד מהם."
+          },
+          {
+            "sha256": "5205b6b6b582b29a1df4b485cfb5d06be89ddd9d34dcc6aa77c2391c3456e5c6",
+            "source_id": "passage",
+            "text": "אל תאכלו ממנו נא אין נא אלא שלא בשל כל צרכו: יכול יהא מותר לאכול ממנו חי ת\"ל צלי אש צלי מותר לך ושאר הכל אסור לך: יאמר אל תאכלו ממנו נא כי אם צלי אש אילו כן הייתי אומר יכול יהא מותר לאכול ממנו נא ת\"ל אל תאכלו ממנו נא הא אם אכל ממנו נא הרי זה לוקה את הארבעים יכול כשם שאסור לאכול ממנו נא כך אם בשל כל צרכו יהא אסור ת\"ל במים במים אסור לך הא אם בשל כל צרכו אינו אסור לך: במים. אין לי אלא מים מניין לרבות יין ושמן ודבש ת\"ל ובשל מבושל כל מקום שנאמר בשל סתם אתה תופס את הצלי עד שיפרוט לך הכתוב במים מיכאן היה ר' יאשיה אומר הנודר מן המבושל אסור בצלי. בשלו ואחר כך צלאו צלאו ואחר כך בשלו אסור שנאמר ובשל מבושל יכול אם אכל ממנו עד שלא חשכה יהא חייב דין הוא ומה שבשעה שהוא בעמוד אכול צלי הרי הוא בבל תאכל נא בשעה שאין בעמוד אכול צלי אינו דין שיהא בבל תאכל נא ת\"ל כי אם צלי אש [בשעה] שהוא בעמוד אכול צלי חייבין עליו משום נא ובשל אבל בשעה שאינו כעמוד אכול צלי אין חייבין עליו משום נא ובשל: כי אם צלי אש ראשו על כרעיו ועל קרבו. היה מביא את ראשו ואת כרעיו ואת בני מעיו לתוכו דברי ר' יוסי הגלילי אמר לו ר' עקיבה אף הן נחמרין ומתבשלין מתוכו אלא תולין חוצה לו. ר' ישמעאל קורא אותו גדי מקולס: ר' טרפון קורא אותו תוכבר מפני שתוכו כברו."
+          },
+          {
+            "sha256": "5ede0dabd9892f3c09072619ff55fb4185845020b66c91e090df13875702134d",
+            "source_id": "after",
+            "text": "ולא תותירו ממנו עד בוקר יכול אם הותיר ממנו עד בקר יהא לוקה את הארבעים ת\"ל והנותר ממנו עד בקר באש תשרופו בא הכתוב ליתן עשה על לא תעשה דברי ר' יהודה אמר לו ר' יעקב לא מפני כך אלא מפני שלא עשה זה כלום: והנותר ממנו עד בקר באש תשרופו. יכול יהא שורפו ביום טוב ת\"ל ולא תותירו ממנו עד בקר והנותר ממנו עד בקר שני בקרים כאן בקר חמשה עשר ובקר ששה עשר ללמדך שאין שריפת קדשים דוחה את יום טוב ואין צריך לומר את השבת."
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-09",
+        "verdicts": [
+          {
+            "claim_id": "b421-p8/s5",
+            "claim_as_written": "supported",
+            "supported_kind": "direct_interaction",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "ok",
+            "reason": "After R. Yosi HaGelili's view, the text says R. Akiva said to him that the parts would cook inside. It is told as R. Akiva answering him.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-10",
+      "tests": "transmission formula",
+      "job": {
+        "binding": {
+          "claims": {
+            "b015-p6/r1": {
+              "payloadSha256": "621ccdf38f5171d3b901ee77fae0e591a9f8bc3cb1419efea07fe199558c5c2b",
+              "predecessor": {
+                "b279": "621ccdf38f5171d3b901ee77fae0e591a9f8bc3cb1419efea07fe199558c5c2b",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b015-p6/r1"
+            }
+          },
+          "passagePayloadSha256": "d0482af3154b0406c412b5cddcbea9c6b092b492aa004f49e1da79f1a187a2f6",
+          "passagePredecessor": {
+            "b279": "d0482af3154b0406c412b5cddcbea9c6b092b492aa004f49e1da79f1a187a2f6",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b015-p6",
+          "people": {
+            "A": "016afb0521bb876b6a3056db800bae5f1e2e6ea75c383b3d367cfbb1e9850f86",
+            "B": "97cc8c28c781aa92132a75d26cbf415f392735233b6c153e505d23d0731b73fa",
+            "C": "3442c12930c48be64fb8a496ff4b24330ea5ff3fc38d0efeccce0c3205f54a2f",
+            "D": "4062dedd9b64738a92077efca5a5cd696f7f7217cc623d8a458e00f74ff8cb1e",
+            "E": "859a92c5198120789c5d7ec067ff78ae92a0b6a683362114aa54e861dea1192b"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b015-p6/r1",
+            "field": "relations",
+            "from": "C",
+            "kind": "other:reports_in_the_name_of",
+            "quote": "אמר רב חנן בר אבא אמר רב",
+            "source_id": "passage",
+            "spans": [[51, 75]],
+            "to": "E"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-10",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b015-p6",
+        "people": [
+          {
+            "id": "A",
+            "mention": "רבא",
+            "source_id": "passage",
+            "spans": [[4, 7]]
+          },
+          {
+            "id": "B",
+            "mention": "רב נחמן",
+            "source_id": "passage",
+            "spans": [[9, 16]]
+          },
+          {
+            "id": "C",
+            "mention": "רב חנן בר אבא",
+            "source_id": "passage",
+            "spans": [[55, 68]]
+          },
+          {
+            "id": "D",
+            "mention": "בר אבא",
+            "source_id": "passage",
+            "spans": [[62, 68]]
+          },
+          {
+            "id": "E",
+            "mention": "אמר רב ד' רוחות",
+            "source_id": "passage",
+            "spans": [[69, 84]]
+          },
+          {
+            "id": "F",
+            "mention": "המבינתך",
+            "source_id": "passage",
+            "spans": [[241, 248]]
+          }
+        ],
+        "reference": {
+          "captured": "Bava Batra 25a:5",
+          "current": "Bava Batra 25a:5"
+        },
+        "sample_id": "rvt-006",
+        "sources": [
+          {
+            "sha256": "23af8d9cedf0c6e7356026a0b6e9e6c8b08bbd5ff09fec2c6186f3d8072380d4",
+            "source_id": "before",
+            "text": "תא שמע דתניא ר\"ע אומר לכל רוח הוא עושה ומרחיק חמשים אמה חוץ ממערבה דאינו עושה כל עיקר מפני שהיא תדירא"
+          },
+          {
+            "sha256": "23ee33dd51f6704b63e16c3341158aded21e57a768e677162d0f85147d3cb686",
+            "source_id": "passage",
+            "text": "א\"ל רבא לרב נחמן מאי תדירא אילימא תדירא ברוחות והא אמר רב חנן בר אבא אמר רב ד' רוחות מנשבות בכל יום ורוח צפונית עם כולן שאילמלא כן אין העולם מתקיים אפילו שעה אחת ורוח דרומית קשה מכולן ואילמלא בן נץ שמעמידה מחרבת את העולם שנאמר (איוב לט, כו) המבינתך יאבר נץ יפרוש כנפיו לתימן"
+          },
+          {
+            "sha256": "1f60911b4ef7290a8cd6cf69db234ae427e5e611aadfacf8f91748775028a5f5",
+            "source_id": "after",
+            "text": "אלא מאי תדירא תדירא בשכינה דאריב\"ל בואו ונחזיק טובה לאבותינו שהודיעו מקום תפלה דכתיב (נחמיה ט, ו) וצבא השמים לך משתחוים"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-10",
+        "verdicts": [
+          {
+            "claim_id": "b015-p6/r1",
+            "claim_as_written": "supported",
+            "supported_kind": "teaching_transmission",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "teach",
+            "reason": "Rav Chanan bar Abba passes on a teaching in Rav's name. The formula alone does not show the two met.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-11",
+      "tests": "explaining an earlier sage's view is a response, not transmission",
+      "job": {
+        "binding": {
+          "claims": {
+            "b385-p6/r1": {
+              "payloadSha256": "2374278ff04fa1c20d0eac87081f1cc75a9c0fee4515ee7f8e6cebc51ece974b",
+              "predecessor": {
+                "b279": "2374278ff04fa1c20d0eac87081f1cc75a9c0fee4515ee7f8e6cebc51ece974b",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b385-p6/r1"
+            }
+          },
+          "passagePayloadSha256": "0ea8b61006d2e054e52c8298e228b52bd14cae0536ebffcdd76a7a76d10e6010",
+          "passagePredecessor": {
+            "b279": "0ea8b61006d2e054e52c8298e228b52bd14cae0536ebffcdd76a7a76d10e6010",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b385-p6",
+          "people": {
+            "C": "bbb438d0f5144d943e8e0601fa8f43b6758b4c62289b292775b5effbcda83f90",
+            "D": "e8668e58feb61e68c6350d2345d10ee12cfa7d38ba9c55fa20666702dbc44e1a",
+            "F": "59b18c5652405db95faab4beee6b37ebde3cbbaff847f6b6db3d77aa0aa8e360"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b385-p6/r1",
+            "field": "relations",
+            "from": "F",
+            "kind": "other:explains_position_of",
+            "quote": "אמר רבי בא טעמא דר' יוסי ב\"ר חנינא",
+            "source_id": "passage",
+            "spans": [[123, 157]],
+            "to": "C"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-11",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b385-p6",
+        "people": [
+          {
+            "id": "A",
+            "mention": "רב",
+            "source_id": "passage",
+            "spans": [[0, 2], [44, 46], [127, 129]]
+          },
+          {
+            "id": "B",
+            "mention": "שמואל",
+            "source_id": "passage",
+            "spans": [[22, 27]]
+          },
+          {
+            "id": "C",
+            "mention": "רבי יוסי ב\"ר חנינא",
+            "source_id": "passage",
+            "spans": [[44, 62]]
+          },
+          {
+            "id": "D",
+            "mention": "ב\"ר חנינא",
+            "source_id": "passage",
+            "spans": [[53, 62], [148, 157]]
+          },
+          {
+            "id": "E",
+            "mention": "בר קפרא",
+            "source_id": "passage",
+            "spans": [[95, 102]]
+          },
+          {
+            "id": "F",
+            "mention": "רבי בא",
+            "source_id": "passage",
+            "spans": [[127, 133]]
+          },
+          {
+            "id": "G",
+            "mention": "במזכה על ידיה ושמואל אמר במחלק לפניה",
+            "source_id": "passage",
+            "spans": [[7, 43]]
+          },
+          {
+            "id": "H",
+            "mention": "במזכה על ידיה",
+            "source_id": "passage",
+            "spans": [[7, 20]]
+          },
+          {
+            "id": "I",
+            "mention": "במחלק לפניה",
+            "source_id": "passage",
+            "spans": [[32, 43]]
+          }
+        ],
+        "reference": {
+          "captured": "Jerusalem Talmud Peah 3:7:17",
+          "current": "Jerusalem Talmud Peah 3:7:17"
+        },
+        "sample_id": "rvt-015",
+        "sources": [
+          {
+            "sha256": "5b86c01ee93f72786df73eea9c94950cd8bf632f81d2bb0cc7a8debf8cbeaea3",
+            "source_id": "before",
+            "text": "אחתיה דרבי גוריין כתבת נכסי לאחוה וסלק אחוה רבה פייסה וכתבת ליה אתאי עובדא קומי רבי אימי אמר הכין אמר רבי יוחנן חוזר בו אמר ר\"ז לא מודה ר' יוחנן שאם כתוב בה מהיום שאינו יכול לחזור בו אתא רבי אבהו בשם רבי יוחנן אין יכול לחזור בו אתא רבי לא בשם רבי יוחנן אינו יכול לחזור ואנהר רבי אימי וחזר עובדא:"
+          },
+          {
+            "sha256": "7b0e239abf8697ca45ad136e3c970a1a98e3f6e532580d67390df7f2b253539e",
+            "source_id": "passage",
+            "text": "רב אמר במזכה על ידיה ושמואל אמר במחלק לפניה רבי יוסי ב\"ר חנינא אמר מקולי כתובה שנו כאן וכן תני בר קפרא מקולי כתובה שנו כאן אמר רבי בא טעמא דר' יוסי ב\"ר חנינא לא סוף דבר כתובה מנה ומאתים אלא אפילו כתובה של אלף דינר מקולי כתובה שנו כאן:"
+          },
+          {
+            "sha256": "e11f7b1575aa18907d6082b95b5f24179aca149040be598ef92a77267fb3eb4c",
+            "source_id": "after",
+            "text": "הכותב נכסיו לעבדו יצא בן חורין שייר קרקע כל שהוא לא יצא בן חורין ר\"ש אומר לעולם הוא בן חורין עד שיאמר הרי כל נכסי נתונין לפלוני עבדי חוץ מא' מרבוא שבהן:"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-11",
+        "verdicts": [
+          {
+            "claim_id": "b385-p6/r1",
+            "claim_as_written": "supported",
+            "supported_kind": "response_to_teaching",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "teach",
+            "reason": "R. Ba gives the reason behind R. Yose b. R. Chanina's ruling. He explains an earlier view. No meeting is told.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-12",
+      "tests": "an explicitly reported dispute is an intellectual tie, not a meeting",
+      "job": {
+        "binding": {
+          "claims": {
+            "b582-p1/r2": {
+              "payloadSha256": "36c31f15e3ffc32381214f9fdd3470b0e5f3b96555c1e3002111b08e0cac2d3d",
+              "predecessor": {
+                "b279": "36c31f15e3ffc32381214f9fdd3470b0e5f3b96555c1e3002111b08e0cac2d3d",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b582-p1/r2"
+            }
+          },
+          "passagePayloadSha256": "73d6d0bc0ddb6898b6d8027d8ff1a2625b4926f181a6cd2cca1f02981a1685f4",
+          "passagePredecessor": {
+            "b279": "73d6d0bc0ddb6898b6d8027d8ff1a2625b4926f181a6cd2cca1f02981a1685f4",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b582-p1",
+          "people": {
+            "A": "874a79238e3d568e5e2acbf84a39a47b5629ceb7806ade272085b322937635a6",
+            "B": "58399a7c67ff4fb7bfd8f5b8d0625c79226567edaaaa0380b444a939528c72a9",
+            "C": "d4e5e60286b652322bd37c68cc08c7943c7ac53a686b6ba71f10a40ca0dc0ea8",
+            "D": "ccf506e06a0b8c96f3b377e26c19238e25c39eca099cea92f5784658964d233b",
+            "E": "a5b5c0dafb48cac6a228cb97eda48422b160125f430f3c6b240d8dcc4e9bba44"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b582-p1/r2",
+            "field": "relations",
+            "from": "D",
+            "kind": "other:disagrees_with",
+            "quote": "דאיתפלגון טבח ולא מכר חזקיה אמר חייב ר' יוחנן אמר פטור",
+            "source_id": "passage",
+            "spans": [[73, 127]],
+            "to": "E"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-12",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b582-p1",
+        "people": [
+          {
+            "id": "A",
+            "mention": "ר' בון בר חייה",
+            "source_id": "passage",
+            "spans": [[0, 14]]
+          },
+          {
+            "id": "B",
+            "mention": "ר' בון בר חייה",
+            "source_id": "passage",
+            "spans": [[0, 14]]
+          },
+          {
+            "id": "C",
+            "mention": "ר' זעירא",
+            "source_id": "passage",
+            "spans": [[24, 32]]
+          },
+          {
+            "id": "D",
+            "mention": "חזקיה",
+            "source_id": "passage",
+            "spans": [[56, 61], [95, 100]]
+          },
+          {
+            "id": "E",
+            "mention": "ר' יוחנן",
+            "source_id": "passage",
+            "spans": [[64, 72], [110, 118]]
+          },
+          {
+            "id": "F",
+            "mention": "מסר ולא העביר",
+            "source_id": "passage",
+            "spans": [[33, 46]]
+          },
+          {
+            "id": "G",
+            "mention": "טבח ולא מכר",
+            "source_id": "passage",
+            "spans": [[83, 94]]
+          }
+        ],
+        "reference": {
+          "captured": "Jerusalem Talmud Sanhedrin 7:10:3",
+          "current": "Jerusalem Talmud Sanhedrin 7:10:3"
+        },
+        "sample_id": "rvt-008",
+        "sources": [
+          {
+            "sha256": "1fe5c12ad571d9e833ac09dd188ec0a0783c969261958bcc00acf7e3205ff47f",
+            "source_id": "before",
+            "text": "ר ויעביר באש למולך. רבי נסה בשם רבי לעזר לעולם אינו מתחייב עד שימסרנו לכומרים ויטילנו ויעבירנו. העבירו כדרכו מהו תני היה מושכו ומעבירו תני העבירו ברגלו פטור. רבי לעזר בי רבי שמעון מחייב אחד המולך ואחד שאר עבודה זרה. רבי לעזר בי רבי שמעון אומר אינו חייב אלא למולך בלבד אינו חייב אלא על יוצאי יריכו. א\"ר יוחנן טעמא דר' לעזר בי ר\"ש מהכא לא ימצא בך בגופך לא ימצא מעביר. והכרתי אותו מקרב עמו לרבות שאר עבודה זרה בהיכרת. עונש מניין מזרעו נתן למולך מות יומת. והוא שהעביר עצמו לא ברגלו הוא עובר מפני שהעביר את עצמו אבל אם היה מושך בו ומעבירו חייב. מה היא דא\"ר לעזר בי ר\"ש העבירו ברגלו פטור כהוא דאעבריה מזקר."
+          },
+          {
+            "sha256": "d2fb8ada76d7dcd3e4fd3bf643127946bba6e2b35110e7119b09769ed2fd2f1b",
+            "source_id": "passage",
+            "text": "ר' בון בר חייה בעא קומי ר' זעירא מסר ולא העביר תפלוגתא דחזקיה ודר' יוחנן דאיתפלגון טבח ולא מכר חזקיה אמר חייב ר' יוחנן אמר פטור."
+          },
+          {
+            "sha256": "1ca974d51555f9ac77d85f6cd3db1d21b1c4e6dea6c0e8f850d38fb26045e299",
+            "source_id": "after",
+            "text": "ר' בא ר' חייה בשם ר' יוחנן ראה לשון שלימדתיך התורה מולך כל שתמליכהו עליך אפילו קיסם אפילו צרור. והכרתי אותו מקרב עמו לרבות שאר ע\"ז בהיכרת. רבי נסה בשם רבי לעזר לרבות שאר ע\"ז לבנים ולבנות דתני אחד המולך ואחד שאר ע\"ז בין שעבדה בבנים ובבנות בין שעבדה באבות ובאמהות חייב אמר ר' זעירה בשאין עבודתה לכן אבל אם היתה עבודתה לכן פטור אמר רבי הילא אפילו עבודתה לכן חייב שתים. מתניתא מסייעא לרבי הילא מולך בכלל עובדי ע\"ז היה ויצא לידון להקל עליו שלא יהא חייב אלא על יוצאי יריכו. אמר ר' תנחום בר ירמיה אתייא דרבי לעזר בי רבי שמעון כשיטת ר' שמעון אביו כמה דר\"ש אמר מולך בכלל עובדי ע\"ז היה יצא לידון להקל עליו שלא"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-12",
+        "verdicts": [
+          {
+            "claim_id": "b582-p1/r2",
+            "claim_as_written": "supported",
+            "supported_kind": "intellectual_disagreement",
+            "direction": "symmetric",
+            "family_degree": "not_applicable",
+            "verdict": "teach",
+            "reason": "The text reports the dispute of Chizkiyah and R. Yochanan: one said liable, the other exempt. That is an explicit disagreement. It does not say they met.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-13",
+      "tests": "a rejected objection is still a real debate",
+      "job": {
+        "binding": {
+          "claims": {
+            "b181-p1/s1": {
+              "payloadSha256": "3d38c7a8f46af855c718b0084b02ae19505e8152f1c8fae6c6f36a0c4a72b02b",
+              "predecessor": {
+                "b279": "3d38c7a8f46af855c718b0084b02ae19505e8152f1c8fae6c6f36a0c4a72b02b",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b181-p1/s1"
+            }
+          },
+          "passagePayloadSha256": "6faf74d0e3b4470f473363f7b3116bdf83382ae46cf307c3a8e6933ed3c1fa1d",
+          "passagePredecessor": {
+            "b279": "6faf74d0e3b4470f473363f7b3116bdf83382ae46cf307c3a8e6933ed3c1fa1d",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b181-p1",
+          "people": {
+            "A": "a85e99384340603d1d991a97b9c43b4a82d3e5679c85d63c2d0c11675f952b93",
+            "B": "5154d6f97b6408627b058e326b447eafe2a295b72db2fd9bc862ab3648b70b29"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b181-p1/s1",
+            "field": "speech",
+            "from": "B",
+            "kind": "objected",
+            "quote": "איתיביה רבה לרב נחמן אין מקיפין שתי חביות לשפות עליהן את הקדרה",
+            "source_id": "passage",
+            "spans": [[73, 135]],
+            "to": "A"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-13",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b181-p1",
+        "people": [
+          {
+            "id": "A",
+            "mention": "רב נחמן",
+            "source_id": "passage",
+            "spans": [[27, 34], [86, 93]]
+          },
+          {
+            "id": "B",
+            "mention": "רבה",
+            "source_id": "passage",
+            "spans": [[81, 84]]
+          }
+        ],
+        "reference": {
+          "captured": "Beitzah 32b:13",
+          "current": "Beitzah 32b:13"
+        },
+        "sample_id": "rvt-016",
+        "sources": [
+          {
+            "sha256": "5a8aa49ecfe3a2ab0951f3207bed159768a12481b8e2716ea9a6787840a1e541",
+            "source_id": "before",
+            "text": "א\"ל רבינא לרב אשי אמר לן רב אחא מהוצל דמר שרקין ליה תנורא ביומא טבא אמר ליה אנן ארקתא דפרת סמכינן והנ\"מ הוא דצייריה מאתמול אמר רבינא וקטמא שרי:"
+          },
+          {
+            "sha256": "a5c3e0db5f5618f2058ac3fd475dd86c729eaf8a67950286768ce676cf569af0",
+            "source_id": "passage",
+            "text": "ואין מקיפין שתי חביות: אמר רב נחמן אבנים של בית הכסא מותר לצדדן ביום טוב איתיביה רבה לרב נחמן אין מקיפין שתי חביות לשפות עליהן את הקדרה אמר ליה שאני התם משום דקא עביד אהלא"
+          },
+          {
+            "sha256": "7862b093ad616765523a4e77996e8688cd84d7384cae309771b685b9cdf08396",
+            "source_id": "after",
+            "text": "א\"ל רבה זוטא לרב אשי אלא מעתה בנה אצטבא ביו\"ט דלא עביד אהלא הכי נמי דשרי א\"ל התם בנין קבע אסרה תורה בנין עראי לא אסרה תורה וגזרו רבנן על בנין עראי משום בנין קבע והכא משום כבודו לא גזרו ביה רבנן"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-13",
+        "verdicts": [
+          {
+            "claim_id": "b181-p1/s1",
+            "claim_as_written": "supported",
+            "supported_kind": "direct_interaction",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "ok",
+            "reason": "Rabbah raises an objection to Rav Nachman, and Rav Nachman answers him that the case is different. The objection fails, but the debate is real.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-14",
+      "tests": "father named first: the direction is as written, not reversed",
+      "job": {
+        "binding": {
+          "claims": {
+            "b019-p1/r0": {
+              "payloadSha256": "892e361331e93a2a10c3b66aca34a8d725a5d621730ce734ad10005a87befe7a",
+              "predecessor": {
+                "b279": "892e361331e93a2a10c3b66aca34a8d725a5d621730ce734ad10005a87befe7a",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b019-p1/r0"
+            }
+          },
+          "passagePayloadSha256": "b7de18f86a2100fea9ca689ce86acb6dcb9787520c9151b7c3f90e7652c3c213",
+          "passagePredecessor": {
+            "b279": "b7de18f86a2100fea9ca689ce86acb6dcb9787520c9151b7c3f90e7652c3c213",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b019-p1",
+          "people": {
+            "A": "23ad4f1332e424946727699655a734b4bc085b4a651fc8311b7a7bc21108bf95",
+            "B": "215ee23dab63395d19252673dde41b9707e13307484645b393485467fd9ec7e5"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b019-p1/r0",
+            "field": "relations",
+            "from": "A",
+            "kind": "parent_of",
+            "quote": "רב תחליפא אבוה דרב הונא (בר תחליפא)",
+            "source_id": "passage",
+            "spans": [[51, 86]],
+            "to": "B"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-14",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b019-p1",
+        "people": [
+          {
+            "id": "A",
+            "mention": "רב תחליפא",
+            "source_id": "passage",
+            "spans": [[51, 60]]
+          },
+          {
+            "id": "B",
+            "mention": "רב הונא (בר תחליפא)",
+            "source_id": "passage",
+            "spans": [[67, 86]]
+          },
+          {
+            "id": "C",
+            "mention": "רבא",
+            "source_id": "passage",
+            "spans": [[94, 97]]
+          },
+          {
+            "id": "D",
+            "mention": "מפרישו",
+            "source_id": "passage",
+            "spans": [[9, 15]]
+          },
+          {
+            "id": "E",
+            "mention": "ביתו",
+            "source_id": "passage",
+            "spans": [[23, 27]]
+          },
+          {
+            "id": "F",
+            "mention": "ועד שאתה מפרישו מטומאת ביתו הפרישהו מטומאת המת",
+            "source_id": "passage",
+            "spans": [[0, 46]]
+          },
+          {
+            "id": "G",
+            "mention": "בציבור",
+            "source_id": "passage",
+            "spans": [[128, 134]]
+          }
+        ],
+        "reference": {
+          "captured": "Yoma 6b:4",
+          "current": "Yoma 6b:4"
+        },
+        "sample_id": "rvt-013",
+        "sources": [
+          {
+            "sha256": "ea6ef2365ee5f495406c979b6d649bbfe3cb111df17fbf67ae02b3614da4f277",
+            "source_id": "before",
+            "text": "ת\"ש דתני רבי חייא הזב והזבה והמצורע והמצורעת ובועל נדה וטמא מת טבילתן ביום נדה ויולדת טבילתן בלילה תיובתא"
+          },
+          {
+            "sha256": "fb56d5f6f2a1502e2e9149215ed27493a1207f779018f82678282259d21746ab",
+            "source_id": "passage",
+            "text": "ועד שאתה מפרישו מטומאת ביתו הפרישהו מטומאת המת אמר רב תחליפא אבוה דרב הונא (בר תחליפא) משמיה דרבא זאת אומרת טומאת המת הותרה היא בציבור"
+          },
+          {
+            "sha256": "c6e9c705c1b7e65f18bb7cf29a8d412feb4e33e254cb5a4dcf96d4e25a23ed68",
+            "source_id": "after",
+            "text": "רבינא אמר אפילו תימא טומאת המת דחויה היא בצבור טומאת המת לא שכיחא טומאת ביתו שכיחא"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-14",
+        "verdicts": [
+          {
+            "claim_id": "b019-p1/r0",
+            "claim_as_written": "supported",
+            "supported_kind": "family",
+            "direction": "as_written",
+            "family_degree": "as_written",
+            "verdict": "fam",
+            "reason": "The text calls Rav Tachlifa the father of Rav Huna. The claim says the same.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-15",
+      "tests": "'son of David' names a descendant: keep the family tie, never pass on the immediate child link",
+      "job": {
+        "binding": {
+          "claims": {
+            "b144-p1/r1": {
+              "payloadSha256": "4dd8c42c6bf86ee22452a72a0185d36fa486edc4ac7765f6df1a68423bea66b1",
+              "predecessor": {
+                "b279": "4dd8c42c6bf86ee22452a72a0185d36fa486edc4ac7765f6df1a68423bea66b1",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b144-p1/r1"
+            }
+          },
+          "passagePayloadSha256": "7771034326f45291b7d365d00ccac0d67e94068bf344b0e66076d5bc45feb23a",
+          "passagePredecessor": {
+            "b279": "7771034326f45291b7d365d00ccac0d67e94068bf344b0e66076d5bc45feb23a",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b144-p1",
+          "people": {
+            "A": "2d87103b804eb38f522811165fc7eb6d80da9871f4f89c144ef06ded9414e8f7",
+            "B": "77f18ed16fda9e719cc4e5b51bc29753fe231e4b70a483b9b3506d5330659728",
+            "C": "942f2ba08328fb3f832b5a328249471fdf9ed0aa5b576f95c75813651c903041",
+            "D": "22979d030ed1220365584adfd88eb62b20cf2062d1059f4c4b7fbb9d85034bb2",
+            "E": "bad2df7fa1f9d27cc9d689e61807876b390547f213a4f514e40b05e06523d521"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b144-p1/r1",
+            "field": "relations",
+            "from": "D",
+            "kind": "child_of",
+            "quote": "בן דוד",
+            "source_id": "passage",
+            "spans": [[93, 99]],
+            "to": "E"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-15",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b144-p1",
+        "people": [
+          {
+            "id": "A",
+            "mention": "אליהו",
+            "source_id": "passage",
+            "spans": [[8, 13]]
+          },
+          {
+            "id": "B",
+            "mention": "לרב יהודה",
+            "source_id": "passage",
+            "spans": [[14, 23]]
+          },
+          {
+            "id": "C",
+            "mention": "אחוה דרב סלא חסידא",
+            "source_id": "passage",
+            "spans": [[24, 42]]
+          },
+          {
+            "id": "D",
+            "mention": "בן דוד בא",
+            "source_id": "passage",
+            "spans": [[93, 102]]
+          },
+          {
+            "id": "E",
+            "mention": "בן דוד",
+            "source_id": "passage",
+            "spans": [[93, 99]]
+          },
+          {
+            "id": "F",
+            "mention": "רב אשי",
+            "source_id": "passage",
+            "spans": [[180, 186]]
+          }
+        ],
+        "reference": {
+          "captured": "Sanhedrin 97b:2",
+          "current": "Sanhedrin 97b:2"
+        },
+        "sample_id": "rvt-010",
+        "sources": [
+          {
+            "sha256": "ccf1323d81c8f5f03160b19182c78510db09f6c813b58225ec0ee699876303aa",
+            "source_id": "before",
+            "text": "ובעונותינו שרבו יצאו מהם מה שיצאו"
+          },
+          {
+            "sha256": "70e21a2a8d7793703b146de41a115a62421cba59807302621fa6914259d55ba0",
+            "source_id": "passage",
+            "text": "אמר ליה אליהו לרב יהודה אחוה דרב סלא חסידא אין העולם פחות משמונים וחמשה יובלות וביובל האחרון בן דוד בא אמר ליה בתחילתו או בסופו אמר ליה איני יודע כלה או אינו כלה אמר ליה איני יודע רב אשי אמר הכי א\"ל עד הכא לא תיסתכי ליה מכאן ואילך איסתכי ליה"
+          },
+          {
+            "sha256": "f8564c027faf2831da4d6b8ce4517ab97137e653c9cd48ff242d73f9b8bbde7f",
+            "source_id": "after",
+            "text": "שלח ליה רב חנן בר תחליפא לרב יוסף מצאתי אדם אחד ובידו מגילה אחת כתובה אשורית ולשון קדש אמרתי לו זו מניין לך אמר לי לחיילות של רומי נשכרתי ובין גינזי רומי מצאתיה וכתוב בה לאחר ד' אלפים ומאתים ותשעים ואחד שנה לבריאתו של עולם העולם יתום מהן מלחמות תנינים מהן מלחמות גוג ומגוג ושאר ימות המשיח ואין הקב\"ה מחדש את עולמו אלא לאחר שבעת אלפים שנה רב אחא בריה דרבא אמר לאחר חמשת אלפים שנה איתמר"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-15",
+        "verdicts": [
+          {
+            "claim_id": "b144-p1/r1",
+            "claim_as_written": "contradicted",
+            "supported_kind": "family",
+            "direction": "as_written",
+            "family_degree": "descent",
+            "verdict": "fam",
+            "reason": "Elijah says the son of David will come. That names the Messiah as David's descendant, not his son.",
+            "uncertain_detail": [
+              {
+                "aspect": "family_degree",
+                "status": "contradicted",
+                "note": "a descendant, not an immediate child"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "controlId": "mc-16",
+      "tests": "challenging an earlier ruling is a response, not a meeting",
+      "job": {
+        "binding": {
+          "claims": {
+            "b580-p1/r0": {
+              "payloadSha256": "9e665bb86802a9d556a9e1dcefe3f159d7932ee5e5473fb8936cf910afc15a4d",
+              "predecessor": {
+                "b279": "9e665bb86802a9d556a9e1dcefe3f159d7932ee5e5473fb8936cf910afc15a4d",
+                "rule": "payload unchanged since b279"
+              },
+              "record": "claim:b580-p1/r0"
+            }
+          },
+          "passagePayloadSha256": "b6a08bfb5938475c33f411edd06e1fbb5b8bf37318f9e77ec45ae095cde8e6db",
+          "passagePredecessor": {
+            "b279": "b6a08bfb5938475c33f411edd06e1fbb5b8bf37318f9e77ec45ae095cde8e6db",
+            "rule": "payload unchanged since b279"
+          },
+          "passageRecord": "passage:b580-p1",
+          "people": {
+            "A": "eb9eba3a4a876a6cd8429ab055ac385dcec829c0704c0ca01bda2404b2ce4cd3",
+            "B": "25c2081130dcdd038314b28e2b13760174f976c09f715b611a7f337f99bb7f6b"
+          },
+          "revision": "sage-graph-2ae38b2df7aee0cc75ec"
+        },
+        "claims": [
+          {
+            "claim_id": "b580-p1/r0",
+            "field": "relations",
+            "from": "A",
+            "kind": "other:objects_to_position_of",
+            "quote": "מתקיף לה רב חסדא לשמואל ולרבי יוחנן",
+            "source_id": "passage",
+            "spans": [[0, 35]],
+            "to": "B"
+          }
+        ],
+        "contract": "relationship-verdict-v0.3",
+        "job_id": "mc-16",
+        "part": 1,
+        "parts": 1,
+        "passage_id": "b580-p1",
+        "people": [
+          {
+            "id": "A",
+            "mention": "רב חסדא",
+            "source_id": "passage",
+            "spans": [[9, 16]]
+          },
+          {
+            "id": "B",
+            "mention": "לשמואל",
+            "source_id": "passage",
+            "spans": [[17, 23]]
+          },
+          {
+            "id": "C",
+            "mention": "ולרבי יוחנן",
+            "source_id": "passage",
+            "spans": [[24, 35]]
+          },
+          {
+            "id": "D",
+            "mention": "יאמרו",
+            "source_id": "passage",
+            "spans": [[36, 41]]
+          }
+        ],
+        "reference": {
+          "captured": "Eruvin 91a:9",
+          "current": "Eruvin 91a:9"
+        },
+        "sample_id": "rvt-001",
+        "sources": [
+          {
+            "sha256": "02c7f2967695dcf88e61a98fa4ad181388e0c72e5476295e3134009ac55f43fe",
+            "source_id": "before",
+            "text": "ושמואל אמר בין עירבו בין שלא עירבו וכן אמר ר' יוחנן מי לחשך בין עירבו ובין שלא עירבו"
+          },
+          {
+            "sha256": "d8d7ca184ead583c5ccadd39cd6b737e4f02a2b91d80f5210607dee959edd70b",
+            "source_id": "passage",
+            "text": "מתקיף לה רב חסדא לשמואל ולרבי יוחנן יאמרו שני כלים בחצר אחת זה מותר וזה אסור"
+          },
+          {
+            "sha256": "fd374d0805659a5f4f7ba1c1b87bd9bef42fe404d672e371f3c386f3e69ccb04",
+            "source_id": "after",
+            "text": "ר\"ש לטעמיה דלא גזר דתנן א\"ר שמעון למה הדבר דומה לשלש חצירות הפתוחות זו לזו ופתוחות לרה\"ר ועירבו שתי החיצונות עם האמצעית היא מותרת עמהן והן מותרות עמה וב' החיצונות אסורין זו עם זו"
+          }
+        ]
+      },
+      "answer": {
+        "job_id": "mc-16",
+        "verdicts": [
+          {
+            "claim_id": "b580-p1/r0",
+            "claim_as_written": "supported",
+            "supported_kind": "response_to_teaching",
+            "direction": "as_written",
+            "family_degree": "not_applicable",
+            "verdict": "teach",
+            "reason": "Rav Chisda challenges the ruling of Shmuel and R. Yochanan. He answers their view. The text does not say they met.",
+            "uncertain_detail": []
+          }
+        ]
+      }
+    }
+  ]
+}
