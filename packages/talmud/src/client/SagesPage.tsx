@@ -12,6 +12,7 @@ import { SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
 import { SagePair } from './SagePair';
 import { SageReviewedPair } from './SageReviewedPair';
+import { SagesOverview } from './SagesOverview';
 import { academyLabel, placeLabel, roleLabel } from './sageLabels';
 import type { IndexRow } from './sageSearch';
 import './sages.css';
@@ -158,6 +159,7 @@ export function SagesPage(): JSX.Element {
           <div class="sages-search-start">
             <h2>{t('sages.welcome.title')}</h2>
             <p>{t('sages.search.start')}</p>
+            <SagesOverview />
           </div>
         }
       >

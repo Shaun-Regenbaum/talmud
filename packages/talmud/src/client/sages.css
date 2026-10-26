@@ -541,3 +541,173 @@
   font-weight: 700;
   text-decoration: underline;
 }
+
+/* The whole-network view shown before a sage is picked. */
+.sages-overview {
+  margin-top: 2.5rem;
+}
+.sages-overview h2 {
+  margin: 0 0 0.5rem;
+  font: 700 1.25rem / 1.3 var(--font-serif);
+}
+.sages-overview h3 {
+  margin: 2rem 0 0.75rem;
+  font: 700 1rem / 1.3 var(--font-serif);
+}
+.sages-overview-lead {
+  max-width: 42rem;
+  margin: 0 0 1.25rem;
+  color: var(--muted);
+}
+.sages-graph {
+  margin: 0;
+}
+.sages-graph figcaption {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+.sages-graph-scroll {
+  overflow-x: auto;
+}
+.sages-graph svg {
+  display: block;
+  width: 100%;
+  min-width: 720px;
+  height: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.sages-graph-box {
+  fill: none;
+  stroke: var(--line);
+  stroke-dasharray: 2 4;
+}
+.sages-graph-edge {
+  stroke: var(--muted);
+  stroke-width: 1.2;
+  stroke-opacity: 0.55;
+  stroke-dasharray: 4 3;
+}
+.sages-graph-edge.is-shown {
+  stroke-dasharray: none;
+  stroke-opacity: 0.9;
+}
+.sages-graph-node {
+  fill: var(--surface);
+  stroke: var(--muted);
+  stroke-width: 1.4;
+}
+.sages-graph-node.is-named {
+  fill: var(--ink-teal);
+  stroke: var(--ink-teal);
+}
+.sages-graph-person {
+  cursor: pointer;
+  outline: none;
+}
+.sages-graph-person:hover .sages-graph-node,
+.sages-graph-person:focus-visible .sages-graph-node {
+  stroke: var(--fg);
+  stroke-width: 2.5;
+}
+.sages-graph-label {
+  fill: var(--fg);
+  font-size: 11px;
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 3px;
+  pointer-events: none;
+}
+.sages-graph-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.key-node {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-inline-end: 0.3rem;
+  border: 1.4px solid var(--muted);
+  border-radius: 50%;
+  vertical-align: -0.05rem;
+}
+.key-node.is-named {
+  background: var(--ink-teal);
+  border-color: var(--ink-teal);
+}
+.key-edge {
+  display: inline-block;
+  width: 1.4rem;
+  margin-inline-end: 0.3rem;
+  border-top: 1.5px dashed var(--muted);
+  vertical-align: 0.2rem;
+}
+.key-edge.is-shown {
+  border-top-style: solid;
+}
+.sages-open {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 46rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sages-open li {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 1rem;
+  align-items: baseline;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+.sages-open-n {
+  font: 700 1.4rem / 1.2 var(--font-serif);
+  font-variant-numeric: tabular-nums;
+}
+.sages-works {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 46rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sages-works li {
+  display: grid;
+  grid-template-columns: 11rem 1fr 3rem;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+.sages-works-bar {
+  height: 0.6rem;
+  background: var(--ink-teal);
+  border-radius: 2px;
+}
+.sages-works-n {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+.sages-overview-foot {
+  margin-top: 2rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+@media (max-width: 640px) {
+  .sages-open li {
+    grid-template-columns: 4rem 1fr;
+    gap: 0.75rem;
+  }
+  .sages-works li {
+    grid-template-columns: 7rem 1fr 2.5rem;
+  }
+}

@@ -540,6 +540,72 @@ const CATALOG = {
   },
   'sages.welcome.eyebrow': { en: 'People of the Talmud', he: 'חכמי התלמוד' },
   'sages.welcome.title': { en: 'Start with a sage', he: 'התחילו בחכם' },
+  'sages.overview.title': { en: 'The sage network so far', he: 'רשת החכמים עד כה' },
+  'sages.overview.lead': {
+    en: 'This is the latest saved study. It finds the names in the texts, then checks which names are the same person. Most of that checking is still waiting for a decision.',
+    he: 'זהו המחקר השמור האחרון. הוא מוצא את השמות בטקסטים ובודק אילו שמות הם אותו אדם. רוב הבדיקה עדיין ממתינה להכרעה.',
+  },
+  'sages.overview.loading': { en: 'Loading the network.', he: 'טוענים את הרשת.' },
+  'sages.overview.error': {
+    en: 'The network could not be loaded.',
+    he: 'לא ניתן לטעון את הרשת.',
+  },
+  'sages.overview.graphLabel': {
+    en: 'Network of sages and the checked connections between them',
+    he: 'רשת של חכמים והקשרים הבדוקים ביניהם',
+  },
+  'sages.overview.graphCaption': {
+    en: '{connections} checked connections between {names} names, in {groups} separate groups. Click a filled dot to open that sage.',
+    he: '{connections} קשרים בדוקים בין {names} שמות, ב־{groups} קבוצות נפרדות. לחצו על נקודה מלאה כדי לפתוח את החכם.',
+  },
+  'sages.overview.key.named': { en: 'A person in our list', he: 'אדם מהרשימה שלנו' },
+  'sages.overview.key.local': {
+    en: 'A name seen in one passage, not yet matched to a person',
+    he: 'שם שנראה במקור אחד ועוד לא הותאם לאדם',
+  },
+  'sages.overview.key.shown': {
+    en: 'The passage shows it happening',
+    he: 'המקור מראה שזה קרה',
+  },
+  'sages.overview.key.stated': { en: 'The passage only says so', he: 'המקור רק אומר זאת' },
+  'sages.overview.openTitle': { en: 'What is still open', he: 'מה עוד פתוח' },
+  'sages.overview.open.proposals': {
+    en: 'name readings are waiting for someone to decide who they are.',
+    he: 'קריאות של שמות ממתינות להכרעה מי הם.',
+  },
+  'sages.overview.open.proposalsLink': { en: 'Look at some', he: 'לצפייה בדוגמאות' },
+  'sages.overview.open.accepted': {
+    en: 'identities are fully accepted. {supported} more readings are supported and {uncertain} are marked uncertain.',
+    he: 'זהויות התקבלו במלואן. עוד {supported} קריאות נתמכות ו־{uncertain} מסומנות כלא בטוחות.',
+  },
+  'sages.overview.open.local': {
+    en: 'of the {total} names in the network are seen in one passage only. We do not yet know who they are, so they have no dates. {named} are matched to a person.',
+    he: 'מתוך {total} השמות ברשת נראים במקור אחד בלבד. אנחנו עוד לא יודעים מי הם, ולכן אין להם תאריכים. {named} הותאמו לאדם.',
+  },
+  'sages.overview.open.noEra': {
+    en: 'of the {total} names have no era yet.',
+    he: 'מתוך {total} השמות עדיין בלי תקופה.',
+  },
+  'sages.overview.open.coverage': {
+    en: 'passages have a checked connection, out of {passages}. They come from {works} texts. The rest of the Talmud has none yet.',
+    he: 'מקורות עם קשר בדוק, מתוך {passages}. הם מגיעים מ־{works} חיבורים. בשאר התלמוד עדיין אין.',
+  },
+  'sages.overview.open.stated': {
+    en: 'of the {total} connections are only stated by the text. The text does not show them happening.',
+    he: 'מתוך {total} הקשרים נאמרים רק בטקסט. הטקסט לא מראה שהם קרו.',
+  },
+  'sages.overview.open.held': {
+    en: 'items are held back: {pending} name mentions wait for their page to be checked, and {withheld} passages were withheld.',
+    he: 'פריטים מוחזקים: {pending} אזכורי שמות ממתינים לבדיקת הדף, ו־{withheld} מקורות נעצרו.',
+  },
+  'sages.overview.worksTitle': {
+    en: 'Texts with checked connections',
+    he: 'חיבורים עם קשרים בדוקים',
+  },
+  'sages.overview.foot': {
+    en: 'Saved study from {date}. Latest change:',
+    he: 'מחקר שמור מתאריך {date}. השינוי האחרון:',
+  },
   'sages.welcome.description': {
     en: 'Search in English or Hebrew, or choose a name below. Follow a connection to another sage or open its source passage.',
     he: 'חפשו בעברית או באנגלית, או בחרו שם למטה. עברו דרך קשר לחכם אחר או פתחו את המקור.',
