@@ -107,6 +107,9 @@ export class BillingAttempt {
       status === 'succeeded' && this.model.startsWith('@cf/') && u
         ? dollarsToNanos(costUsd(this.model, u))
         : null;
+    // A call that failed before the provider named it has no generation to
+    // recover later, so nothing will ever settle its hold. Give it back now.
+    const released = status === 'failed' && !this.providerId && billed == null && !this.gatewayHit;
     statements.push(
       this.db
         .prepare(`UPDATE spend_reservations SET
@@ -115,17 +118,19 @@ export class BillingAttempt {
           SELECT 1 FROM billing_charges WHERE id = ? AND attempt_id = ?
         ) THEN ? ELSE 0 END ELSE ? END, settled_nanos),
       basis = CASE WHEN ? = 1 OR ? IS NOT NULL THEN 'receipt'
-        WHEN ? IS NOT NULL THEN 'estimate' ELSE basis END WHERE attempt_id = ?`)
+        WHEN ? IS NOT NULL THEN 'estimate'
+        WHEN ? = 1 THEN 'released' ELSE basis END WHERE attempt_id = ?`)
         .bind(
           this.gatewayHit ? 1 : 0,
           billed,
           chargeId,
           this.id,
           billed,
-          estimated,
+          estimated ?? (released ? 0 : null),
           this.gatewayHit ? 1 : 0,
           billed,
           estimated,
+          released ? 1 : 0,
           this.id,
         ),
     );

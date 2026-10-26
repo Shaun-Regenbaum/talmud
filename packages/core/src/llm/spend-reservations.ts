@@ -47,6 +47,10 @@ export function reservationNanos(model: string, opts: LLMCallOptions): number {
   return Math.max(10_000_000, n);
 }
 
+/** A hold with no final cost stops counting after this long. The provider
+ * either answered within it or never will. Late receipts still settle the row. */
+const HOLD_EXPIRY_MS = 3_600_000;
+
 /** One conditional INSERT executes on the primary. Never read a total in JS
  * and then write a reservation: concurrent readers would admit the same money. */
 export function admissionStatement(
@@ -59,12 +63,15 @@ export function admissionStatement(
   const limits = spendingCaps(env);
   const day = `${at.slice(0, 10)}T00:00:00.000Z`;
   const hour = new Date(Date.parse(at) - 3_600_000).toISOString();
+  const expiry = new Date(Date.parse(at) - HOLD_EXPIRY_MS).toISOString();
   return env.BILLING_DB.prepare(`INSERT INTO spend_reservations
     (attempt_id, app, started_at, custom, held_nanos)
     SELECT ?, ?, ?, ?, ?
-    WHERE ? + (SELECT COALESCE(SUM(COALESCE(settled_nanos, held_nanos)), 0)
+    WHERE ? + (SELECT COALESCE(SUM(COALESCE(settled_nanos,
+        CASE WHEN started_at >= ? THEN held_nanos ELSE 0 END)), 0)
       FROM spend_reservations WHERE app = ? AND (started_at >= ? OR settled_nanos IS NULL)) <= ?
-    AND (? = 0 OR ? + (SELECT COALESCE(SUM(COALESCE(settled_nanos, held_nanos)), 0)
+    AND (? = 0 OR ? + (SELECT COALESCE(SUM(COALESCE(settled_nanos,
+        CASE WHEN started_at >= ? THEN held_nanos ELSE 0 END)), 0)
       FROM spend_reservations WHERE app = ? AND custom = 1
         AND (started_at >= ? OR settled_nanos IS NULL)) <= ?)`).bind(
     id,
@@ -73,11 +80,13 @@ export function admissionStatement(
     custom ? 1 : 0,
     held,
     held,
+    expiry,
     env.BILLING_APP,
     day,
     limits.daily,
     custom ? 1 : 0,
     held,
+    expiry,
     env.BILLING_APP,
     hour,
     limits.custom,
@@ -89,13 +98,14 @@ export async function reservationStatus(env: ReservationEnv, now = Date.now()) {
     throw new LLMError(503, 'Spending ledger unavailable', { cls: NEITHER });
   const day = `${new Date(now).toISOString().slice(0, 10)}T00:00:00.000Z`;
   const hour = new Date(now - 3_600_000).toISOString();
+  const expiry = new Date(now - HOLD_EXPIRY_MS).toISOString();
   const rows = await env.BILLING_DB.prepare(`SELECT
     COALESCE(SUM(CASE WHEN started_at >= ? THEN settled_nanos ELSE 0 END), 0) AS dailySpent,
     COALESCE(SUM(CASE WHEN custom = 1 AND started_at >= ? THEN settled_nanos ELSE 0 END), 0) AS customSpent,
-    COALESCE(SUM(CASE WHEN settled_nanos IS NULL THEN held_nanos ELSE 0 END), 0) AS dailyHeld,
-    COALESCE(SUM(CASE WHEN custom = 1 AND settled_nanos IS NULL THEN held_nanos ELSE 0 END), 0) AS customHeld
+    COALESCE(SUM(CASE WHEN settled_nanos IS NULL AND started_at >= ? THEN held_nanos ELSE 0 END), 0) AS dailyHeld,
+    COALESCE(SUM(CASE WHEN custom = 1 AND settled_nanos IS NULL AND started_at >= ? THEN held_nanos ELSE 0 END), 0) AS customHeld
     FROM spend_reservations WHERE app = ? AND (started_at >= ? OR settled_nanos IS NULL)`)
-    .bind(day, hour, env.BILLING_APP, day < hour ? day : hour)
+    .bind(day, hour, expiry, expiry, env.BILLING_APP, day < hour ? day : hour)
     .first<{ dailySpent: number; customSpent: number; dailyHeld: number; customHeld: number }>();
   if (!rows) throw new LLMError(503, 'Spending totals unavailable', { cls: NEITHER });
   return { ...rows, limits: spendingCaps(env) };
