@@ -46,6 +46,7 @@ import { loadConditionalProfile } from './conditional-person-profile';
 import { readIndexIdentityCandidate } from './index-identity-link';
 import { kvGetJSONAs } from './kv-json';
 import { voiceGraphBlobShape } from './kv-shapes';
+import { isRabbinicHebrewName } from './rabbi-graph';
 import {
   NOT_A_STORE_REVISION,
   resolveSourceStores,
@@ -184,7 +185,9 @@ sageGraph.get('/network', async (c) => {
     : null;
   const cache =
     typeof caches === 'undefined' ? null : (caches as unknown as { default: Cache }).default;
-  const key = new Request(`https://cache.invalid/sage-network/${saved.id}/${voice?.builtAt ?? 0}`);
+  const key = new Request(
+    `https://cache.invalid/sage-network-v2/${saved.id}/${voice?.builtAt ?? 0}`,
+  );
   const kept = await cache?.match(key);
   const headers = (state: string) => ({
     'content-type': 'application/json',
@@ -209,6 +212,7 @@ sageGraph.get('/network', async (c) => {
     buildSageNetwork({
       revision: saved.id,
       hierarchy: (hierarchyData as unknown as { nodes: Record<string, HierarchyNode> }).nodes,
+      isPerson: (_id, node) => isRabbinicHebrewName(node.canonicalHe),
       voice: voice ?? null,
       checkedNodes: nodes.results.flatMap((r) => {
         const p = JSON.parse(r.payload_json) as Record<string, unknown>;

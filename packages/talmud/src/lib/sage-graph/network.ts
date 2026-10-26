@@ -53,6 +53,9 @@ export interface NetworkInput {
   } | null;
   checkedNodes: { id: string; label: string; labelHe: string | null; generation: string | null }[];
   checkedEdges: { a: string; b: string; mode: string }[];
+  /** The registry also holds topics such as Torah or Tallit, and the learned graph hears Elijah and
+   * God speak. A name counts as a sage only if this says so or it has a known period. */
+  isPerson?: (id: string, node: HierarchyNode) => boolean;
 }
 
 const known = (generation: string | null | undefined) =>
@@ -61,7 +64,10 @@ const known = (generation: string | null | undefined) =>
 export function buildSageNetwork(input: NetworkInput): SageNetwork {
   const people = new Map<string, NetworkNode>();
   const registry = new Set<string>();
+  const isSage = (rawId: string, h: HierarchyNode) =>
+    !input.isPerson || known(h.generation) !== null || input.isPerson(rawId, h);
   for (const [rawId, h] of Object.entries(input.hierarchy)) {
+    if (!isSage(rawId, h)) continue;
     const id = canonicalSlug(rawId);
     registry.add(id);
     if (people.has(id)) continue;
@@ -122,6 +128,7 @@ export function buildSageNetwork(input: NetworkInput): SageNetwork {
     raw.push({ a: x, b: y, layer, kind, weight });
   };
   for (const [rawId, h] of Object.entries(input.hierarchy)) {
+    if (!isSage(rawId, h)) continue;
     for (const s of h.students ?? []) add(rawId, s, 'curated', 'teacher');
     for (const t of h.teachers ?? []) add(t, rawId, 'curated', 'teacher');
     for (const c of h.colleagues ?? []) add(rawId, c, 'curated', 'colleague');

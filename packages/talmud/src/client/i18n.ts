@@ -547,8 +547,8 @@ const CATALOG = {
     he: 'הקשרים הבדוקים, קבוצה אחר קבוצה',
   },
   'sages.network.caption': {
-    en: '{people} people and {links} links, in columns by period. Hover a person to see their links, click to open them. {noEra} of the {registry} people in our list have no era yet. They sit in the last column.',
-    he: '{people} אנשים ו־{links} קשרים, בעמודות לפי תקופה. העבירו את העכבר על אדם כדי לראות את קשריו, ולחצו כדי לפתוח אותו. ל־{noEra} מתוך {registry} האנשים ברשימה שלנו אין עדיין תקופה. הם בעמודה האחרונה.',
+    en: '{people} sages and {links} links, in columns by period. Hover a sage to see their links, click to open them. {noEra} of the {registry} sages in our list have no era yet.',
+    he: '{people} חכמים ו־{links} קשרים, בעמודות לפי תקופה. העבירו את העכבר על חכם כדי לראות את קשריו, ולחצו כדי לפתוח אותו. ל־{noEra} מתוך {registry} החכמים ברשימה שלנו אין עדיין תקופה.',
   },
   'sages.network.layers': { en: 'Which links to show', he: 'אילו קשרים להציג' },
   'sages.network.layer.checked': {
@@ -569,8 +569,8 @@ const CATALOG = {
   },
   'sages.network.noEra': { en: 'No era', he: 'בלי תקופה' },
   'sages.network.note': {
-    en: 'The AI-found links are not checked. Another {unplaced} names in the checked connections are not matched to a person yet, so they are not in this graph. They are in the groups below.',
-    he: 'הקשרים שנמצאו בבינה מלאכותית לא נבדקו. עוד {unplaced} שמות בקשרים הבדוקים עדיין לא הותאמו לאדם, ולכן אינם בגרף הזה. הם בקבוצות שלמטה.',
+    en: 'The AI-found links are not checked. {dropped} links to figures who are not sages, such as God, Elijah and the Mishnah, are left out. Another {unplaced} names in the checked connections are not matched to a person yet, so they are not in this graph. They are in the groups below.',
+    he: 'הקשרים שנמצאו בבינה מלאכותית לא נבדקו. {dropped} קשרים לדמויות שאינן חכמים, כמו אלוהים, אליהו והמשנה, הושמטו. עוד {unplaced} שמות בקשרים הבדוקים עדיין לא הותאמו לאדם, ולכן אינם בגרף הזה. הם בקבוצות שלמטה.',
   },
   'sages.overview.lead': {
     en: 'This is the latest saved study. It finds the names in the texts, then checks which names are the same person. Most of that checking is still waiting for a decision.',
