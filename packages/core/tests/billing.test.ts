@@ -120,6 +120,8 @@ describe('permanent billing records', () => {
     const state = await reservationStatus(env);
     expect(state.dailyHeld).toBe(held * 3);
     const admitted = results.flatMap((r) => (r.status === 'fulfilled' && r.value ? [r.value] : []));
+    // The provider named this generation, so its cost can still be recovered.
+    await admitted[0].observe(gateway.responses[1].response.id);
     await admitted[0].finish('failed', 'timeout');
     expect((await reservationStatus(env)).dailyHeld).toBe(held * 3);
     await expect(beginBillingAttempt(env, model, opts)).rejects.toThrow(
@@ -162,7 +164,38 @@ describe('permanent billing records', () => {
     const state = await reservationStatus(env);
     expect(state.customHeld).toBe(held);
     expect(state.dailyHeld).toBe(held * 2);
-    const tomorrow = Date.now() + 86_400_000;
-    expect((await reservationStatus(env, tomorrow)).dailyHeld).toBe(held * 2);
+    // An open hold stops counting after an hour, even on the same day.
+    expect((await reservationStatus(env, Date.now() + 2 * 3_600_000)).dailyHeld).toBe(0);
+  });
+  it('gives the money back when a call fails before the provider names it', async () => {
+    const held = reservationNanos(model, opts);
+    const env = { BILLING_DB: db, BILLING_APP: 'release-on-failure' };
+    const a = await beginBillingAttempt(env, model, opts);
+    expect((await reservationStatus(env)).dailyHeld).toBe(held);
+    await a!.finish('failed', 'timeout');
+    expect((await reservationStatus(env)).dailyHeld).toBe(0);
+    const row = await db
+      .prepare('SELECT settled_nanos, basis FROM spend_reservations WHERE attempt_id = ?')
+      .bind(a!.id)
+      .first<{ settled_nanos: number; basis: string }>();
+    expect(row).toEqual({ settled_nanos: 0, basis: 'released' });
+  });
+  it('lets new calls through when old holds never settled', async () => {
+    const held = reservationNanos(model, opts);
+    const env = {
+      BILLING_DB: db,
+      BILLING_APP: 'expired-holds',
+      DAILY_BUDGET_USD: String(held / 1e9),
+    };
+    const old = new Date(Date.now() - 2 * 3_600_000).toISOString();
+    await db
+      .prepare(`INSERT INTO spend_reservations (attempt_id, app, started_at, custom, held_nanos)
+      VALUES (?, ?, ?, 1, ?)`)
+      .bind(crypto.randomUUID(), 'expired-holds', old, held)
+      .run();
+    expect(await beginBillingAttempt(env, model, opts)).not.toBeNull();
+    await expect(beginBillingAttempt(env, model, opts)).rejects.toThrow(
+      'Not enough unreserved budget',
+    );
   });
 });
