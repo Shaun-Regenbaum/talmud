@@ -30,7 +30,17 @@ export function SagesOverview(): JSX.Element {
       <h2 id="sages-overview-title">{t('sages.overview.title')}</h2>
       <p class="sages-overview-lead">{t('sages.overview.lead')}</p>
       <Show when={data.loading}>
-        <StatusMessage tone="loading">{t('sages.overview.loading')}</StatusMessage>
+        <div class="sages-skeleton" role="status" aria-live="polite">
+          <p class="sages-skeleton-text">
+            <span class="sages-spinner" aria-hidden="true" /> {t('sages.overview.loading')}
+          </p>
+          <div class="sages-skeleton-graph" aria-hidden="true" />
+          <div class="sages-skeleton-lines" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </div>
+        </div>
       </Show>
       <Show when={!data.loading && !data()}>
         <StatusMessage
@@ -210,6 +220,148 @@ function NetworkGraph(props: {
   };
   const edgeTitle = (e: OverviewEdge) =>
     `${name(byId().get(e.a) as OverviewNode)} – ${name(byId().get(e.b) as OverviewNode)} · ${e.ref}`;
+  const inSmall = (id: string) => compactIds().has(id);
+  const partBoxes = (part: 'main' | 'small') =>
+    layout().boxes.filter((b) => b.compact === (part === 'small'));
+  const partEdges = (part: 'main' | 'small') =>
+    props.overview.edges.filter((e) => inSmall(e.a) === (part === 'small'));
+  const partNodes = (part: 'main' | 'small') =>
+    props.overview.nodes.filter((n) => inSmall(n.id) === (part === 'small'));
+  // The two parts share one coordinate system. Each shows only its own band of it.
+  const viewBox = (part: 'main' | 'small') => {
+    const boxes = partBoxes(part);
+    if (!boxes.length) return `0 0 ${WIDTH} 80`;
+    const top = Math.min(...boxes.map((b) => b.y));
+    const bottom = Math.max(...boxes.map((b) => b.y + b.h));
+    return `0 ${top} ${WIDTH} ${Math.max(bottom - top, 80)}`;
+  };
+  const smallCount = () => layout().boxes.filter((b) => b.compact).length;
+  const graph = (part: 'main' | 'small') => (
+    <div class="sages-graph-scroll">
+      <svg
+        viewBox={viewBox(part)}
+        role="img"
+        aria-label={t('sages.overview.graphLabel')}
+        classList={{ 'has-hover': hovered() !== null }}
+      >
+        <For each={partBoxes(part)}>
+          {(b) => (
+            <rect
+              class="sages-graph-box"
+              classList={{ 'is-compact': b.compact }}
+              x={b.x}
+              y={b.y}
+              width={b.w}
+              height={b.h}
+              rx="8"
+            />
+          )}
+        </For>
+        <For each={partEdges(part)}>
+          {(e) => {
+            const a = () => layout().positions.get(e.a);
+            const b = () => layout().positions.get(e.b);
+            return (
+              <Show when={a() && b()}>
+                <line
+                  class="sages-graph-edge"
+                  classList={{
+                    'is-shown': SHOWN.has(e.outcome),
+                    'is-active': hovered() !== null && (e.a === hovered() || e.b === hovered()),
+                  }}
+                  x1={a()?.x}
+                  y1={a()?.y}
+                  x2={b()?.x}
+                  y2={b()?.y}
+                >
+                  <title>{edgeTitle(e)}</title>
+                </line>
+              </Show>
+            );
+          }}
+        </For>
+        <For each={partNodes(part)}>
+          {(n) => {
+            const p = () => layout().positions.get(n.id) as { x: number; y: number };
+            const open = () => {
+              location.hash = `sages/${encodeURIComponent(n.id)}`;
+            };
+            const compact = () => compactIds().has(n.id);
+            const shape = () => (
+              <>
+                <circle
+                  class={`sages-graph-node era-${eraOf(n.generation)}`}
+                  classList={{ 'is-named': n.named }}
+                  cx={p().x}
+                  cy={p().y}
+                  r={radius(n.id)}
+                >
+                  <title>{name(n)}</title>
+                </circle>
+                <Show when={compact()}>
+                  <text
+                    class="sages-graph-label is-below"
+                    x={p().x}
+                    y={p().y + radius(n.id) + 14}
+                    text-anchor="middle"
+                  >
+                    {clip(shortName(n), 14)}
+                  </text>
+                </Show>
+                <Show when={!compact() && labels().has(n.id)}>
+                  <text
+                    class="sages-graph-label"
+                    x={labelX(n)}
+                    y={p().y - radius(n.id) - 4}
+                    text-anchor="middle"
+                  >
+                    {shortName(n)}
+                  </text>
+                </Show>
+              </>
+            );
+            const dim = () => hovered() !== null && !neighbours().has(n.id);
+            return (
+              <Show
+                when={n.named}
+                fallback={
+                  <g
+                    classList={{ 'is-dim': dim() }}
+                    onPointerEnter={() => setHovered(n.id)}
+                    onPointerLeave={() => setHovered(null)}
+                  >
+                    {shape()}
+                  </g>
+                }
+              >
+                {/* biome-ignore lint/a11y/useSemanticElements: an <a> inside this SVG did not draw when tried */}
+                <g
+                  class="sages-graph-person"
+                  classList={{ 'is-dim': dim() }}
+                  role="link"
+                  tabindex={0}
+                  aria-label={name(n)}
+                  onClick={open}
+                  onPointerEnter={() => setHovered(n.id)}
+                  onPointerLeave={() => setHovered(null)}
+                  onFocus={() => setHovered(n.id)}
+                  onBlur={() => setHovered(null)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      open();
+                    }
+                  }}
+                >
+                  {shape()}
+                </g>
+              </Show>
+            );
+          }}
+        </For>
+      </svg>
+    </div>
+  );
   return (
     <figure class="sages-graph">
       <figcaption>
@@ -219,130 +371,15 @@ function NetworkGraph(props: {
           groups: props.number(props.overview.stats.components),
         })}
       </figcaption>
-      <div class="sages-graph-scroll">
-        <svg
-          viewBox={`0 0 ${WIDTH} ${Math.max(layout().height, 80)}`}
-          role="img"
-          aria-label={t('sages.overview.graphLabel')}
-          classList={{ 'has-hover': hovered() !== null }}
-        >
-          <For each={layout().boxes}>
-            {(b) => (
-              <rect
-                class="sages-graph-box"
-                classList={{ 'is-compact': b.compact }}
-                x={b.x}
-                y={b.y}
-                width={b.w}
-                height={b.h}
-                rx="8"
-              />
-            )}
-          </For>
-          <For each={props.overview.edges}>
-            {(e) => {
-              const a = () => layout().positions.get(e.a);
-              const b = () => layout().positions.get(e.b);
-              return (
-                <Show when={a() && b()}>
-                  <line
-                    class="sages-graph-edge"
-                    classList={{
-                      'is-shown': SHOWN.has(e.outcome),
-                      'is-active': hovered() !== null && (e.a === hovered() || e.b === hovered()),
-                    }}
-                    x1={a()?.x}
-                    y1={a()?.y}
-                    x2={b()?.x}
-                    y2={b()?.y}
-                  >
-                    <title>{edgeTitle(e)}</title>
-                  </line>
-                </Show>
-              );
-            }}
-          </For>
-          <For each={props.overview.nodes}>
-            {(n) => {
-              const p = () => layout().positions.get(n.id) as { x: number; y: number };
-              const open = () => {
-                location.hash = `sages/${encodeURIComponent(n.id)}`;
-              };
-              const compact = () => compactIds().has(n.id);
-              const shape = () => (
-                <>
-                  <circle
-                    class={`sages-graph-node era-${eraOf(n.generation)}`}
-                    classList={{ 'is-named': n.named }}
-                    cx={p().x}
-                    cy={p().y}
-                    r={radius(n.id)}
-                  >
-                    <title>{name(n)}</title>
-                  </circle>
-                  <Show when={compact()}>
-                    <text
-                      class="sages-graph-label is-below"
-                      x={p().x}
-                      y={p().y + radius(n.id) + 14}
-                      text-anchor="middle"
-                    >
-                      {clip(shortName(n), 14)}
-                    </text>
-                  </Show>
-                  <Show when={!compact() && labels().has(n.id)}>
-                    <text
-                      class="sages-graph-label"
-                      x={labelX(n)}
-                      y={p().y - radius(n.id) - 4}
-                      text-anchor="middle"
-                    >
-                      {shortName(n)}
-                    </text>
-                  </Show>
-                </>
-              );
-              const dim = () => hovered() !== null && !neighbours().has(n.id);
-              return (
-                <Show
-                  when={n.named}
-                  fallback={
-                    <g
-                      classList={{ 'is-dim': dim() }}
-                      onPointerEnter={() => setHovered(n.id)}
-                      onPointerLeave={() => setHovered(null)}
-                    >
-                      {shape()}
-                    </g>
-                  }
-                >
-                  {/* biome-ignore lint/a11y/useSemanticElements: an <a> inside this SVG did not draw when tried */}
-                  <g
-                    class="sages-graph-person"
-                    classList={{ 'is-dim': dim() }}
-                    role="link"
-                    tabindex={0}
-                    aria-label={name(n)}
-                    onClick={open}
-                    onPointerEnter={() => setHovered(n.id)}
-                    onPointerLeave={() => setHovered(null)}
-                    onFocus={() => setHovered(n.id)}
-                    onBlur={() => setHovered(null)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        open();
-                      }
-                    }}
-                  >
-                    {shape()}
-                  </g>
-                </Show>
-              );
-            }}
-          </For>
-        </svg>
-      </div>
+      {graph('main')}
+      <Show when={smallCount() > 0}>
+        <details class="sages-small-groups">
+          <summary>
+            {t('sages.overview.smallGroups', { count: props.number(smallCount()) })}
+          </summary>
+          {graph('small')}
+        </details>
+      </Show>
       <ul class="sages-graph-key">
         <li>
           <i class="key-node era-tanna is-named" /> {t('sages.overview.key.tanna')}
