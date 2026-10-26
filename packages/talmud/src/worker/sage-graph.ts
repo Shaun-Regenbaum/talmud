@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import hierarchyData from '../lib/data/rabbi-hierarchy.json';
 import { canonicalSlug } from '../lib/rabbi/identity';
 import {
   CHECKED_KINDS,
@@ -20,6 +21,7 @@ import {
 } from '../lib/sage-graph/initial-readings';
 import { type LegacyPayload, type LegacyRow, legacyCards } from '../lib/sage-graph/legacy-readings';
 import { checkedNameSuggestion } from '../lib/sage-graph/name-candidates';
+import { buildSageNetwork, type HierarchyNode } from '../lib/sage-graph/network';
 import { buildSageOverview } from '../lib/sage-graph/overview';
 import {
   POSSIBLE_ERA_SCOPE_SQL,
@@ -39,8 +41,11 @@ import type {
   CheckedNode,
   CheckedOccurrence,
 } from '../lib/sage-graph/types';
+import { keyForRabbiVoiceGraph } from './cache-keys';
 import { loadConditionalProfile } from './conditional-person-profile';
 import { readIndexIdentityCandidate } from './index-identity-link';
+import { kvGetJSONAs } from './kv-json';
+import { voiceGraphBlobShape } from './kv-shapes';
 import {
   NOT_A_STORE_REVISION,
   resolveSourceStores,
@@ -161,6 +166,84 @@ sageGraph.get('/overview', async (c) => {
       'x-overview-cache': 'miss',
     },
   });
+});
+
+// Every sage link in one answer: checked connections, Sefaria's teacher and student links,
+// and the links learned from reading many dapim. Kept per snapshot and per voice-graph build.
+sageGraph.get('/network', async (c) => {
+  const db = c.env.SAGE_GRAPH_DB;
+  if (!db) return c.json({ error: 'Graph database is unavailable' }, 503);
+  const saved = await revision(db, c.req.query('revision'));
+  if (!saved) return c.json({ error: 'No verified graph import was found' }, 404);
+  const voice = c.env.CACHE
+    ? await kvGetJSONAs<{
+        builtAt: number;
+        nodes: Record<string, { name?: string; generation?: string | null }>;
+        edges: Record<string, { from?: string; to?: string; kind?: string; weight?: number }>;
+      }>(c.env.CACHE, keyForRabbiVoiceGraph(), voiceGraphBlobShape)
+    : null;
+  const cache =
+    typeof caches === 'undefined' ? null : (caches as unknown as { default: Cache }).default;
+  const key = new Request(`https://cache.invalid/sage-network/${saved.id}/${voice?.builtAt ?? 0}`);
+  const kept = await cache?.match(key);
+  const headers = (state: string) => ({
+    'content-type': 'application/json',
+    'cache-control': 'public, max-age=300',
+    'x-network-cache': state,
+  });
+  if (kept) return new Response(kept.body, { headers: headers('hit') });
+  const [nodes, edges] = await db.batch<{ payload_json: string }>([
+    db
+      .prepare(
+        `SELECT payload_json FROM sage_graph_all_records WHERE revision_id=? AND kind='graph_node'`,
+      )
+      .bind(saved.id),
+    db
+      .prepare(
+        `SELECT payload_json FROM sage_graph_all_records WHERE revision_id=? AND kind='connection'`,
+      )
+      .bind(saved.id),
+  ]);
+  const text = (v: unknown) => (typeof v === 'string' && v ? v : null);
+  const body = JSON.stringify(
+    buildSageNetwork({
+      revision: saved.id,
+      hierarchy: (hierarchyData as unknown as { nodes: Record<string, HierarchyNode> }).nodes,
+      voice: voice ?? null,
+      checkedNodes: nodes.results.flatMap((r) => {
+        const p = JSON.parse(r.payload_json) as Record<string, unknown>;
+        const id = text(p.id);
+        const label = text(p.label);
+        return id && label
+          ? [{ id, label, labelHe: text(p.labelHe), generation: text(p.generation) }]
+          : [];
+      }),
+      checkedEdges: edges.results.flatMap((r) => {
+        const p = JSON.parse(r.payload_json) as Record<string, unknown>;
+        const a = text(p.a);
+        const b = text(p.b);
+        return a && b ? [{ a, b, mode: text(p.mode) ?? 'stated' }] : [];
+      }),
+    }),
+  );
+  if (cache) {
+    try {
+      c.executionCtx.waitUntil(
+        cache.put(
+          key,
+          new Response(body, {
+            headers: {
+              'content-type': 'application/json',
+              'cache-control': 'public, max-age=86400',
+            },
+          }),
+        ),
+      );
+    } catch {
+      // No request context to extend. The answer is still returned, only not kept.
+    }
+  }
+  return new Response(body, { headers: headers('miss') });
 });
 
 sageGraph.get('/records', async (c) => {

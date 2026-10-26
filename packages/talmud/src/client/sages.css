@@ -819,3 +819,85 @@
 .sages-small-groups[open] summary {
   margin-bottom: 0.75rem;
 }
+
+.sages-overview-first {
+  margin-top: 1.5rem;
+}
+.sages-layers {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+  font-size: 0.9rem;
+}
+.sages-layers legend {
+  margin-bottom: 0.35rem;
+  padding: 0;
+  font-weight: 600;
+}
+.sages-layers label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.key-edge.layer-checked {
+  border-top: 2px solid var(--ink-slate);
+}
+.key-edge.layer-curated {
+  border-top: 2px solid var(--ink-teal);
+  opacity: 0.6;
+}
+.key-edge.layer-learned {
+  border-top: 2px dashed var(--ink-plum);
+  opacity: 0.7;
+}
+.sages-band rect {
+  fill: none;
+  stroke: var(--line);
+}
+.sages-band text {
+  fill: var(--muted);
+  font-size: 9.5px;
+}
+.sages-link {
+  fill: none;
+}
+.sages-link.layer-checked {
+  stroke: var(--ink-slate);
+  stroke-width: 1.4;
+  stroke-opacity: 0.85;
+}
+.sages-link.layer-curated {
+  stroke: var(--ink-teal);
+  stroke-width: 0.8;
+  stroke-opacity: 0.22;
+}
+.sages-link.layer-learned {
+  stroke: var(--ink-plum);
+  stroke-width: 0.8;
+  stroke-dasharray: 3 2;
+  stroke-opacity: 0.22;
+}
+.sages-network svg.has-hover .sages-link:not(.is-active) {
+  stroke-opacity: 0.04;
+}
+.sages-network .sages-link.is-active {
+  stroke-width: 1.8;
+  stroke-opacity: 1;
+}
+.sages-network circle[role="link"] {
+  cursor: pointer;
+  outline: none;
+}
+.sages-network circle[role="link"]:hover,
+.sages-network circle[role="link"]:focus-visible {
+  stroke: var(--fg);
+  stroke-width: 2;
+}
+.sages-network-note {
+  margin: 0.6rem 0 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}

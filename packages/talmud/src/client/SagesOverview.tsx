@@ -8,6 +8,7 @@ import {
   type SageOverview,
 } from '../lib/sage-graph/overview';
 import { lang, t } from './i18n';
+import { SagesNetwork } from './SagesNetwork';
 import { layoutOverview, placeLabels } from './sageOverviewLayout';
 
 const WIDTH = 960;
@@ -62,6 +63,9 @@ function Loaded(props: { overview: SageOverview }): JSX.Element {
   const date = () => props.overview.createdAt.slice(0, 10);
   return (
     <>
+      <h3 class="sages-overview-first">{t('sages.overview.allTitle')}</h3>
+      <SagesNetwork />
+      <h3>{t('sages.overview.groupsTitle')}</h3>
       <NetworkGraph overview={props.overview} number={number} />
       <h3>{t('sages.overview.openTitle')}</h3>
       <ul class="sages-open">

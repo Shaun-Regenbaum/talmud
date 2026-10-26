@@ -541,6 +541,37 @@ const CATALOG = {
   'sages.welcome.eyebrow': { en: 'People of the Talmud', he: 'חכמי התלמוד' },
   'sages.welcome.title': { en: 'Start with a sage', he: 'התחילו בחכם' },
   'sages.overview.title': { en: 'The sage network so far', he: 'רשת החכמים עד כה' },
+  'sages.overview.allTitle': { en: 'Everyone in one graph', he: 'כולם בגרף אחד' },
+  'sages.overview.groupsTitle': {
+    en: 'The checked connections, group by group',
+    he: 'הקשרים הבדוקים, קבוצה אחר קבוצה',
+  },
+  'sages.network.caption': {
+    en: '{people} people and {links} links, in columns by period. Hover a person to see their links, click to open them. {noEra} of the {registry} people in our list have no era yet. They sit in the last column.',
+    he: '{people} אנשים ו־{links} קשרים, בעמודות לפי תקופה. העבירו את העכבר על אדם כדי לראות את קשריו, ולחצו כדי לפתוח אותו. ל־{noEra} מתוך {registry} האנשים ברשימה שלנו אין עדיין תקופה. הם בעמודה האחרונה.',
+  },
+  'sages.network.layers': { en: 'Which links to show', he: 'אילו קשרים להציג' },
+  'sages.network.layer.checked': {
+    en: 'Read and checked in the text ({count})',
+    he: 'נקראו ונבדקו בטקסט ({count})',
+  },
+  'sages.network.layer.curated': {
+    en: 'Teacher, student, colleague, from Sefaria ({count})',
+    he: 'רב, תלמיד, חבר, מספריא ({count})',
+  },
+  'sages.network.layer.learned': {
+    en: 'Argues with, answers or cites, found by AI reading dapim ({count})',
+    he: 'חולק על, משיב או מצטט, נמצאו בקריאת דפים בבינה מלאכותית ({count})',
+  },
+  'sages.network.label': {
+    en: 'Graph of every sage link we hold, in columns by period',
+    he: 'גרף של כל הקשרים בין חכמים שיש לנו, בעמודות לפי תקופה',
+  },
+  'sages.network.noEra': { en: 'No era', he: 'בלי תקופה' },
+  'sages.network.note': {
+    en: 'The AI-found links are not checked. Another {unplaced} names in the checked connections are not matched to a person yet, so they are not in this graph. They are in the groups below.',
+    he: 'הקשרים שנמצאו בבינה מלאכותית לא נבדקו. עוד {unplaced} שמות בקשרים הבדוקים עדיין לא הותאמו לאדם, ולכן אינם בגרף הזה. הם בקבוצות שלמטה.',
+  },
   'sages.overview.lead': {
     en: 'This is the latest saved study. It finds the names in the texts, then checks which names are the same person. Most of that checking is still waiting for a decision.',
     he: 'זהו המחקר השמור האחרון. הוא מוצא את השמות בטקסטים ובודק אילו שמות הם אותו אדם. רוב הבדיקה עדיין ממתינה להכרעה.',
