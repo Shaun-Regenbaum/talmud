@@ -87,6 +87,21 @@ sageGraph.get('/overview', async (c) => {
   const requested = c.req.query('revision');
   const saved = await revision(db, requested);
   if (!saved) return c.json({ error: 'No verified graph import was found' }, 404);
+  // The newest snapshot is found with one cheap lookup. Building its overview reads about
+  // 200,000 records, so the answer is kept per snapshot. A saved snapshot never changes.
+  const cache =
+    typeof caches === 'undefined' ? null : (caches as unknown as { default: Cache }).default;
+  const key = new Request(`https://cache.invalid/sage-overview/${saved.id}`);
+  const kept = await cache?.match(key);
+  if (kept) {
+    return new Response(kept.body, {
+      headers: {
+        'content-type': 'application/json',
+        'cache-control': 'public, max-age=300',
+        'x-overview-cache': 'hit',
+      },
+    });
+  }
   const [counts, nodes, edges] = await db.batch<{
     kind: string;
     decision: string | null;
@@ -112,8 +127,7 @@ sageGraph.get('/overview', async (c) => {
   ]);
   const parse = (rows: { payload_json: string }[]) => rows.map((r) => JSON.parse(r.payload_json));
   const manifest = JSON.parse(saved.manifest_json) as { change?: string };
-  c.header('Cache-Control', requested ? 'public, max-age=86400' : 'public, max-age=300');
-  return c.json(
+  const body = JSON.stringify(
     buildSageOverview({
       revision: saved.id,
       createdAt: saved.created_at,
@@ -123,6 +137,30 @@ sageGraph.get('/overview', async (c) => {
       edgePayloads: parse(edges.results),
     }),
   );
+  if (cache) {
+    try {
+      c.executionCtx.waitUntil(
+        cache.put(
+          key,
+          new Response(body, {
+            headers: {
+              'content-type': 'application/json',
+              'cache-control': 'public, max-age=86400',
+            },
+          }),
+        ),
+      );
+    } catch {
+      // No request context to extend. The answer is still returned, only not kept.
+    }
+  }
+  return new Response(body, {
+    headers: {
+      'content-type': 'application/json',
+      'cache-control': 'public, max-age=300',
+      'x-overview-cache': 'miss',
+    },
+  });
 });
 
 sageGraph.get('/records', async (c) => {

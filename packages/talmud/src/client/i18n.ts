@@ -545,7 +545,14 @@ const CATALOG = {
     en: 'This is the latest saved study. It finds the names in the texts, then checks which names are the same person. Most of that checking is still waiting for a decision.',
     he: 'זהו המחקר השמור האחרון. הוא מוצא את השמות בטקסטים ובודק אילו שמות הם אותו אדם. רוב הבדיקה עדיין ממתינה להכרעה.',
   },
-  'sages.overview.loading': { en: 'Loading the network.', he: 'טוענים את הרשת.' },
+  'sages.overview.loading': {
+    en: 'Loading the network. This takes a moment.',
+    he: 'טוענים את הרשת. זה לוקח רגע.',
+  },
+  'sages.overview.smallGroups': {
+    en: 'Show the {count} small groups (two or three names each)',
+    he: 'הצגת {count} הקבוצות הקטנות (שניים או שלושה שמות בכל אחת)',
+  },
   'sages.overview.error': {
     en: 'The network could not be loaded.',
     he: 'לא ניתן לטעון את הרשת.',
