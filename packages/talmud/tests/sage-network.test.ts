@@ -122,4 +122,57 @@ describe('buildSageNetwork', () => {
   it('gives the same answer every time', () => {
     expect(buildSageNetwork(base())).toEqual(buildSageNetwork(base()));
   });
+
+  it('leaves out topics such as Torah or Tallit, and does not count them as people', () => {
+    const out = buildSageNetwork(
+      base({
+        hierarchy: {
+          rava: {
+            canonical: 'Rava',
+            canonicalHe: 'רבא',
+            generation: 'amora-bavel-4',
+            students: ['torah'],
+          },
+          torah: { canonical: 'Torah', canonicalHe: 'תורה', generation: 'unknown' },
+          abaye: {
+            canonical: 'Abaye',
+            canonicalHe: 'אביי',
+            generation: 'unknown',
+            colleagues: ['rava'],
+          },
+        },
+        isPerson: (_id, node) => node.canonicalHe !== 'תורה',
+      }),
+    );
+    expect(out.stats.registryPeople).toBe(2);
+    expect(out.stats.registryNoEra).toBe(1);
+    expect(out.nodes.map((n) => n.id).sort()).toEqual(['abaye', 'rava']);
+    expect(out.edges.filter((e) => e[2] === 'curated')).toHaveLength(1);
+  });
+
+  it('still counts a sage the title test misses when their era is known, but not a voice with neither', () => {
+    const out = buildSageNetwork(
+      base({
+        hierarchy: {
+          amemar: {
+            canonical: 'Rav Amemar',
+            canonicalHe: 'אמימר',
+            generation: 'amora-bavel-5',
+            colleagues: ['rava'],
+          },
+          rava: { canonical: 'Rava', canonicalHe: 'רבא', generation: 'amora-bavel-4' },
+          elijah: {
+            canonical: 'Elijah',
+            canonicalHe: 'אליהו',
+            generation: 'unknown',
+            colleagues: ['rava'],
+          },
+        },
+        voice: { builtAt: 1, nodes: { elijah: { name: 'Elijah' } }, edges: {} },
+        isPerson: () => false,
+      }),
+    );
+    expect(out.nodes.map((n) => n.id).sort()).toEqual(['amemar', 'rava']);
+    expect(out.stats.registryPeople).toBe(2);
+  });
 });

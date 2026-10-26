@@ -236,7 +236,10 @@ function Graph(props: { network: SageNetwork }): JSX.Element {
         </svg>
       </div>
       <p class="sages-network-note">
-        {t('sages.network.note', { unplaced: number(s().checkedUnplaced) })}
+        {t('sages.network.note', {
+          unplaced: number(s().checkedUnplaced),
+          dropped: number(s().dropped),
+        })}
       </p>
     </figure>
   );
