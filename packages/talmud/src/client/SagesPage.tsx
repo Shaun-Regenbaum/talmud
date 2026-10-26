@@ -7,6 +7,7 @@ import { GENERATION_BY_ID, type GenerationId, generationLabelHe } from './genera
 import { lang, t } from './i18n';
 import { PersonConnections } from './PersonConnections';
 import { PersonEra } from './PersonEra';
+import { passageSearchName } from './passageSearchName';
 import { SageAutocomplete } from './SageAutocomplete';
 import { SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
@@ -170,6 +171,7 @@ export function SagesPage(): JSX.Element {
               <SageDetail
                 slug={slug}
                 generationId={rows().get(slug)?.generation ?? null}
+                hebrewName={rows().get(slug)?.canonicalHe ?? null}
                 nameFor={nameFor}
                 onSelect={select}
               />
@@ -194,6 +196,8 @@ function SageDetail(props: {
   slug: string;
   generationId: string | null;
   nameFor: NameFor;
+  /** The short Hebrew name from the sage index. */
+  hebrewName: string | null;
   onSelect: (slug: string) => void;
 }): JSX.Element {
   const [profileFailed, setProfileFailed] = createSignal(false);
@@ -363,13 +367,17 @@ function SageDetail(props: {
         )}
       </Show>
 
-      <p>
-        <a
-          href={`#stories/q/${encodeURIComponent(unified()?.canonical.he || savedPerson()?.nameHe || props.nameFor(props.slug))}`}
-        >
-          {t('stories.profileLink')}
-        </a>
-      </p>
+      <Show
+        when={passageSearchName([props.hebrewName, savedPerson()?.nameHe, unified()?.canonical.he])}
+      >
+        {(searchName) => (
+          <p>
+            <a href={`#stories/q/${encodeURIComponent(searchName())}`}>
+              {t('stories.profileLink')}
+            </a>
+          </p>
+        )}
+      </Show>
       <SageCoverageStrip slug={props.slug} generation={props.generationId} />
       <Show when={props.slug === 'abaye' || props.slug === 'rava'}>
         <p>
