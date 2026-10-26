@@ -558,7 +558,10 @@ const CATALOG = {
     en: '{connections} checked connections between {names} names, in {groups} separate groups. Click a filled dot to open that sage.',
     he: '{connections} קשרים בדוקים בין {names} שמות, ב־{groups} קבוצות נפרדות. לחצו על נקודה מלאה כדי לפתוח את החכם.',
   },
-  'sages.overview.key.named': { en: 'A person in our list', he: 'אדם מהרשימה שלנו' },
+  'sages.overview.key.tanna': { en: 'Tanna (earlier sages)', he: 'תנא' },
+  'sages.overview.key.amoraEy': { en: 'Amora in the Land of Israel', he: 'אמורא בארץ ישראל' },
+  'sages.overview.key.amoraBavel': { en: 'Amora in Babylonia', he: 'אמורא בבבל' },
+  'sages.overview.key.noEra': { en: 'A person with no era yet', he: 'אדם בלי תקופה עדיין' },
   'sages.overview.key.local': {
     en: 'A name seen in one passage, not yet matched to a person',
     he: 'שם שנראה במקור אחד ועוד לא הותאם לאדם',
