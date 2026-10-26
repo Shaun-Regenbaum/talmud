@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildSageOverview, workOf } from '../src/lib/sage-graph/overview';
+import { buildSageOverview, eraOf, workOf } from '../src/lib/sage-graph/overview';
 
 const node = (id: string, extra: Record<string, unknown> = {}) => ({
   id,
@@ -25,6 +25,16 @@ describe('workOf', () => {
     expect(workOf('Sanhedrin 33a:6')).toBe('Sanhedrin');
     expect(workOf('Jerusalem Talmud Bava Batra 8:8:2')).toBe('Jerusalem Talmud Bava Batra');
     expect(workOf('Midrash Shmuel 15:2')).toBe('Midrash Shmuel');
+  });
+});
+
+describe('eraOf', () => {
+  it('sorts a generation id into a period for colouring', () => {
+    expect(eraOf('tanna-3')).toBe('tanna');
+    expect(eraOf('amora-ey-2')).toBe('amora-ey');
+    expect(eraOf('amora-bavel-4')).toBe('amora-bavel');
+    expect(eraOf('geonim')).toBe('other');
+    expect(eraOf(null)).toBe('unknown');
   });
 });
 

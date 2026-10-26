@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { layoutOverview } from '../src/client/sageOverviewLayout';
+import { layoutOverview, placeLabels } from '../src/client/sageOverviewLayout';
 
 const ring = (n: number, prefix = 'n') =>
   Array.from({ length: n }, (_, i) => ({ id: `${prefix}${i}` }));
@@ -65,5 +65,68 @@ describe('layoutOverview', () => {
     const out = layoutOverview([], [], 600);
     expect(out.positions.size).toBe(0);
     expect(out.height).toBe(0);
+  });
+});
+
+describe('small clusters', () => {
+  it('draw one to three names as a compact row with the best-connected in the middle', () => {
+    const out = layoutOverview(ring(3, 'm'), chain(3, 'm'), 900);
+    expect(out.boxes[0].compact).toBe(true);
+    const xs = ['m0', 'm1', 'm2'].map((id) => out.positions.get(id)!.x);
+    expect(xs[1]).toBeGreaterThan(Math.min(xs[0], xs[2]));
+    expect(xs[1]).toBeLessThan(Math.max(xs[0], xs[2]));
+    const ys = new Set(['m0', 'm1', 'm2'].map((id) => out.positions.get(id)!.y));
+    expect(ys.size).toBe(1);
+  });
+
+  it('leaves a larger cluster as a free layout', () => {
+    const out = layoutOverview(ring(6), chain(6), 900);
+    expect(out.boxes[0].compact).toBe(false);
+  });
+});
+
+describe('larger clusters', () => {
+  it('keep names apart and inside a disc', () => {
+    const nodes = ring(40);
+    const edges = [
+      ...chain(40),
+      ...Array.from({ length: 10 }, (_, i) => ({ a: 'n0', b: `n${i + 20}` })),
+    ];
+    const out = layoutOverview(nodes, edges, 960);
+    const box = out.boxes[0];
+    const points = box.ids.map((id) => out.positions.get(id)!);
+    const cx = box.x + box.w / 2;
+    const cy = box.y + box.h / 2;
+    for (const p of points)
+      expect(Math.hypot(p.x - cx, p.y - cy)).toBeLessThanOrEqual(box.w / 2 + 0.5);
+    let closest = Infinity;
+    for (let i = 0; i < points.length; i++)
+      for (let j = i + 1; j < points.length; j++)
+        closest = Math.min(
+          closest,
+          Math.hypot(points[i].x - points[j].x, points[i].y - points[j].y),
+        );
+    expect(closest).toBeGreaterThan(6);
+  });
+});
+
+describe('placeLabels', () => {
+  it('keeps the higher priority label when two would overlap', () => {
+    const kept = placeLabels([
+      { id: 'a', x: 100, y: 50, text: 'Rav Ashi', priority: 5 },
+      { id: 'b', x: 105, y: 52, text: 'Rava', priority: 9 },
+      { id: 'c', x: 400, y: 50, text: 'Abaye', priority: 1 },
+    ]);
+    expect(kept.has('b')).toBe(true);
+    expect(kept.has('a')).toBe(false);
+    expect(kept.has('c')).toBe(true);
+  });
+
+  it('is the same every time', () => {
+    const items = [
+      { id: 'x', x: 10, y: 10, text: 'Same', priority: 1 },
+      { id: 'y', x: 12, y: 10, text: 'Same', priority: 1 },
+    ];
+    expect([...placeLabels(items)]).toEqual([...placeLabels([...items].reverse())]);
   });
 });

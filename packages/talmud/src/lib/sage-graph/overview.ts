@@ -61,6 +61,17 @@ export interface OverviewInput {
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v ? v : null);
 
+export type Era = 'tanna' | 'amora-ey' | 'amora-bavel' | 'other' | 'unknown';
+
+/** Which stretch of history a generation id belongs to, for colouring. */
+export function eraOf(generation: string | null): Era {
+  if (!generation) return 'unknown';
+  if (generation.startsWith('tanna')) return 'tanna';
+  if (generation.startsWith('amora-ey')) return 'amora-ey';
+  if (generation.startsWith('amora-bavel')) return 'amora-bavel';
+  return 'other';
+}
+
 /** "Sanhedrin 33a:6" and "Jerusalem Talmud Bava Batra 8:8:2" both name their work. */
 export function workOf(ref: string): string {
   return ref.replace(/\s+\d+[ab]?(?::\d+)*$/, '');

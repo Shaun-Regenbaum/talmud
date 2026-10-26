@@ -583,6 +583,23 @@
   stroke: var(--line);
   stroke-dasharray: 2 4;
 }
+.sages-graph-box.is-compact {
+  stroke-dasharray: none;
+  opacity: 0.7;
+}
+.sages-graph .is-dim {
+  opacity: 0.18;
+}
+.sages-graph svg.has-hover .sages-graph-edge:not(.is-active) {
+  stroke-opacity: 0.1;
+}
+.sages-graph-edge.is-active {
+  stroke-opacity: 1;
+  stroke-width: 1.8;
+}
+.sages-graph-label.is-below {
+  font-size: 10.5px;
+}
 .sages-graph-edge {
   stroke: var(--muted);
   stroke-width: 1.2;
@@ -599,8 +616,20 @@
   stroke-width: 1.4;
 }
 .sages-graph-node.is-named {
+  fill: var(--ink-slate);
+  stroke: var(--ink-slate);
+}
+.sages-graph-node.era-tanna {
+  fill: var(--ink-ochre);
+  stroke: var(--ink-ochre);
+}
+.sages-graph-node.era-amora-ey {
   fill: var(--ink-teal);
   stroke: var(--ink-teal);
+}
+.sages-graph-node.era-amora-bavel {
+  fill: var(--ink-indigo);
+  stroke: var(--ink-indigo);
 }
 .sages-graph-person {
   cursor: pointer;
@@ -639,8 +668,20 @@
   vertical-align: -0.05rem;
 }
 .key-node.is-named {
+  background: var(--ink-slate);
+  border-color: var(--ink-slate);
+}
+.key-node.era-tanna {
+  background: var(--ink-ochre);
+  border-color: var(--ink-ochre);
+}
+.key-node.era-amora-ey {
   background: var(--ink-teal);
   border-color: var(--ink-teal);
+}
+.key-node.era-amora-bavel {
+  background: var(--ink-indigo);
+  border-color: var(--ink-indigo);
 }
 .key-edge {
   display: inline-block;
