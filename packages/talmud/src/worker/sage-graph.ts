@@ -20,6 +20,7 @@ import {
 } from '../lib/sage-graph/initial-readings';
 import { type LegacyPayload, type LegacyRow, legacyCards } from '../lib/sage-graph/legacy-readings';
 import { checkedNameSuggestion } from '../lib/sage-graph/name-candidates';
+import { buildSageOverview } from '../lib/sage-graph/overview';
 import {
   POSSIBLE_ERA_SCOPE_SQL,
   type PossibleEra,
@@ -61,13 +62,13 @@ async function revision(db: D1Database, requested?: string) {
     requested !== undefined
       ? db
           .prepare(
-            `SELECT id, manifest_json FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} AND id=?`,
+            `SELECT id, manifest_json, created_at FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} AND id=?`,
           )
           .bind(requested)
       : db.prepare(
-          `SELECT id, manifest_json FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} ORDER BY created_at DESC, id DESC LIMIT 1`,
+          `SELECT id, manifest_json, created_at FROM sage_graph_revisions WHERE state='verified' AND ${NOT_A_STORE_REVISION} ORDER BY created_at DESC, id DESC LIMIT 1`,
         );
-  return query.first<{ id: string; manifest_json: string }>();
+  return query.first<{ id: string; manifest_json: string; created_at: string }>();
 }
 
 sageGraph.get('/', async (c) => {
@@ -76,6 +77,52 @@ sageGraph.get('/', async (c) => {
   const saved = await revision(db, c.req.query('revision'));
   if (!saved) return c.json({ error: 'No verified graph import was found' }, 404);
   return c.json({ revision: saved.id, note: NOTE, ...JSON.parse(saved.manifest_json) });
+});
+
+// The whole network and what is still open, for the top of the sages page. A named
+// revision never changes, so the answer for one is safe to keep.
+sageGraph.get('/overview', async (c) => {
+  const db = c.env.SAGE_GRAPH_DB;
+  if (!db) return c.json({ error: 'Graph database is unavailable' }, 503);
+  const requested = c.req.query('revision');
+  const saved = await revision(db, requested);
+  if (!saved) return c.json({ error: 'No verified graph import was found' }, 404);
+  const [counts, nodes, edges] = await db.batch<{
+    kind: string;
+    decision: string | null;
+    n: number;
+    payload_json: string;
+  }>([
+    db
+      .prepare(
+        `SELECT kind, decision, COUNT(*) AS n FROM sage_graph_all_records
+       WHERE revision_id=? GROUP BY kind, decision`,
+      )
+      .bind(saved.id),
+    db
+      .prepare(
+        `SELECT payload_json FROM sage_graph_all_records WHERE revision_id=? AND kind='graph_node'`,
+      )
+      .bind(saved.id),
+    db
+      .prepare(
+        `SELECT payload_json FROM sage_graph_all_records WHERE revision_id=? AND kind='connection'`,
+      )
+      .bind(saved.id),
+  ]);
+  const parse = (rows: { payload_json: string }[]) => rows.map((r) => JSON.parse(r.payload_json));
+  const manifest = JSON.parse(saved.manifest_json) as { change?: string };
+  c.header('Cache-Control', requested ? 'public, max-age=86400' : 'public, max-age=300');
+  return c.json(
+    buildSageOverview({
+      revision: saved.id,
+      createdAt: saved.created_at,
+      change: manifest.change ?? '',
+      counts: counts.results as { kind: string; decision: string | null; n: number }[],
+      nodePayloads: parse(nodes.results),
+      edgePayloads: parse(edges.results),
+    }),
+  );
 });
 
 sageGraph.get('/records', async (c) => {
