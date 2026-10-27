@@ -19,6 +19,7 @@ import { instanceIdOf } from '@corpus/core/cache/keys';
 import { type AiUnavailableReason, noteAiResponse } from '@corpus/ui/aiStatus';
 import { createSignal } from 'solid-js';
 import type { RunResult } from './enrichmentQueue';
+import { readSaved, writeSaved } from './localViewCache';
 
 export interface DafViewPiece {
   producerId: string;
@@ -111,7 +112,7 @@ export function loadDafView(
   const existing = inflight.get(key);
   if (existing) return existing;
   latestKey = key;
-  const run = fetchViewOnce(key, tractate, page, lang);
+  const run = fetchViewOnce(key, tractate, page, lang, true);
   inflight.set(key, run);
   void run.finally(() => {
     if (inflight.get(key) === run) inflight.delete(key);
@@ -131,10 +132,18 @@ async function fetchViewOnce(
   tractate: string,
   page: string,
   lang: 'en' | 'he',
+  useSaved = false,
 ): Promise<DafViewPayload | null> {
+  let networkSettled = false;
   const settle = (pieces: Record<string, DafViewPiece>) => {
     if (latestKey === key) setView({ key, pieces });
   };
+  // A finished copy kept in the browser paints at once while the server check
+  // runs. The network answer always wins if it lands first or lands after.
+  const savedP = useSaved ? readSaved<DafViewPayload>(key) : Promise.resolve(null);
+  void savedP.then((saved) => {
+    if (saved && !networkSettled) settle(saved.value.pieces ?? {});
+  });
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 15000);
   try {
@@ -142,22 +151,41 @@ async function fetchViewOnce(
       signal: ctrl.signal,
     });
     if (!r.ok) {
-      settle({});
-      return null;
+      networkSettled = true;
+      return await savedOrEmpty(savedP, settle);
     }
     const j = (await r.json()) as DafViewPayload;
+    networkSettled = true;
     settle(j.pieces ?? {});
+    // Keep only finished dafs: a half-built daf saved here would hide the
+    // pieces still being generated.
+    if (j.complete && !j.aiUnavailable) void writeSaved(key, j);
     // An incomplete view carrying the AI-paused sentinel raises the shared
     // banner — so a reader who is mid-poll (already told `generating: true`)
     // still learns AI is down instead of spinning silently.
     noteAiResponse(j);
     return j;
   } catch {
-    settle({});
-    return null;
+    networkSettled = true;
+    return await savedOrEmpty(savedP, settle);
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** The server could not be reached: show the saved copy if there is one and
+ *  report it as complete, so no generation is started over a failed fetch. */
+async function savedOrEmpty(
+  savedP: Promise<{ value: DafViewPayload } | null>,
+  settle: (pieces: Record<string, DafViewPiece>) => void,
+): Promise<DafViewPayload | null> {
+  const saved = await savedP;
+  if (!saved) {
+    settle({});
+    return null;
+  }
+  settle(saved.value.pieces ?? {});
+  return { ...saved.value, complete: true };
 }
 
 /**
