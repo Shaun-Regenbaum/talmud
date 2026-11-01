@@ -26,6 +26,7 @@ import { graphPins, type ReadingPins, readingPins } from '../lib/sage-graph/read
 import type { TalmudPageData } from '../lib/sefref';
 import { clampAmud, dafRefHe, TRACTATE_OPTIONS } from '../lib/sefref';
 import { conceptToTerm, glossaryForDaf, type Term } from '../lib/terms/registry';
+import { cachedYomi, fetchYomi } from '../lib/yomi';
 import {
   ArgumentSidebar,
   type GeographyExtras,
@@ -383,13 +384,23 @@ export interface DafViewerProps {
 
 export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   const params = new URLSearchParams(window.location.search);
-  const initialTractate = props.initialTractate ?? params.get('tractate') ?? 'Berakhot';
+  // A bare visit (no daf in the URL, not pinned by the tutorial) opens today's
+  // Daf Yomi. If today's answer is not saved yet it is fetched after mount; the
+  // reader shows Berakhot 2a for that moment.
+  const wantsYomi =
+    !props.embedded &&
+    props.initialTractate === undefined &&
+    !params.get('tractate') &&
+    !params.get('page');
+  const savedYomi = wantsYomi ? cachedYomi() : null;
+  const initialTractate =
+    props.initialTractate ?? params.get('tractate') ?? savedYomi?.tractate ?? 'Berakhot';
   const [tractate, setTractate] = createSignal(initialTractate);
   // Clamp the arrival page too — a shared/stale URL past the tractate's end
   // (?page=32b on Megillah) would otherwise open a page that doesn't exist
   // and trigger generation for it.
   const [page, setPage] = createSignal(
-    clampAmud(initialTractate, props.initialPage ?? params.get('page') ?? '2a'),
+    clampAmud(initialTractate, props.initialPage ?? params.get('page') ?? savedYomi?.page ?? '2a'),
   );
   const [active, setActive] = createSignal<ActiveWord | null>(null);
 
@@ -2709,25 +2720,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     setYomiError(null);
     setYomiLoading(true);
     try {
-      const now = new Date();
-      const url = `https://www.sefaria.org/api/calendars?year=${now.getFullYear()}&month=${now.getMonth() + 1}&day=${now.getDate()}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`Sefaria ${res.status}`);
-      const data = (await res.json()) as {
-        calendar_items?: Array<{
-          title?: { en?: string };
-          displayValue?: { en?: string };
-          category?: string;
-        }>;
-      };
-      const item = data.calendar_items?.find(
-        (ci) => ci.title?.en === 'Daf Yomi' && ci.category === 'Talmud',
-      );
-      const display = item?.displayValue?.en;
-      const m = display?.match(/^(.+?)\s+(\d+)$/);
-      if (!m) throw new Error('No Daf Yomi entry for today');
-      const t = m[1].trim();
-      const p = `${parseInt(m[2], 10)}a`;
+      const { tractate: t, page: p } = await fetchYomi();
       clearActive();
       setTractate(t);
       setPage(p);
@@ -2738,6 +2731,14 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
       setYomiLoading(false);
     }
   };
+
+  // First visit of the day with no daf in the URL: jump to today's daf. A
+  // failure leaves the default daf on screen without an error message.
+  onMount(() => {
+    if (wantsYomi && !savedYomi) {
+      void goToYomi().finally(() => setYomiError(null));
+    }
+  });
 
   const [perekOpen, setPerekOpen] = createSignal(false);
   const perakim = () => perakimOf(tractate());
