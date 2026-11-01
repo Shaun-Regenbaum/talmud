@@ -24,16 +24,16 @@
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",
-    "@cloudflare/codemode": "^0.5.2",
-    "@hono/mcp": "^0.3.2",
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "hono": "^4.13.7"
+    "@cloudflare/codemode": "^0.5.5",
+    "@hono/mcp": "^0.3.5",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "hono": "^4.13.14"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260914.1",
+    "@cloudflare/workers-types": "^5.20261029.1",
     "@types/node": "22",
     "miniflare": "4.20260730.0",
     "typescript": "^5.7.0",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.5"
   }
 }
