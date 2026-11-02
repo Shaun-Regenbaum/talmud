@@ -63,6 +63,8 @@ CHANGE_FIELDS = {'parentRevision', 'description', 'sourceReadingStore', 'sourceR
                  'sourceReadingInputs', 'sourceReadingOwnership', 'legacyGraphRevision', 'records'}
 CHECKED_FIELDS = {'parentRevision', 'description', 'sourceReadingStore', 'checkedSelection', 'checkedRootApprovals',
                   'checkedBundles', 'sourceReadingOwnership', 'legacyGraphRevision', 'records'}
+MACHINE_FIELDS = {'parentRevision', 'description', 'sourceReadingStore', 'machineSelection', 'machineArtifacts',
+                  'sourceReadingOwnership', 'legacyGraphRevision', 'records'}
 UPGRADE_FIELDS = {'parentRevision', 'description', 'sourceReadingStoreUpgrade', 'records'}
 COLUMNS = 'record_id,kind,passage_id,ref,subject_id,object_id,authority,decision,payload_sha256,payload_json'
 
@@ -191,6 +193,18 @@ def validate_changes(changes, rows, parent, checked_selections=()):
             changes['sourceReadingOwnership'], changes['parentRevision'], changes['legacyGraphRevision'], existing)
         require(changes == expected, 'Checked store records differ from strict reconstruction')
         return block
+    if 'machineSelection' in changes:
+        import machine_source_store
+        require(set(changes) == MACHINE_FIELDS, 'A machine store import cannot carry other changes')
+        require(changes['sourceReadingStore'] == block, 'Parent revision belongs to another source-reading store')
+        pin = digest(changes['machineSelection'])
+        require(pin in set(checked_selections), 'Machine release selection is not pinned by the caller')
+        pinned_ownership(store, changes['sourceReadingOwnership'])
+        expected = machine_source_store.changes_for(
+            block, changes['machineSelection'], pin, changes['machineArtifacts'], changes['sourceReadingOwnership'],
+            changes['parentRevision'], changes['legacyGraphRevision'], existing)
+        require(changes == expected, 'Machine store records differ from strict reconstruction')
+        return block
     require(set(changes) == CHANGE_FIELDS, 'A source-reading store import cannot carry other changes')
     require(changes['sourceReadingStore'] == block, 'Parent revision belongs to another source-reading store')
     require(changes['sourceReadingVersion'] == v1.VERSION, 'Unknown source reading import')
@@ -265,14 +279,20 @@ def route(capture):
     return out, receipt
 
 
-def verify_store(export, manifest_path, artifacts, ownership_specs, parent_receipt=None, full=False, checked=None):
+def verify_store(export, manifest_path, artifacts, ownership_specs, parent_receipt=None, full=False, checked=None,
+                 machine_only=False):
     """Read a store export back after an import. Records new in this revision are rebuilt from their R2
     artifacts, downloaded again, and must equal the importer's rows. Records kept from the parent must be
     the parent's exact versions; the parent's own read-back receipt covers them. With `full`, every
     passage is rebuilt, whatever its parent's receipt says. `checked` lists root's checked selections,
     each `dict(selection=TEXT, pin=SHA256 given separately, approvals={file hash: text})`. A single dict
-    remains supported. All stored selections are required, including selections inherited from the parent."""
-    return _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full, checked)[0]
+    remains supported. All stored selections are required, including selections inherited from the parent.
+    With `machine_only`, only the unreviewed machine readings new in this revision are rebuilt. Passages
+    inherited from the parent are still required to be its exact record versions, but are not rebuilt, so no
+    parent receipt is needed. The receipt says `scope: machine-only`, and no full verification accepts it as a
+    parent receipt: it vouches for nothing but the machine readings."""
+    return _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full, checked,
+                      machine_only=machine_only)[0]
 
 
 def readback(export, manifest_path, artifacts, ownership_specs, checked=None, checked_rows=False):
@@ -293,7 +313,8 @@ def readback(export, manifest_path, artifacts, ownership_specs, checked=None, ch
 
 
 def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt, full, checked=None, with_checked=False,
-               checked_rows=False):
+               checked_rows=False, machine_only=False):
+    require(not (machine_only and full), 'A machine-only verification cannot be a full one')
     from verify_d1 import verify
     exported = verify(export, manifest_path)
     manifest = json.loads(manifest_path.read_text())
@@ -320,19 +341,33 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                     'A store release cannot change or drop a parent record')
             parent_manifest = json.loads(db.execute('SELECT manifest_json FROM sage_graph_revisions WHERE id=?',
                                                     (parent,)).fetchone()[0])
-            if inherited and not full:
+            if inherited and not full and not (machine_only and parent_receipt is None):
                 require(isinstance(parent_receipt, dict) and parent_receipt.get('revision') == parent
                         and parent_receipt.get('matchesImporter') is True
-                        and parent_receipt.get('recordSetSha256') == parent_manifest['recordSetSha256'],
+                        and parent_receipt.get('recordSetSha256') == parent_manifest['recordSetSha256']
+                        and (machine_only or parent_receipt.get('scope', 'all') == 'all'),
                         'The parent revision needs its own read-back receipt')
     import checked_source_store
     allowed = KINDS | (checked_source_store.KINDS if contract == 2 else set())
     require(all(r['kind'] in allowed for r in found), 'Unexpected record kind in a source-reading store')
+    import machine_source_store
+    given = [checked] if isinstance(checked, dict) else list(checked or [])
+    machine_inputs = [c for c in given if c.get('machine')]
+    machine_cases = {}
+    for entry in machine_inputs:
+        require(set(entry) == {'selection', 'pin', 'machine'} and entry['pin'] not in machine_cases,
+                'Each machine selection needs its text and external pin once')
+        machine_cases[entry['pin']] = machine_source_store.selected_cases(entry['selection'], entry['pin'])[1]
+    checked = [c for c in given if not c.get('machine')] or None
     selections = checked_source_store.selection_index(checked)
-    envelopes = [r for r in found if r['kind'] == 'checked_reading']
-    require({r['data']['selectionSha256'] for r in envelopes} <= set(selections),
+    all_envelopes = [r for r in found if r['kind'] == 'checked_reading']
+    envelopes = [r for r in all_envelopes if r['data'].get('origin') != machine_source_store.ORIGIN]
+    machine_envelopes = [r for r in all_envelopes if r['data'].get('origin') == machine_source_store.ORIGIN]
+    require(machine_only or {r['data']['selectionSha256'] for r in envelopes} <= set(selections),
             "Checked readings need root's pinned selection for every stored selection")
-    raw_results = [r['data']['supersedes']['rawResultHash'] for r in envelopes]
+    require({r['data']['selectionSha256'] for r in machine_envelopes} <= set(machine_cases),
+            'Machine readings need their pinned selection for every stored selection')
+    raw_results = [r['data']['supersedes']['rawResultHash'] for r in all_envelopes]
     require(len(raw_results) == len(set(raw_results)), 'Two checked versions of one raw result')
     checked_passages = {}
     runs = [r for r in found if r['kind'] == 'source_reading_run']
@@ -353,7 +388,12 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
             require(len(envelope) == 1, 'A checked reading needs exactly one envelope')
             data = envelope[0]['data']
             selection_pin = data['selectionSha256']
-            cases = selections[selection_pin]
+            is_machine = data.get('origin') == machine_source_store.ORIGIN
+            if machine_only and not is_machine:
+                require(all(r['record_id'] in inherited for r in group),
+                        'A machine-only verification found a new reading that is not a machine reading: ' + pid)
+                continue
+            cases = (machine_cases if is_machine else selections)[selection_pin]
             require(data['jobId'] in cases, 'Checked reading is absent from its pinned selection')
             if not full and all(r['record_id'] in inherited for r in group):
                 continue  # unchanged since the parent, whose receipt covers it
@@ -364,7 +404,8 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                     and len(raw) == data['artifact']['bytes'], 'Downloaded R2 file differs from its envelope: ' + path.name)
             pin = STORES[store]['ownershipManifestSha256']
             require(pin in indexes, 'Ownership manifest is not pinned for this check')
-            name, expected = checked_source_store.records(raw.decode(), cases[data['jobId']], indexes[pin], selection_pin)
+            build = machine_source_store.records if is_machine else checked_source_store.records
+            name, expected = build(raw.decode(), cases[data['jobId']], indexes[pin], selection_pin)
             require(name == store and sorted(group, key=lambda r: r['record_id']) == sorted(expected, key=lambda r: r['record_id']),
                     'Stored checked reading differs from its approved artifact: ' + pid)
             bundles[pid] = data['artifact']['sha256']
@@ -416,6 +457,8 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                    countsByKind=dict(sorted(Counter(r['kind'] for r in found).items())),
                    artifactsChecked=len(bundles), matchesImporter=True, revisionState=state,
                    checkedPassages=len(checked_passages))
+    if machine_only:
+        receipt['scope'] = 'machine-only'
     return (receipt, passages, checked_passages) if with_checked else (receipt, passages)
 
 
@@ -519,6 +562,48 @@ def prepare_checked(store, selection_path, selection_pin, parent_db, parent_revi
                 parentRevision=parent_revision, legacyGraph=legacy_revision, rawResultsInLegacyGraph=0)
 
 
+def prepare_machine(store, selection_path, selection_pin, artifacts_dir, parent_db, parent_revision, ownership, legacy_db,
+                    legacy_revision, output):
+    """Changes and R2 files for a machine release. `selection_pin` is the hash the caller pinned for the
+    selection file; the artifact files named in it are found in `artifacts_dir` and checked through it."""
+    import machine_source_store
+    selection_text = selection_path.read_text()
+    _, cases = machine_source_store.selected_cases(selection_text, selection_pin)
+    artifacts = {job: (artifacts_dir / (case['bundleFileSha256'] + '.json')).read_text() for job, case in cases.items()}
+    rows = machine_source_store.rows_for(store, cases, artifacts, pinned_index(ownership), selection_pin)
+    keys = sorted({r['record_id'] for r in rows})
+    parent, existing = _read_rows(parent_db, parent_revision, keys)
+    block = parent.get('sourceReadingStore')
+    require(contract_of(block) == 2 and block['name'] == store, 'Upgrade the store before adding machine readings')
+    require(parent['newest'], 'A store release must extend the newest verified revision')
+    legacy, overlap = _read_rows(legacy_db, legacy_revision, keys)
+    require(not is_store(legacy), 'The legacy revision is a source-reading store')
+    require(legacy['newest'], 'The legacy graph copy must be its newest verified revision')
+    require(not overlap, 'The legacy graph already holds these records: ' + ', '.join(sorted(overlap)[:5]))
+    with closing(sqlite3.connect(parent_db.resolve().as_uri() + '?mode=ro', uri=True)) as db:
+        stored = {r[0]: item(r) for r in db.execute(
+            f"SELECT {COLUMNS} FROM {record_table(db)} WHERE revision_id=? AND kind='checked_reading'", (parent_revision,))}
+    changes = machine_source_store.changes_for(block, selection_text, selection_pin, artifacts, ownership,
+                                               parent_revision, legacy_revision,
+                                               {**{k: item(r) for k, r in existing.items()}, **stored})
+    output.mkdir(parents=True, exist_ok=False)
+    (output / 'artifacts').mkdir()
+    mine = {r['data']['jobId'] for r in rows if r['kind'] == 'checked_reading'}
+    for job in mine:
+        (output / 'artifacts' / (cases[job]['bundleFileSha256'] + '.json')).write_text(artifacts[job])
+    (output / 'changes.json').write_text(json.dumps(changes, ensure_ascii=False, indent=2) + '\n')
+    return dict(store=store, readings=len(mine), selectedReadings=len(cases), records=len(changes['records']),
+                parentRevision=parent_revision, legacyGraph=legacy_revision)
+
+
+def machine_inputs(selection_path, selection_pin):
+    """A machine selection for verify and readback."""
+    import machine_source_store
+    text = selection_path.read_text()
+    require(machine_source_store.sha(text) == selection_pin, 'Machine release selection is not the one that was pinned')
+    return dict(selection=text, pin=selection_pin, machine=True)
+
+
 def checked_inputs(selection_path, selection_pin):
     """Root's checked selection and the approval files it names, for verify and readback."""
     import checked_source_store
@@ -552,6 +637,13 @@ def main():
         p.add_argument(name, type=Path, required=True)
     for name in ('--parent-revision', '--ownership-hash', '--legacy-revision'):
         p.add_argument(name, required=True)
+    p = sub.add_parser('prepare-machine', help='Unreviewed machine readings, pinned by their own selection')
+    p.add_argument('--store', choices=sorted(STORES), required=True)
+    p.add_argument('--machine-selection', nargs=2, required=True, metavar=('SELECTION_JSON', 'SHA256'))
+    for name in ('--artifacts', '--parent-db', '--ownership', '--legacy-db', '--output'):
+        p.add_argument(name, type=Path, required=True)
+    for name in ('--parent-revision', '--ownership-hash', '--legacy-revision'):
+        p.add_argument(name, required=True)
     for command in ('verify', 'readback'):
         p = sub.add_parser(command)
         for name in ('--export', '--manifest', '--artifacts', '--receipt' if command == 'verify' else '--output'):
@@ -559,14 +651,21 @@ def main():
         p.add_argument('--ownership', nargs=2, action='append', required=True, metavar=('MANIFEST_JSON', 'REVIEWED_SHA256'))
         p.add_argument('--checked-selection', nargs=2, action='append', metavar=('SELECTION_JSON', 'ROOT_SHA256'),
                        help='Repeat for every selection held by the revision, including inherited readings')
+        p.add_argument('--machine-selection', nargs=2, action='append', metavar=('SELECTION_JSON', 'SHA256'),
+                       help='Repeat for every machine selection held by the revision, including inherited readings')
         if command == 'verify':
             p.add_argument('--parent-receipt', type=Path, help="The parent revision's read-back receipt, unless it is empty")
+            p.add_argument('--machine-only', action='store_true',
+                           help='Rebuild only the new unreviewed machine readings; the receipt then covers nothing else')
         else:
             p.add_argument('--with-checked-rows', action='store_true',
                            help='Also carry each checked passage\'s stored rows, for the name-candidate importer')
     args = parser.parse_args()
     checked = ([checked_inputs(Path(path), pin) for path, pin in args.checked_selection]
-               if getattr(args, 'checked_selection', None) and args.command in ('verify', 'readback') else None)
+               if getattr(args, 'checked_selection', None) and args.command in ('verify', 'readback') else [])
+    if getattr(args, 'machine_selection', None) and args.command in ('verify', 'readback'):
+        checked += [machine_inputs(Path(path), pin) for path, pin in args.machine_selection]
+    checked = checked or None
     if args.command == 'route':
         parts, receipt = route(json.loads(args.capture.read_text()))
         args.output.mkdir(parents=True, exist_ok=False)
@@ -592,6 +691,11 @@ def main():
         ownership = dict(manifest=json.loads(args.ownership.read_text()), expectedManifestSha256=args.ownership_hash)
         result = prepare_checked(args.store, Path(args.checked_selection[0]), args.checked_selection[1], args.parent_db,
                                  args.parent_revision, ownership, args.legacy_db, args.legacy_revision, args.output)
+    elif args.command == 'prepare-machine':
+        ownership = dict(manifest=json.loads(args.ownership.read_text()), expectedManifestSha256=args.ownership_hash)
+        result = prepare_machine(args.store, Path(args.machine_selection[0]), args.machine_selection[1], args.artifacts,
+                                 args.parent_db, args.parent_revision, ownership, args.legacy_db, args.legacy_revision,
+                                 args.output)
     elif args.command == 'readback':
         specs = [dict(manifest=json.loads(Path(m).read_text()), expectedManifestSha256=h) for m, h in args.ownership]
         result = readback(args.export, args.manifest, args.artifacts, specs, checked, args.with_checked_rows)
@@ -600,7 +704,8 @@ def main():
     else:
         specs = [dict(manifest=json.loads(Path(m).read_text()), expectedManifestSha256=h) for m, h in args.ownership]
         parent = json.loads(args.parent_receipt.read_text()) if args.parent_receipt else None
-        result = verify_store(args.export, args.manifest, args.artifacts, specs, parent, checked=checked)
+        result = verify_store(args.export, args.manifest, args.artifacts, specs, parent, checked=checked,
+                              machine_only=args.machine_only)
         args.receipt.write_text(json.dumps(result, indent=2) + '\n')
     print(json.dumps(result))
 

@@ -173,7 +173,13 @@ export function InitialInteractions(props: {
         <RabbiInteractions
           data={data()}
           subjectName={props.name}
-          footer={t(props.reading.checked ? 'checked.counts' : 'initial.counts')}
+          footer={t(
+            props.reading.checked?.machine
+              ? 'machine.counts'
+              : props.reading.checked
+                ? 'checked.counts'
+                : 'initial.counts',
+          )}
           renderEvidence={(partner) => (
             <>
               <Show

@@ -14,7 +14,16 @@ export function PersonReadingBasis(props: {
       <summary>{t('initial.basis')}</summary>
       <p>{props.reading.reason}</p>
       {props.children}
-      <Show when={props.reading.checked && !props.reading.checked.wholeReadingFullyChecked}>
+      <Show when={props.reading.checked?.machine}>
+        <p>{t('machine.note')}</p>
+      </Show>
+      <Show
+        when={
+          props.reading.checked &&
+          !props.reading.checked.machine &&
+          !props.reading.checked.wholeReadingFullyChecked
+        }
+      >
         <p>{t('checked.partial')}</p>
       </Show>
       <For each={props.reading.reviewedPeople}>

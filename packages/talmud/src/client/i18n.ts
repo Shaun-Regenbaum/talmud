@@ -188,6 +188,15 @@ const CATALOG = {
     en: 'These people and connections were checked. Other details in this passage still need review.',
     he: 'הדמויות והקשרים האלה נבדקו. פרטים נוספים בקטע עדיין טעונים בדיקה.',
   },
+  'machine.cardTitle': { en: 'Machine reading, not reviewed', he: 'קריאת מכונה, שלא נבדקה' },
+  'machine.note': {
+    en: 'A computer read this passage and found these people and connections. No person has checked them yet, so some may be wrong.',
+    he: 'מחשב קרא את הקטע ומצא את הדמויות והקשרים האלה. אף אדם עדיין לא בדק אותם, ולכן חלקם עלולים להיות שגויים.',
+  },
+  'machine.counts': {
+    en: 'Counted from a machine reading that no person has checked. These local connections do not establish historical identities or dates.',
+    he: 'הספירה מבוססת על קריאת מכונה שאף אדם לא בדק. הקשרים המקומיים אינם קובעים זהויות היסטוריות או תאריכים.',
+  },
   'checked.counts': {
     en: 'Counted from checked source passages. These local connections do not establish historical identities or dates.',
     he: 'הספירה מבוססת על קטעי מקור שנבדקו. הקשרים המקומיים אינם קובעים זהויות היסטוריות או תאריכים.',

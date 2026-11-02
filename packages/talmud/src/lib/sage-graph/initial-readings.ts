@@ -89,6 +89,8 @@ export interface InitialReading {
   checked?: {
     artifactHash: string;
     wholeReadingFullyChecked: boolean;
+    /** A model made this reading and no person has checked it. */
+    machine?: boolean;
     sourceCoverage: CheckedCoverage[];
     mentions: ReadingAnchor[];
   };

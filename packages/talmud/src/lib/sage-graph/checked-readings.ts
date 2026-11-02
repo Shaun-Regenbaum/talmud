@@ -99,6 +99,8 @@ interface Envelope {
   historicalIdentityAccepted: false;
   confirmedFacts: false;
   wholeReadingFullyChecked: boolean;
+  /** Set to 'machine_unreviewed' when a model made the reading and no person has checked it. */
+  origin?: string;
   binding: { jobHash: string; rawResultHash: string; rawFileSha256: string };
   supersedes: { rawResultHash: string; rawFileSha256: string };
 }
@@ -392,6 +394,7 @@ export function checkedPerson(
   card.initialReading.checked = {
     artifactHash: passage.envelope.artifactHash,
     wholeReadingFullyChecked: passage.envelope.wholeReadingFullyChecked,
+    machine: passage.envelope.origin === 'machine_unreviewed',
     sourceCoverage: passage.coverage,
     mentions: passage.allMentions.get(localId)!,
   };
