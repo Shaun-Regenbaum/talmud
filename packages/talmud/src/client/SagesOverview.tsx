@@ -8,6 +8,7 @@ import {
   type SageOverview,
 } from '../lib/sage-graph/overview';
 import { lang, t } from './i18n';
+import { MachineReadings } from './MachineReadings';
 import { SagesNetwork } from './SagesNetwork';
 import { layoutOverview, placeLabels } from './sageOverviewLayout';
 
@@ -131,6 +132,7 @@ function Loaded(props: { overview: SageOverview }): JSX.Element {
           </For>
         </ul>
       </Show>
+      <MachineReadings />
       <p class="sages-overview-foot">
         {t('sages.overview.foot', { date: date() })} <bdi>{props.overview.change}</bdi>
       </p>

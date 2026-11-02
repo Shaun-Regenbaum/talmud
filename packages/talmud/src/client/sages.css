@@ -901,3 +901,13 @@
   color: var(--muted);
   font-size: 0.8rem;
 }
+
+.sages-machine {
+  margin-top: 2rem;
+}
+.sages-machine h4 {
+  margin: 1.2rem 0 0.4rem;
+}
+.sages-machine small {
+  color: var(--muted, #666);
+}
