@@ -16,7 +16,7 @@ SHA-256 and its counts, and its own hash is given separately by the caller. The 
 answers (`machine-edge-checks-v1`), kept in R2 at `source-readings/machine-edges-v1/artifacts/<sha256>.json`.
 
 Rows (new kinds, the existing store format):
-  machine_edge_release   one per release: counts, artifact, selection pin and the list of its edge rows
+  machine_edge_release   one per release: counts, artifact, selection pin and the hash of the list of its edge rows
   machine_verified_edge  one per kept edge: the two sages, the relation, the passage and who judged it
 """
 import copy
@@ -149,7 +149,8 @@ def records(artifact_text, selection, selection_pin, lookup):
         object_id=None, authority='screening', decision='needs_review',
         data=dict(format=checked.FORMAT, version=ARTIFACT_VERSION, releaseId=rid, selectionSha256=selection_pin,
                   artifact=artifact_ref(artifact_text), passages=len(artifact['items']), edgesChecked=checked_n, edgesKept=len(out),
-                  verdicts=dict(sorted(by_verdict.items())), contains={'machine_verified_edge': ids}, historicalIdentityAccepted=False,
+                  verdicts=dict(sorted(by_verdict.items())), edgeRecords=len(ids), edgeRecordsSha256=sha(canonical_text(ids)),
+                  historicalIdentityAccepted=False,
                   confirmedFacts=False))
     return [envelope] + out
 

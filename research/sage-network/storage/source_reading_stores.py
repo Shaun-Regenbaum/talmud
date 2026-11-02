@@ -645,10 +645,10 @@ def prepare_edges(store, selection_path, selection_pin, artifact_path, parent_db
     selection = machine_edge_store.selected_cases(selection_text, selection_pin)
     artifact = machine_edge_store.parse_artifact(artifact_text)
     keys = set()
-    for item in artifact['items']:
-        passage = item['reading_passage_id']
+    for checked_item in artifact['items']:
+        passage = checked_item['reading_passage_id']
         keys.add('checked_reading:' + passage)
-        keys.update(f"checked_connection:{passage}/{v['id']}" for v in item['verdicts'])
+        keys.update(f"checked_connection:{passage}/{v['id']}" for v in checked_item['verdicts'])
     parent, existing = _read_rows(parent_db, parent_revision, sorted(keys))
     block = parent.get('sourceReadingStore')
     require(contract_of(block) == 2 and block['name'] == store, 'Upgrade the store before adding checked edges')
