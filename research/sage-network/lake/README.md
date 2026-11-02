@@ -81,6 +81,33 @@ pilot's dependency directory, `/work/sage-network/pilot-v1/deps`.
 These are proposals. No review approves a person merge, a date or a graph
 edge.
 
+## Snapshot 4 adds the unreviewed machine readings
+
+Snapshot 4 holds the model readings made on subscription logins, so they can be processed later. It adds four
+tables and changes none of the 29 earlier ones.
+
+| Table | Contents |
+|---|---|
+| `machine_runs` | One row per import run. The manifest holds the recipe hash, the counts and the sample-check summary |
+| `machine_readings` | Every saved answer for a frozen Bavli job, valid or not, with the model's exact answer text, the reader's model family and the request hash |
+| `machine_checks` | One row for each person or connection a second model judged from the text alone, by the other model family |
+| `machine_releases` | Which source-reading store revision holds a reading, in staging or production, with its passage ID |
+
+Nobody has reviewed these readings. A random sample was judged by the other model family (claude on codex and
+codex on claude). A control with planted errors showed the checker catches most of them. These are not accepted
+people, merges, dates or graph edges. `build` runs `validate_machine` on every later build, and
+`check_machine.py BASE RELEASE` also rejects eleven kinds of damaged copy.
+
+```sh
+python research/sage-network/lake/machine_store.py \
+  --base /tmp/sage-study.duckdb --out /tmp/sage-study-next.duckdb \
+  --results STATE/results --shards JOBS/shards --checks CHECKS_DIR \
+  --release r1:production:bavli:SELECTION.json:MANIFEST.json --parent-snapshot 4
+python research/sage-network/lake/check_machine.py /tmp/sage-study.duckdb /tmp/sage-study-next.duckdb
+```
+
+A later run adds only new or changed readings, checks and releases. Publish it from the shared writer host as above.
+
 ## What the first import keeps
 
 | Table | Contents |

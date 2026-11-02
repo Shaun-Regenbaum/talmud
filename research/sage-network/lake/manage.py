@@ -37,6 +37,18 @@ def guard_research_parents(con, target, snapshot):
             require(parent == snapshot, f"new research run names parent snapshot {parent}, but current snapshot is {snapshot}")
 
 
+def guard_machine_parents(con, target, snapshot):
+    """A newly published machine reading run must name the snapshot it extends."""
+    if "machine_runs" not in core.tables(con, "src"):
+        return
+    existing = set()
+    if "machine_runs" in core.tables(con, target):
+        existing = {row[0] for row in con.execute(f"SELECT run_id FROM {core.ident(target)}.machine_runs").fetchall()}
+    for run_id, parent in con.execute("SELECT run_id,parent_snapshot FROM src.machine_runs").fetchall():
+        if run_id not in existing:
+            require(parent == snapshot, f"new machine reading run names parent snapshot {parent}, but current snapshot is {snapshot}")
+
+
 @contextmanager
 def write_lock(settings):
     if settings.catalog.startswith("postgres:"):
@@ -74,6 +86,7 @@ def _publish_locked(path, expected_snapshot, message, settings, initialize=False
         require(actual == expected_snapshot, f"lake changed: expected {expected_snapshot}, found {actual}; pull it again")
         guard_append_only(con, target)
         guard_research_parents(con, target, actual)
+        guard_machine_parents(con, target, actual)
         result = core.push(con, LAKE, source="src", target=target, author="sage-network", message=message, extra={"source_sha256": source_hash, "storage_contract": STORAGE_VERSION, "append_only": True})
     # Export even after a no-op: a previous commit may have succeeded just before
     # its index export failed. Retrying must repair that read path.
