@@ -276,10 +276,14 @@ sageGraph.get('/network', async (c) => {
         edges: Record<string, { from?: string; to?: string; kind?: string; weight?: number }>;
       }>(c.env.CACHE, keyForRabbiVoiceGraph(), voiceGraphBlobShape)
     : null;
+  // Edges that a second model confirmed live in the source reading stores. A store that cannot be read
+  // leaves them out; the rest of the network does not depend on it.
+  const stores = await resolveSourceStores(c.env, (name) => c.req.query(name));
+  const sourceStores = 'error' in stores ? [] : stores.stores;
   const cache =
     typeof caches === 'undefined' ? null : (caches as unknown as { default: Cache }).default;
   const key = new Request(
-    `https://cache.invalid/sage-network-v2/${saved.id}/${voice?.builtAt ?? 0}`,
+    `https://cache.invalid/sage-network-v3/${saved.id}/${voice?.builtAt ?? 0}/${sourceStores.map((s) => s.revision).join(',')}`,
   );
   const kept = await cache?.match(key);
   const headers = (state: string) => ({
@@ -301,8 +305,30 @@ sageGraph.get('/network', async (c) => {
       .bind(saved.id),
   ]);
   const text = (v: unknown) => (typeof v === 'string' && v ? v : null);
+  const crosschecked = new Map<string, { a: string; b: string; kind: string; weight: number }>();
+  for (const store of sourceStores) {
+    try {
+      const found = await store.db
+        .prepare(
+          `SELECT subject_id AS a, object_id AS b, json_extract(payload_json,'$.relation') AS kind, COUNT(*) AS weight FROM sage_graph_all_records WHERE revision_id=? AND kind='machine_verified_edge' GROUP BY a, b, kind`,
+        )
+        .bind(store.revision)
+        .all<{ a: string; b: string; kind: string; weight: number }>();
+      for (const e of found.results) {
+        const symmetric = e.kind === 'spouse_of' || e.kind === 'sibling_of';
+        const [a, b] = symmetric && e.b < e.a ? [e.b, e.a] : [e.a, e.b];
+        const id = JSON.stringify([a, b, e.kind]);
+        const old = crosschecked.get(id);
+        if (old) old.weight += e.weight;
+        else crosschecked.set(id, { a, b, kind: e.kind, weight: e.weight });
+      }
+    } catch {
+      // The network is still correct without this layer.
+    }
+  }
   const body = JSON.stringify(
     buildSageNetwork({
+      crosscheckedEdges: [...crosschecked.values()],
       revision: saved.id,
       hierarchy: (hierarchyData as unknown as { nodes: Record<string, HierarchyNode> }).nodes,
       isPerson: (_id, node) => isRabbinicHebrewName(node.canonicalHe),
