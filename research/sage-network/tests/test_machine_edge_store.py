@@ -129,7 +129,9 @@ class EdgeStoreTests(unittest.TestCase):
         rows = edges.records(self.artifact, edges.selected_cases(self.selection, self.pin), self.pin, self.parent_rows().get)
         envelope, kept = rows[0], rows[1:]
         self.assertEqual(envelope['kind'], 'machine_edge_release')
-        self.assertEqual(envelope['data']['contains']['machine_verified_edge'], sorted(r['record_id'] for r in kept))
+        ids = sorted(r['record_id'] for r in kept)
+        self.assertEqual((envelope['data']['edgeRecords'], envelope['data']['edgeRecordsSha256']),
+                         (len(ids), edges.sha(edges.canonical_text(ids))))
         self.assertEqual((envelope['data']['passages'], envelope['data']['edgesKept']), (len(CASES), len(kept)))
         self.assertTrue(kept, 'the real checks keep some edges')
         total = sum(len(c['check']['verdicts']) for c in CASES)

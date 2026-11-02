@@ -875,8 +875,8 @@
 }
 .sages-link.layer-crosschecked {
   stroke: var(--ink-slate);
-  stroke-width: 1.2;
-  stroke-opacity: 0.6;
+  stroke-width: 1;
+  stroke-opacity: 0.3;
 }
 .sages-link.layer-curated {
   stroke: var(--ink-teal);
