@@ -911,3 +911,15 @@
 .sages-machine small {
   color: var(--muted, #666);
 }
+
+.sages-fold {
+  margin-top: 1.2rem;
+  border-top: 1px solid var(--rule, #ddd);
+  padding-top: 0.6rem;
+}
+.sages-fold > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.05rem;
+  padding: 0.3rem 0;
+}

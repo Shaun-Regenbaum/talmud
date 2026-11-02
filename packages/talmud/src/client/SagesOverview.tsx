@@ -31,12 +31,13 @@ export function SagesOverview(): JSX.Element {
     <section class="sages-overview" aria-labelledby="sages-overview-title">
       <h2 id="sages-overview-title">{t('sages.overview.title')}</h2>
       <p class="sages-overview-lead">{t('sages.overview.lead')}</p>
+      <h3 class="sages-overview-first">{t('sages.overview.allTitle')}</h3>
+      <SagesNetwork />
       <Show when={data.loading}>
         <div class="sages-skeleton" role="status" aria-live="polite">
           <p class="sages-skeleton-text">
             <span class="sages-spinner" aria-hidden="true" /> {t('sages.overview.loading')}
           </p>
-          <div class="sages-skeleton-graph" aria-hidden="true" />
           <div class="sages-skeleton-lines" aria-hidden="true">
             <i />
             <i />
@@ -64,74 +65,74 @@ function Loaded(props: { overview: SageOverview }): JSX.Element {
   const date = () => props.overview.createdAt.slice(0, 10);
   return (
     <>
-      <h3 class="sages-overview-first">{t('sages.overview.allTitle')}</h3>
-      <SagesNetwork />
       <h3>{t('sages.overview.groupsTitle')}</h3>
       <NetworkGraph overview={props.overview} number={number} />
-      <h3>{t('sages.overview.openTitle')}</h3>
-      <ul class="sages-open">
-        <Open
-          n={number(s().proposalsWaiting)}
-          text={t('sages.overview.open.proposals')}
-          href="#initial-readings"
-          link={t('sages.overview.open.proposalsLink')}
-        />
-        <Open
-          n={number(s().identitiesAccepted)}
-          text={t('sages.overview.open.accepted', {
-            uncertain: number(s().assignmentsUncertain),
-            supported: number(s().assignmentsSupported),
-          })}
-        />
-        <Open
-          n={number(s().nodes - s().nodesNamed)}
-          text={t('sages.overview.open.local', {
-            total: number(s().nodes),
-            named: number(s().nodesNamed),
-          })}
-        />
-        <Open
-          n={number(s().nodes - s().nodesWithEra)}
-          text={t('sages.overview.open.noEra', { total: number(s().nodes) })}
-        />
-        <Open
-          n={number(s().passagesWithConnections)}
-          text={t('sages.overview.open.coverage', {
-            passages: number(s().passages),
-            works: number(s().worksWithConnections),
-          })}
-        />
-        <Open
-          n={number(s().connectionsStatedOnly)}
-          text={t('sages.overview.open.stated', { total: number(s().connections) })}
-        />
-        <Open
-          n={number(s().nameMentionsPending + s().withheld)}
-          text={t('sages.overview.open.held', {
-            pending: number(s().nameMentionsPending),
-            withheld: number(s().withheld),
-          })}
-        />
-      </ul>
-      <Show when={props.overview.works.length}>
-        <h3>{t('sages.overview.worksTitle')}</h3>
-        <ul class="sages-works">
-          <For each={props.overview.works.slice(0, 10)}>
-            {(w) => (
-              <li>
-                <span class="sages-works-name">{w.work}</span>
-                <span
-                  class="sages-works-bar"
-                  style={{
-                    width: `${Math.max(4, (w.connections / props.overview.works[0].connections) * 100)}%`,
-                  }}
-                />
-                <span class="sages-works-n">{number(w.connections)}</span>
-              </li>
-            )}
-          </For>
+      <details class="sages-fold">
+        <summary>{t('sages.overview.openTitle')}</summary>
+        <ul class="sages-open">
+          <Open
+            n={number(s().proposalsWaiting)}
+            text={t('sages.overview.open.proposals')}
+            href="#initial-readings"
+            link={t('sages.overview.open.proposalsLink')}
+          />
+          <Open
+            n={number(s().identitiesAccepted)}
+            text={t('sages.overview.open.accepted', {
+              uncertain: number(s().assignmentsUncertain),
+              supported: number(s().assignmentsSupported),
+            })}
+          />
+          <Open
+            n={number(s().nodes - s().nodesNamed)}
+            text={t('sages.overview.open.local', {
+              total: number(s().nodes),
+              named: number(s().nodesNamed),
+            })}
+          />
+          <Open
+            n={number(s().nodes - s().nodesWithEra)}
+            text={t('sages.overview.open.noEra', { total: number(s().nodes) })}
+          />
+          <Open
+            n={number(s().passagesWithConnections)}
+            text={t('sages.overview.open.coverage', {
+              passages: number(s().passages),
+              works: number(s().worksWithConnections),
+            })}
+          />
+          <Open
+            n={number(s().connectionsStatedOnly)}
+            text={t('sages.overview.open.stated', { total: number(s().connections) })}
+          />
+          <Open
+            n={number(s().nameMentionsPending + s().withheld)}
+            text={t('sages.overview.open.held', {
+              pending: number(s().nameMentionsPending),
+              withheld: number(s().withheld),
+            })}
+          />
         </ul>
-      </Show>
+        <Show when={props.overview.works.length}>
+          <h3>{t('sages.overview.worksTitle')}</h3>
+          <ul class="sages-works">
+            <For each={props.overview.works.slice(0, 10)}>
+              {(w) => (
+                <li>
+                  <span class="sages-works-name">{w.work}</span>
+                  <span
+                    class="sages-works-bar"
+                    style={{
+                      width: `${Math.max(4, (w.connections / props.overview.works[0].connections) * 100)}%`,
+                    }}
+                  />
+                  <span class="sages-works-n">{number(w.connections)}</span>
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+      </details>
       <MachineReadings />
       <p class="sages-overview-foot">
         {t('sages.overview.foot', { date: date() })} <bdi>{props.overview.change}</bdi>

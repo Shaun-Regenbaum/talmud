@@ -190,7 +190,7 @@ sageGraph.get('/machine', async (c) => {
   const parts = [];
   for (const store of stores.stores) {
     try {
-      const [readings, people, connections, held] = await store.db.batch<Record<string, string>>([
+      const [readings, people, kinds, pairs, held] = await store.db.batch<Record<string, string>>([
         store.db
           .prepare(
             `SELECT ref FROM sage_graph_all_records WHERE revision_id=? AND kind='checked_reading' AND json_extract(payload_json,'$.origin')='machine_unreviewed'`,
@@ -198,12 +198,24 @@ sageGraph.get('/machine', async (c) => {
           .bind(store.revision),
         store.db
           .prepare(
-            `SELECT subject_id AS id, json_extract(payload_json,'$.label') AS label, json_extract(payload_json,'$.form') AS form FROM sage_graph_all_records WHERE revision_id=? AND kind='checked_person' AND ${machine}`,
+            `SELECT json_extract(payload_json,'$.form') AS form, COUNT(*) AS n FROM sage_graph_all_records WHERE revision_id=? AND kind='checked_person' AND ${machine} GROUP BY form`,
           )
           .bind(store.revision),
         store.db
           .prepare(
-            `SELECT subject_id AS subject, object_id AS object, json_extract(payload_json,'$.predicate.value') AS relation, json_extract(payload_json,'$.broadType') AS broadType FROM sage_graph_all_records WHERE revision_id=? AND kind='checked_connection' AND ${machine}`,
+            `SELECT json_extract(payload_json,'$.predicate.value') AS relation, json_extract(payload_json,'$.broadType') AS broadType, COUNT(*) AS n FROM sage_graph_all_records WHERE revision_id=? AND kind='checked_connection' AND ${machine} GROUP BY relation, broadType`,
+          )
+          .bind(store.revision),
+        // Joined on the record tables, not the all-records view: the view's join runs out of memory.
+        store.db
+          .prepare(
+            `SELECT json_extract(a.payload_json,'$.label') AS a, json_extract(b.payload_json,'$.label') AS b, json_extract(c.payload_json,'$.predicate.value') AS relation, COUNT(*) AS n
+             FROM sage_graph_revision_members m
+             JOIN sage_graph_record_versions c ON c.id=m.version_id
+             JOIN sage_graph_record_versions a ON a.kind='checked_person' AND a.record_id='checked_person:'||c.subject_id
+             JOIN sage_graph_record_versions b ON b.kind='checked_person' AND b.record_id='checked_person:'||c.object_id
+             WHERE m.revision_id=? AND c.kind='checked_connection' AND json_extract(c.payload_json,'$.decision.action')='accept_unreviewed'
+             GROUP BY a, b, relation ORDER BY n DESC LIMIT 200`,
           )
           .bind(store.revision),
         store.db
@@ -217,8 +229,9 @@ sageGraph.get('/machine', async (c) => {
         revision: store.revision,
         rows: {
           readings: readings.results.map((r) => r.ref),
-          people: people.results as unknown as MachineRows['people'],
-          connections: connections.results as unknown as MachineRows['connections'],
+          peopleByForm: people.results as unknown as MachineRows['peopleByForm'],
+          connectionsByKind: kinds.results as unknown as MachineRows['connectionsByKind'],
+          pairs: pairs.results as unknown as MachineRows['pairs'],
           held: held.results as unknown as MachineRows['held'],
         },
       });
