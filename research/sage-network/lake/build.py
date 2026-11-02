@@ -73,6 +73,7 @@ class Staging:
 def validate(con):
     from pilot_store import validate_pilot
     from followup_store import validate_research
+    from machine_store import validate_machine
     problems = []
     joins = (
         ("source_segments", "unit_id", "source_units", "unit_id"),
@@ -142,6 +143,7 @@ def validate(con):
     require(not problems, "; ".join(problems))
     validate_pilot(con)
     validate_research(con)
+    validate_machine(con)
     present = {row[0] for row in con.execute("SHOW TABLES").fetchall()}
     return {t: con.execute(f"SELECT count(*) FROM {ident(t)}").fetchone()[0] for t in TABLES if t in present}
 

@@ -3,9 +3,10 @@
 from prophex_lake.config import Lake
 from pilot_store import PILOT_TABLES
 from followup_store import RESEARCH_TABLES
+from machine_store import MACHINE_TABLES
 
 VERSION = "sage-import-v1"
-STORAGE_VERSION = "sage-import-v1+passage-pilot-v1+source-investigation-v1"
+STORAGE_VERSION = "sage-import-v1+passage-pilot-v1+source-investigation-v1+machine-reading-v1"
 FAMILIES = (
     ("family", "Family"), ("transmission", "Transmission"),
     ("teaching", "Teaching"), ("speech", "Speech"), ("views", "Views"),
@@ -29,5 +30,6 @@ TABLES = {
 }
 TABLES.update(PILOT_TABLES)
 TABLES.update(RESEARCH_TABLES)
+TABLES.update(MACHINE_TABLES)
 KEYS = {name: (ddl.split()[0],) for name, ddl in TABLES.items()}
 LAKE = Lake("sage_network", "Source passages, earlier pair readings and proposed relationship reviews.", KEYS)
