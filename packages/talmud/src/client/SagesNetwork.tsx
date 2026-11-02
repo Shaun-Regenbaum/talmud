@@ -8,7 +8,7 @@ import { shortGenLabel } from './sageArcLayout';
 import { HEADER, layoutTimeline } from './sageNetworkLayout';
 import { placeLabels } from './sageOverviewLayout';
 
-const LAYERS: NetworkLayer[] = ['checked', 'curated', 'learned'];
+const LAYERS: NetworkLayer[] = ['checked', 'crosschecked', 'curated', 'learned'];
 
 type Pt = { x: number; y: number };
 
@@ -62,6 +62,7 @@ export function SagesNetwork(): JSX.Element {
 function Graph(props: { network: SageNetwork }): JSX.Element {
   const [on, setOn] = createSignal<Record<NetworkLayer, boolean>>({
     checked: true,
+    crosschecked: true,
     curated: true,
     // These links come from AI reading, not from a check, so they start switched off.
     learned: false,

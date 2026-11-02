@@ -3,9 +3,11 @@ import { canonicalSlug } from '../rabbi/identity';
 
 /** How a link is known.
  * - checked: read from the text and checked by the study (the 200 connections).
+ * - crosschecked: read from the text by a model, then judged by a model of the other family, which
+ *   confirmed the edge, its direction and which sage each end is.
  * - curated: teacher, student or colleague, taken from Sefaria's rabbi graph.
  * - learned: argues with, answers or cites, found by reading many dapim with AI. */
-export type NetworkLayer = 'checked' | 'curated' | 'learned';
+export type NetworkLayer = 'checked' | 'crosschecked' | 'curated' | 'learned';
 
 export interface NetworkNode {
   id: string;
@@ -53,6 +55,8 @@ export interface NetworkInput {
   } | null;
   checkedNodes: { id: string; label: string; labelHe: string | null; generation: string | null }[];
   checkedEdges: { a: string; b: string; mode: string }[];
+  /** Edges a second model confirmed. `weight` is how many passages say it. */
+  crosscheckedEdges?: { a: string; b: string; kind: string; weight: number }[];
   /** The registry also holds topics such as Torah or Tallit, and the learned graph hears Elijah and
    * God speak. A name counts as a sage only if this says so or it has a known period. */
   isPerson?: (id: string, node: HierarchyNode) => boolean;
@@ -140,6 +144,7 @@ export function buildSageNetwork(input: NetworkInput): SageNetwork {
     if (e.a.startsWith('local:') || e.b.startsWith('local:')) continue;
     add(e.a, e.b, 'checked', e.mode);
   }
+  for (const e of input.crosscheckedEdges ?? []) add(e.a, e.b, 'crosschecked', e.kind, e.weight);
 
   // Only people with at least one link are drawn. Their order is fixed so the answer is stable.
   const linked = new Set(raw.flatMap((e) => [e.a, e.b]));
@@ -147,7 +152,12 @@ export function buildSageNetwork(input: NetworkInput): SageNetwork {
     .filter((p) => linked.has(p.id))
     .sort((x, y) => x.id.localeCompare(y.id));
   const index = new Map(nodes.map((n, i) => [n.id, i]));
-  const edgesByLayer: Record<NetworkLayer, number> = { checked: 0, curated: 0, learned: 0 };
+  const edgesByLayer: Record<NetworkLayer, number> = {
+    checked: 0,
+    crosschecked: 0,
+    curated: 0,
+    learned: 0,
+  };
   const edges: NetworkEdge[] = raw
     .sort(
       (p, q) =>

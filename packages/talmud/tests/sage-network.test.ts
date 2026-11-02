@@ -25,6 +25,23 @@ const base = (over: Partial<NetworkInput> = {}): NetworkInput => ({
 });
 
 describe('buildSageNetwork', () => {
+  it('draws edges a second model confirmed as their own layer, and drops unknown sages', () => {
+    const out = buildSageNetwork(
+      base({
+        crosscheckedEdges: [
+          { a: 'rava', b: 'abaye', kind: 'opposes', weight: 3 },
+          { a: 'rava', b: 'not-a-sage', kind: 'opposes', weight: 1 },
+        ],
+      }),
+    );
+    expect(out.stats.edgesByLayer.crosschecked).toBe(1);
+    const edge = out.edges.find((e) => e[2] === 'crosschecked');
+    expect(edge?.[3]).toBe('opposes');
+    expect(edge?.[4]).toBe(3);
+    expect(out.stats.dropped).toBe(1);
+    expect(out.nodes.find((n) => n.id === 'rava')?.layers).toContain('crosschecked');
+  });
+
   it('reads teachers and students once, however they are listed', () => {
     const out = buildSageNetwork(base());
     const teacher = out.edges.filter((e) => e[3] === 'teacher');

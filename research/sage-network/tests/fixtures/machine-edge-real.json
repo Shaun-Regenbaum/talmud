@@ -1,0 +1,1490 @@
+{
+ "note": "Real saved machine readings and the real second-model edge checks of them. Test fixture; authorizes nothing.",
+ "cases": [
+  {
+   "job": {
+    "job_id": "v18-bavli-c10045",
+    "focal_ref": "Bava Kamma 81b:11",
+    "sources": [
+     {
+      "source_id": "s1",
+      "ref": "Bava Kamma 81b:9",
+      "text": "ומסלקין לצידי הדרכים מפני יתידות הדרכים שמואל ורב יהודה הוו שקלי ואזלי באורחא הוה מסתלק שמואל לצידי הדרכים א\"ל רב יהודה תנאין שהתנה יהושע אפילו בבבל א\"ל שאני אומר אפילו בחוצה לארץ",
+      "sha256": "6828ba50e79669eb24a22433899b606bc1be10bbc27dd63dc952f3fb7fb49fb3",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Bava Kamma|81b|9|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Bava Kamma",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:22:07Z",
+       "source_url": "https://www.sefaria.org/Bava%20Kamma%2081b",
+       "raw_file": "raw/bavli/bava-kamma/wikisource-talmud-bavli/81b.json",
+       "raw_file_sha256": "8f226cf89fc096972a3e8adce814682883b37e7df41b575fb34ac2ed0a1c2182",
+       "unit_segments_sha256": "aaed09e5d5029fd60520d386730faa645ed9eff280768ee8978016e76a937c51",
+       "address": "9",
+       "focal": false
+      }
+     },
+     {
+      "source_id": "s2",
+      "ref": "Bava Kamma 81b:10",
+      "text": "רבי ורבי חייא הוו שקלי ואזלי באורחא אסתלקו לצידי הדרכים הוה קא מפסיע ואזיל ר' יהודה בן קנוסא קמייהו א\"ל רבי לרבי חייא מי הוא זה שמראה גדולה בפנינו",
+      "sha256": "ef6e4830081ce3059c788d1a9a17ac217159858f849a4c9ecfad6df61c629e88",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Bava Kamma|81b|10|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Bava Kamma",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:22:07Z",
+       "source_url": "https://www.sefaria.org/Bava%20Kamma%2081b",
+       "raw_file": "raw/bavli/bava-kamma/wikisource-talmud-bavli/81b.json",
+       "raw_file_sha256": "8f226cf89fc096972a3e8adce814682883b37e7df41b575fb34ac2ed0a1c2182",
+       "unit_segments_sha256": "aaed09e5d5029fd60520d386730faa645ed9eff280768ee8978016e76a937c51",
+       "address": "10",
+       "focal": false
+      }
+     },
+     {
+      "source_id": "s3",
+      "ref": "Bava Kamma 81b:11",
+      "text": "א\"ל ר' חייא שמא ר' יהודה בן קנוסא תלמידי הוא וכל מעשיו לשם שמים כי מטו לגביה חזייה א\"ל אי לאו יהודה בן קנוסא את גזרתינהו לשקך בגיזרא דפרזלא:",
+      "sha256": "2802a3646910150aefc62320ca6bede655aee86cc578ab7ec94f01f25e08d208",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Bava Kamma|81b|11|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Bava Kamma",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:22:07Z",
+       "source_url": "https://www.sefaria.org/Bava%20Kamma%2081b",
+       "raw_file": "raw/bavli/bava-kamma/wikisource-talmud-bavli/81b.json",
+       "raw_file_sha256": "8f226cf89fc096972a3e8adce814682883b37e7df41b575fb34ac2ed0a1c2182",
+       "unit_segments_sha256": "aaed09e5d5029fd60520d386730faa645ed9eff280768ee8978016e76a937c51",
+       "address": "11",
+       "focal": true
+      }
+     },
+     {
+      "source_id": "s4",
+      "ref": "Bava Kamma 81b:12",
+      "text": "התועה בין הכרמים מפסיג ויורד מפסיג ועולה: ת\"ר הרואה חבירו תועה בין הכרמים מפסיג ועולה מפסיג ויורד עד שמעלהו לעיר או לדרך וכן הוא שתועה בין הכרמים מפסיג ועולה מפסיג ויורד עד שיעלה לעיר או לדרך",
+      "sha256": "ce806b1d8366466e686e57c4419bc189d77a897ee0c906fdc5c37fb9706dbe3b",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Bava Kamma|81b|12|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Bava Kamma",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:22:07Z",
+       "source_url": "https://www.sefaria.org/Bava%20Kamma%2081b",
+       "raw_file": "raw/bavli/bava-kamma/wikisource-talmud-bavli/81b.json",
+       "raw_file_sha256": "8f226cf89fc096972a3e8adce814682883b37e7df41b575fb34ac2ed0a1c2182",
+       "unit_segments_sha256": "aaed09e5d5029fd60520d386730faa645ed9eff280768ee8978016e76a937c51",
+       "address": "12",
+       "focal": false
+      }
+     },
+     {
+      "source_id": "s5",
+      "ref": "Bava Kamma 81b:13",
+      "text": "מאי וכן מהו דתימא חבירו הוא דידע להיכא מסלק דניפסוג אבל הוא דלא ידע להיכא קא סליק לא ניפסוג נהדריה נהדר בי מיצרי קמ\"ל",
+      "sha256": "85e5f55d4905d755514c9ab2c1a1cea6ece2d6464e853acc5f78592ee1736ed7",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Bava Kamma|81b|13|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Bava Kamma",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:22:07Z",
+       "source_url": "https://www.sefaria.org/Bava%20Kamma%2081b",
+       "raw_file": "raw/bavli/bava-kamma/wikisource-talmud-bavli/81b.json",
+       "raw_file_sha256": "8f226cf89fc096972a3e8adce814682883b37e7df41b575fb34ac2ed0a1c2182",
+       "unit_segments_sha256": "aaed09e5d5029fd60520d386730faa645ed9eff280768ee8978016e76a937c51",
+       "address": "13",
+       "focal": false
+      }
+     }
+    ]
+   },
+   "answer": {
+    "schema_version": "compact-source-v1",
+    "job_id": "v18-bavli-c10045",
+    "episode": {
+     "coverage": "complete_for_supplied_text",
+     "needed_context": [],
+     "notes": [
+      "The final warning's speaker remains locally ambiguous; no actual cutting is reported."
+     ]
+    },
+    "people": [
+     {
+      "id": "p1",
+      "kind": "person",
+      "label": "שמואל",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s1",
+        "quote": "שמואל",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s1",
+        "quote": "שמואל",
+        "occurrence": 2
+       }
+      ],
+      "reason": "The traveler and respondent are the same person.",
+      "alternatives": []
+     },
+     {
+      "id": "p2",
+      "kind": "person",
+      "label": "רב יהודה",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s1",
+        "quote": "ורב יהודה",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s1",
+        "quote": "רב יהודה",
+        "occurrence": 2
+       }
+      ],
+      "reason": "He travels with שמואל and questions his practice.",
+      "alternatives": []
+     },
+     {
+      "id": "p3",
+      "kind": "person",
+      "label": "יהושע",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s1",
+        "quote": "יהושע",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The conditions are explicitly attributed to him.",
+      "alternatives": []
+     },
+     {
+      "id": "p4",
+      "kind": "person",
+      "label": "רבי",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s2",
+        "quote": "רבי",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s2",
+        "quote": "רבי",
+        "occurrence": 3
+       }
+      ],
+      "reason": "The title identifies the traveler who asks about the man ahead.",
+      "alternatives": []
+     },
+     {
+      "id": "p5",
+      "kind": "person",
+      "label": "רבי חייא",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s2",
+        "quote": "ורבי חייא",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s2",
+        "quote": "לרבי חייא",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s3",
+        "quote": "ר' חייא",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The reply continues his exchange with רבי.",
+      "alternatives": []
+     },
+     {
+      "id": "p6",
+      "kind": "person",
+      "label": "ר' יהודה בן קנוסא",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s2",
+        "quote": "ר' יהודה בן קנוסא",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s3",
+        "quote": "ר' יהודה בן קנוסא",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s3",
+        "quote": "יהודה בן קנוסא",
+        "occurrence": 2
+       }
+      ],
+      "reason": "The narrative identifies him before חייא suggests and the encounter confirms that identification.",
+      "alternatives": []
+     },
+     {
+      "id": "p7",
+      "kind": "person",
+      "label": "קנוסא",
+      "form": "embedded_parent",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s2",
+        "quote": "קנוסא",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s3",
+        "quote": "קנוסא",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s3",
+        "quote": "קנוסא",
+        "occurrence": 2
+       }
+      ],
+      "reason": "בן repeatedly supplies the same father.",
+      "alternatives": []
+     },
+     {
+      "id": "p8",
+      "kind": "deity",
+      "label": "שמים",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s3",
+        "quote": "שמים",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The phrase לשם שמים refers to the divine purpose of his conduct.",
+      "alternatives": []
+     },
+     {
+      "id": "p9",
+      "kind": "group",
+      "label": "Road users",
+      "form": "generic",
+      "setting": "hypothetical",
+      "mentions": [
+       {
+        "source_id": "s1",
+        "quote": "ומסלקין",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The introductory permission describes generic travelers.",
+      "alternatives": []
+     },
+     {
+      "id": "p10",
+      "kind": "person",
+      "label": "A lost traveler",
+      "form": "generic",
+      "setting": "hypothetical",
+      "mentions": [
+       {
+        "source_id": "s4",
+        "quote": "התועה",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s4",
+        "quote": "חבירו",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s4",
+        "quote": "הוא שתועה",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s5",
+        "quote": "הוא",
+        "occurrence": 2
+       }
+      ],
+      "reason": "The legal discussion contrasts rescuing a lost person with finding one's own way.",
+      "alternatives": []
+     },
+     {
+      "id": "p11",
+      "kind": "person",
+      "label": "A person helping the lost traveler",
+      "form": "generic",
+      "setting": "hypothetical",
+      "mentions": [
+       {
+        "source_id": "s4",
+        "quote": "הרואה",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s5",
+        "quote": "חבירו",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The explanation describes the companion who knows the way.",
+      "alternatives": []
+     }
+    ],
+    "relationships": [
+     {
+      "id": "r1",
+      "subject": "p1",
+      "object": "p2",
+      "alternatives": [],
+      "category": "action",
+      "relation": "acts_on",
+      "direction": "directed",
+      "verb": "travels along the road with him",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The narrative explicitly describes their joint journey.",
+      "evidence": [
+       {
+        "source_id": "s1",
+        "quote": "שמואל ורב יהודה הוו שקלי ואזלי באורחא",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r2",
+      "subject": "p2",
+      "object": "p1",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "asks",
+      "direction": "directed",
+      "verb": "asks whether יהושע's conditions apply even in Babylonia",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The question follows שמואל's move to the roadside.",
+      "evidence": [
+       {
+        "source_id": "s1",
+        "quote": "הוה מסתלק שמואל לצידי הדרכים א\"ל רב יהודה תנאין שהתנה יהושע אפילו בבבל",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r3",
+      "subject": "p1",
+      "object": "p2",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "answers",
+      "direction": "directed",
+      "verb": "says the conditions apply even outside the land",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The alternating dialogue identifies the respondent.",
+      "evidence": [
+       {
+        "source_id": "s1",
+        "quote": "א\"ל רב יהודה תנאין שהתנה יהושע אפילו בבבל א\"ל שאני אומר אפילו בחוצה לארץ",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r4",
+      "subject": "p4",
+      "object": "p5",
+      "alternatives": [],
+      "category": "action",
+      "relation": "acts_on",
+      "direction": "directed",
+      "verb": "travels along the road with him",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "Their shared journey is explicit.",
+      "evidence": [
+       {
+        "source_id": "s2",
+        "quote": "רבי ורבי חייא הוו שקלי ואזלי באורחא",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r5",
+      "subject": "p4",
+      "object": "p5",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "asks",
+      "direction": "directed",
+      "verb": "asks who is displaying superiority before them",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The speaker and addressee are named.",
+      "evidence": [
+       {
+        "source_id": "s2",
+        "quote": "א\"ל רבי לרבי חייא מי הוא זה שמראה גדולה בפנינו",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r6",
+      "subject": "p5",
+      "object": "p4",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "answers",
+      "direction": "directed",
+      "verb": "suggests the man is his student whose actions are for Heaven",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The uncertainty is in the proposed identification, not the occurrence of the reply.",
+      "evidence": [
+       {
+        "source_id": "s3",
+        "quote": "א\"ל ר' חייא שמא ר' יהודה בן קנוסא תלמידי הוא וכל מעשיו לשם שמים",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r7",
+      "subject": "p6",
+      "object": "p5",
+      "alternatives": [],
+      "category": "teaching",
+      "relation": "student_of",
+      "direction": "directed",
+      "verb": "is his student",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "חייא calls the named candidate his student.",
+      "evidence": [
+       {
+        "source_id": "s3",
+        "quote": "ר' חייא שמא ר' יהודה בן קנוסא תלמידי הוא",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r8",
+      "subject": "p6",
+      "object": "p7",
+      "alternatives": [],
+      "category": "family",
+      "relation": "child_of",
+      "direction": "directed",
+      "verb": "is the son of",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "בן identifies the father.",
+      "evidence": [
+       {
+        "source_id": "s2",
+        "quote": "ר' יהודה בן קנוסא",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r9",
+      "subject": null,
+      "object": "p6",
+      "alternatives": [
+       {
+        "subject": "p4",
+        "object": "p6",
+        "reason": "רבי raised the initial complaint and may deliver the warning."
+       },
+       {
+        "subject": "p5",
+        "object": "p6",
+        "reason": "חייא is the last explicit speaker before the unmarked speech."
+       }
+      ],
+      "category": "action",
+      "relation": "speaks_to",
+      "direction": "directed",
+      "verb": "says his legs would have been cut had he been someone else",
+      "modality": "uncertain",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The final speaker is unstated; the counterfactual threat does not report an injury.",
+      "evidence": [
+       {
+        "source_id": "s3",
+        "quote": "כי מטו לגביה חזייה א\"ל אי לאו יהודה בן קנוסא את גזרתינהו לשקך בגיזרא דפרזלא",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r10",
+      "subject": "p11",
+      "object": "p10",
+      "alternatives": [],
+      "category": "action",
+      "relation": "acts_on",
+      "direction": "directed",
+      "verb": "makes a path through vineyards to lead him to town or a road",
+      "modality": "hypothetical",
+      "scene_status": "hypothetical",
+      "polarity": "positive",
+      "reason": "The rule imagines a rescuer helping another person.",
+      "evidence": [
+       {
+        "source_id": "s4",
+        "quote": "הרואה חבירו תועה בין הכרמים מפסיג ועולה מפסיג ויורד עד שמעלהו לעיר או לדרך",
+        "occurrence": 1
+       }
+      ]
+     }
+    ]
+   },
+   "reader": "codex",
+   "requestSha256": "68525172161e0d11fec6dfec8052c3dc929af417f7841373adbfe88cd1e6c1cb",
+   "check": {
+    "reader_family": "codex",
+    "checker_family": "claude",
+    "candidates": {
+     "r4": {
+      "subject": [
+       "rabi"
+      ],
+      "object": [
+       "rabbi-chiyya"
+      ]
+     },
+     "r5": {
+      "subject": [
+       "rabi"
+      ],
+      "object": [
+       "rabbi-chiyya"
+      ]
+     },
+     "r6": {
+      "subject": [
+       "rabbi-chiyya"
+      ],
+      "object": [
+       "rabi"
+      ]
+     }
+    },
+    "verdicts": [
+     {
+      "id": "r4",
+      "supported": "no",
+      "direction": "na",
+      "subject_sage": "rabi",
+      "object_sage": "rabbi-chiyya",
+      "note": "They walk together on the road; the text does not show Rabbi doing anything to Rabbi Chiyya."
+     },
+     {
+      "id": "r5",
+      "supported": "yes",
+      "direction": "ok",
+      "subject_sage": "rabi",
+      "object_sage": "rabbi-chiyya",
+      "note": ""
+     },
+     {
+      "id": "r6",
+      "supported": "yes",
+      "direction": "ok",
+      "subject_sage": "rabbi-chiyya",
+      "object_sage": "rabi",
+      "note": ""
+     }
+    ]
+   }
+  },
+  {
+   "job": {
+    "job_id": "v18-bavli-c00692",
+    "focal_ref": "Arakhin 20a:26",
+    "sources": [
+     {
+      "source_id": "s1",
+      "ref": "Arakhin 20a:24",
+      "text": "חצי דמי עלי נותן כו' דמי חציי עלי נותן דמי כולו: מ\"ט",
+      "sha256": "89c0e110a20fff1607b922bbbd4523054c287c6f7118e20f891d67c095e6ac54",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Arakhin|20a|24|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Arakhin",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:24:34Z",
+       "source_url": "https://www.sefaria.org/Arakhin%2020a",
+       "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/20a.json",
+       "raw_file_sha256": "d051fbfc20c9222a1b26146b313100692b8d5e8399c58e5a9bb79775f2b01942",
+       "unit_segments_sha256": "109f3064bcea47649e552fb355121ada9b7eccaa1a42b00d848db58b2658c433",
+       "address": "24",
+       "focal": false
+      }
+     },
+     {
+      "source_id": "s2",
+      "ref": "Arakhin 20a:25",
+      "text": "(ויקרא כז, ב) נדר בערכך נפשות כתיב:",
+      "sha256": "f6ac63ece1d10b9c5eba3b65f001f5016720a2d9650c54fb5c02366a1db82b6b",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Arakhin|20a|25|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Arakhin",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:24:34Z",
+       "source_url": "https://www.sefaria.org/Arakhin%2020a",
+       "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/20a.json",
+       "raw_file_sha256": "d051fbfc20c9222a1b26146b313100692b8d5e8399c58e5a9bb79775f2b01942",
+       "unit_segments_sha256": "109f3064bcea47649e552fb355121ada9b7eccaa1a42b00d848db58b2658c433",
+       "address": "25",
+       "focal": false
+      }
+     },
+     {
+      "source_id": "s3",
+      "ref": "Arakhin 20a:26",
+      "text": "זה הכלל דבר שהנשמה תלויה בו: לאתויי מן הארכובה ולמעלה",
+      "sha256": "a9e7e8e1160df09e5939376f530e36e0ffe34d963de8cd080f933018752a991a",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Arakhin|20a|26|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Arakhin",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:24:34Z",
+       "source_url": "https://www.sefaria.org/Arakhin%2020a",
+       "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/20a.json",
+       "raw_file_sha256": "d051fbfc20c9222a1b26146b313100692b8d5e8399c58e5a9bb79775f2b01942",
+       "unit_segments_sha256": "109f3064bcea47649e552fb355121ada9b7eccaa1a42b00d848db58b2658c433",
+       "address": "26",
+       "focal": true
+      }
+     },
+     {
+      "source_id": "s4",
+      "ref": "Arakhin 20a:27",
+      "text": "ת\"ר המעריך חצי ערך כלי ר\"מ אומר נותן דמיו וחכ\"א לא אמר כלום רבא חלש עול לגביה אביי ורבנן ויתבי וקאמרי בשלמא ר\"מ קסבר אין אדם מוציא דבריו לבטלה לא שנא כולו ול\"ש חציו",
+      "sha256": "691891abba03e31ed26296af9f8d8031367e9fa05bfd524212df81c1063ced31",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Arakhin|20a|27|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Arakhin",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:24:34Z",
+       "source_url": "https://www.sefaria.org/Arakhin%2020a",
+       "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/20a.json",
+       "raw_file_sha256": "d051fbfc20c9222a1b26146b313100692b8d5e8399c58e5a9bb79775f2b01942",
+       "unit_segments_sha256": "109f3064bcea47649e552fb355121ada9b7eccaa1a42b00d848db58b2658c433",
+       "address": "27",
+       "focal": false
+      }
+     },
+     {
+      "source_id": "s5",
+      "ref": "Arakhin 20a:28",
+      "text": "אלא רבנן מאי קסברי אי אדם מוציא דבריו לבטלה אפי' כולו נמי ואי אין אדם מוציא דבריו לבטלה אפי' חציו נמי",
+      "sha256": "b50c03386daaead0bb43fe03996f170c74ebc044f7976426d0de997621f7f235",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Arakhin|20a|28|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Arakhin",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:24:34Z",
+       "source_url": "https://www.sefaria.org/Arakhin%2020a",
+       "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/20a.json",
+       "raw_file_sha256": "d051fbfc20c9222a1b26146b313100692b8d5e8399c58e5a9bb79775f2b01942",
+       "unit_segments_sha256": "109f3064bcea47649e552fb355121ada9b7eccaa1a42b00d848db58b2658c433",
+       "address": "28",
+       "focal": false
+      }
+     }
+    ]
+   },
+   "answer": {
+    "schema_version": "compact-source-v1",
+    "job_id": "v18-bavli-c00692",
+    "episode": {
+     "coverage": "complete_for_supplied_text",
+     "needed_context": [],
+     "notes": [
+      "The quoted sages and the visiting scholars are kept separate.",
+      "The scene establishes a visit, but does not explicitly make Rava the addressee of the visitors' question."
+     ]
+    },
+    "people": [
+     {
+      "id": "p1",
+      "kind": "person",
+      "label": "Person pledging half a market value or the value of half their body",
+      "form": "generic",
+      "setting": "hypothetical",
+      "mentions": [
+       {
+        "source_id": "s1",
+        "quote": "דמי",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s1",
+        "quote": "חציי",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The opening formulas vary the wording of a self-directed vow.",
+      "alternatives": []
+     },
+     {
+      "id": "p2",
+      "kind": "person",
+      "label": "Person pledging half a vessel's fixed valuation",
+      "form": "generic",
+      "setting": "hypothetical",
+      "mentions": [
+       {
+        "source_id": "s4",
+        "quote": "המעריך",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s4",
+        "quote": "אדם",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s5",
+        "quote": "אדם",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s5",
+        "quote": "אדם",
+        "occurrence": 2
+       }
+      ],
+      "reason": "The general claims about a person's intent are applied to the same generic vow-maker.",
+      "alternatives": []
+     },
+     {
+      "id": "p3",
+      "kind": "person",
+      "label": "ר\"מ",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s4",
+        "quote": "ר\"מ",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s4",
+        "quote": "ר\"מ",
+        "occurrence": 2
+       }
+      ],
+      "reason": "The discussion explicitly returns to the abbreviated authority's quoted ruling.",
+      "alternatives": [
+       {
+        "person_id": null,
+        "reason": "The abbreviation is not expanded in the supplied text."
+       }
+      ]
+     },
+     {
+      "id": "p4",
+      "kind": "group",
+      "label": "Sages in the quoted ruling",
+      "form": "unnamed",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s4",
+        "quote": "וחכ\"א",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s5",
+        "quote": "רבנן",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The later question targets the sages who said the vow has no effect.",
+      "alternatives": []
+     },
+     {
+      "id": "p5",
+      "kind": "person",
+      "label": "רבא",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s4",
+        "quote": "רבא",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s4",
+        "quote": "לגביה",
+        "occurrence": 1
+       }
+      ],
+      "reason": "He is ill and is visited in the reported scene.",
+      "alternatives": []
+     },
+     {
+      "id": "p6",
+      "kind": "person",
+      "label": "אביי",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s4",
+        "quote": "אביי",
+        "occurrence": 1
+       }
+      ],
+      "reason": "He is explicitly named among the visitors.",
+      "alternatives": []
+     },
+     {
+      "id": "p7",
+      "kind": "group",
+      "label": "Scholars visiting with אביי",
+      "form": "unnamed",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s4",
+        "quote": "ורבנן",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s4",
+        "quote": "ויתבי וקאמרי",
+        "occurrence": 1
+       }
+      ],
+      "reason": "These are the visiting discussants, distinct from the sages cited in the baraita.",
+      "alternatives": []
+     }
+    ],
+    "relationships": [
+     {
+      "id": "r1",
+      "subject": "p4",
+      "object": "p3",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "responds_to_teaching",
+      "direction": "directed",
+      "verb": "rules that the vessel vow has no effect",
+      "modality": "response_to_teaching",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "Their quoted ruling directly opposes ר\"מ's payment requirement.",
+      "evidence": [
+       {
+        "source_id": "s4",
+        "quote": "המעריך חצי ערך כלי ר\"מ אומר נותן דמיו וחכ\"א לא אמר כלום",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r2",
+      "subject": "p6",
+      "object": "p5",
+      "alternatives": [],
+      "category": "action",
+      "relation": "acts_on",
+      "direction": "directed",
+      "verb": "visits him while he is ill",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The text names Abaye as entering Rava's presence after reporting his illness.",
+      "evidence": [
+       {
+        "source_id": "s4",
+        "quote": "רבא חלש עול לגביה אביי ורבנן",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r3",
+      "subject": "p7",
+      "object": "p5",
+      "alternatives": [],
+      "category": "action",
+      "relation": "acts_on",
+      "direction": "directed",
+      "verb": "visits him while he is ill",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The scholars accompany Abaye in the same reported visit.",
+      "evidence": [
+       {
+        "source_id": "s4",
+        "quote": "רבא חלש עול לגביה אביי ורבנן",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r4",
+      "subject": "p6",
+      "object": "p3",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "responds_to_teaching",
+      "direction": "directed",
+      "verb": "explains the ruling through meaningful intent in vows",
+      "modality": "response_to_teaching",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "Abaye and the scholars jointly discuss the explicitly named ruling.",
+      "evidence": [
+       {
+        "source_id": "s4",
+        "quote": "אביי ורבנן ויתבי וקאמרי בשלמא ר\"מ קסבר אין אדם מוציא דבריו לבטלה לא שנא כולו ול\"ש חציו",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r5",
+      "subject": "p7",
+      "object": "p3",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "responds_to_teaching",
+      "direction": "directed",
+      "verb": "explains the ruling through meaningful intent in vows",
+      "modality": "response_to_teaching",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The plural speaking verb includes the visiting scholars.",
+      "evidence": [
+       {
+        "source_id": "s4",
+        "quote": "אביי ורבנן ויתבי וקאמרי בשלמא ר\"מ קסבר אין אדם מוציא דבריו לבטלה לא שנא כולו ול\"ש חציו",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r6",
+      "subject": "p6",
+      "object": "p4",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "responds_to_teaching",
+      "direction": "directed",
+      "verb": "questions the sages' distinction between a whole and half vow",
+      "modality": "response_to_teaching",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The question continues the visitors' joint discussion.",
+      "evidence": [
+       {
+        "source_id": "s4",
+        "quote": "אביי ורבנן ויתבי וקאמרי",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s5",
+        "quote": "אלא רבנן מאי קסברי אי אדם מוציא דבריו לבטלה אפי' כולו נמי ואי אין אדם מוציא דבריו לבטלה אפי' חציו נמי",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r7",
+      "subject": "p7",
+      "object": "p4",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "responds_to_teaching",
+      "direction": "directed",
+      "verb": "questions the sages' distinction between a whole and half vow",
+      "modality": "response_to_teaching",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The visiting scholars participate in the plural discussion continued in s5.",
+      "evidence": [
+       {
+        "source_id": "s4",
+        "quote": "אביי ורבנן ויתבי וקאמרי",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s5",
+        "quote": "אלא רבנן מאי קסברי אי אדם מוציא דבריו לבטלה אפי' כולו נמי ואי אין אדם מוציא דבריו לבטלה אפי' חציו נמי",
+        "occurrence": 1
+       }
+      ]
+     }
+    ]
+   },
+   "reader": "codex",
+   "requestSha256": "c6771208da83a3a2da2ca76f2b0e73241b1e007221ebbb2a95dcba2e571132e8",
+   "check": {
+    "reader_family": "codex",
+    "checker_family": "claude",
+    "candidates": {
+     "r2": {
+      "subject": [
+       "abaye"
+      ],
+      "object": [
+       "rava"
+      ]
+     }
+    },
+    "verdicts": [
+     {
+      "id": "r2",
+      "supported": "yes",
+      "direction": "ok",
+      "subject_sage": "abaye",
+      "object_sage": "rava",
+      "note": ""
+     }
+    ]
+   }
+  },
+  {
+   "job": {
+    "job_id": "v18-bavli-c07470",
+    "focal_ref": "Bava Kamma 11a:4",
+    "sources": [
+     {
+      "source_id": "s1",
+      "ref": "Bava Kamma 11a:2",
+      "text": "מאי לאו בהא קמיפלגי דמר סבר פחת נבילה דניזק הוי ומר סבר דמזיק הוי",
+      "sha256": "14e3603c2c06fcfef82abea62dbff889b8dc3ff2e9146e3ac65dbab1499b83c2",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Bava Kamma|11a|2|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Bava Kamma",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:21:13Z",
+       "source_url": "https://www.sefaria.org/Bava%20Kamma%2011a",
+       "raw_file": "raw/bavli/bava-kamma/wikisource-talmud-bavli/11a.json",
+       "raw_file_sha256": "aa468c7a42ec87c0e18768f1513b346e29c3cb05d96517a17b941611c7e69e66",
+       "unit_segments_sha256": "6ac872850e15ba7a3f0d9a1c27a9573ca4be3d5be18ced1a2b4c053ba0659d43",
+       "address": "2",
+       "focal": false
+      }
+     },
+     {
+      "source_id": "s2",
+      "ref": "Bava Kamma 11a:3",
+      "text": "לא דכ\"ע דניזק והכא בטורח נבילה קמיפלגי",
+      "sha256": "1b651e92ce7db0b764f5e9f36ea1b23957c0bd55140783648a1df65108f2af8a",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Bava Kamma|11a|3|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Bava Kamma",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:21:13Z",
+       "source_url": "https://www.sefaria.org/Bava%20Kamma%2011a",
+       "raw_file": "raw/bavli/bava-kamma/wikisource-talmud-bavli/11a.json",
+       "raw_file_sha256": "aa468c7a42ec87c0e18768f1513b346e29c3cb05d96517a17b941611c7e69e66",
+       "unit_segments_sha256": "6ac872850e15ba7a3f0d9a1c27a9573ca4be3d5be18ced1a2b4c053ba0659d43",
+       "address": "3",
+       "focal": false
+      }
+     },
+     {
+      "source_id": "s3",
+      "ref": "Bava Kamma 11a:4",
+      "text": "והתניא אחרים אומרים מניין שעל בעל הבור להעלות שור מבורו ת\"ל (שמות כא, לד) כסף ישיב לבעליו והמת",
+      "sha256": "1da34695f7dd1d7c2b2e9e71bfedf7d4b92eb978207e5ce35afe062fef73b0dd",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Bava Kamma|11a|4|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Bava Kamma",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:21:13Z",
+       "source_url": "https://www.sefaria.org/Bava%20Kamma%2011a",
+       "raw_file": "raw/bavli/bava-kamma/wikisource-talmud-bavli/11a.json",
+       "raw_file_sha256": "aa468c7a42ec87c0e18768f1513b346e29c3cb05d96517a17b941611c7e69e66",
+       "unit_segments_sha256": "6ac872850e15ba7a3f0d9a1c27a9573ca4be3d5be18ced1a2b4c053ba0659d43",
+       "address": "4",
+       "focal": true
+      }
+     },
+     {
+      "source_id": "s4",
+      "ref": "Bava Kamma 11a:5",
+      "text": "אמר ליה אביי לרבא האי טורח נבילה ה\"ד",
+      "sha256": "d3c01a3eaee573f0e54ec8704f68bb9de1dce559ceb491c665025289b4cb61ff",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Bava Kamma|11a|5|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Bava Kamma",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:21:13Z",
+       "source_url": "https://www.sefaria.org/Bava%20Kamma%2011a",
+       "raw_file": "raw/bavli/bava-kamma/wikisource-talmud-bavli/11a.json",
+       "raw_file_sha256": "aa468c7a42ec87c0e18768f1513b346e29c3cb05d96517a17b941611c7e69e66",
+       "unit_segments_sha256": "6ac872850e15ba7a3f0d9a1c27a9573ca4be3d5be18ced1a2b4c053ba0659d43",
+       "address": "5",
+       "focal": false
+      }
+     },
+     {
+      "source_id": "s5",
+      "ref": "Bava Kamma 11a:6",
+      "text": "אילימא דבבירא שויא זוזא ואגודא שויא ארבע כי טרח בדנפשיה טרח",
+      "sha256": "58b242aeb3953db88ec588c9d28d6136426603f58a46dbffd06931e0284ce604",
+      "edition": "Wikisource Talmud Bavli",
+      "provenance": {
+       "segment_id": "bavli|Bava Kamma|11a|6|Wikisource Talmud Bavli",
+       "corpus": "bavli",
+       "work": "Bava Kamma",
+       "license": "CC-BY-SA",
+       "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+       "captured_at": "2026-09-20T08:21:13Z",
+       "source_url": "https://www.sefaria.org/Bava%20Kamma%2011a",
+       "raw_file": "raw/bavli/bava-kamma/wikisource-talmud-bavli/11a.json",
+       "raw_file_sha256": "aa468c7a42ec87c0e18768f1513b346e29c3cb05d96517a17b941611c7e69e66",
+       "unit_segments_sha256": "6ac872850e15ba7a3f0d9a1c27a9573ca4be3d5be18ced1a2b4c053ba0659d43",
+       "address": "6",
+       "focal": false
+      }
+     }
+    ]
+   },
+   "answer": {
+    "schema_version": "compact-source-v1",
+    "job_id": "v18-bavli-c07470",
+    "episode": {
+     "coverage": "needs_context",
+     "needed_context": [
+      "Supply the preceding quotation to identify the two authorities called מר and their positions on handling the carcass.",
+      "Supply the continuation answering Abaye's question."
+     ],
+     "notes": [
+      "The suggested dispute over declining value is rejected; disagreement over handling the carcass remains."
+     ]
+    },
+    "people": [
+     {
+      "id": "p1",
+      "kind": "person",
+      "label": "First unnamed authority",
+      "form": "unnamed",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s1",
+        "quote": "דמר",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The first מר is one of the two authorities whose disagreement is being explained.",
+      "alternatives": []
+     },
+     {
+      "id": "p2",
+      "kind": "person",
+      "label": "Second unnamed authority",
+      "form": "unnamed",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s1",
+        "quote": "ומר",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The second מר is the other authority in that disagreement.",
+      "alternatives": []
+     },
+     {
+      "id": "p3",
+      "kind": "person",
+      "label": "Injured owner",
+      "form": "generic",
+      "setting": "hypothetical",
+      "mentions": [
+       {
+        "source_id": "s1",
+        "quote": "דניזק",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s2",
+        "quote": "דניזק",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s3",
+        "quote": "לבעליו",
+        "occurrence": 1
+       }
+      ],
+      "reason": "These references describe the injured owner's role across the carcass rules.",
+      "alternatives": []
+     },
+     {
+      "id": "p4",
+      "kind": "person",
+      "label": "Damaging party in the initial dispute",
+      "form": "generic",
+      "setting": "hypothetical",
+      "mentions": [
+       {
+        "source_id": "s1",
+        "quote": "דמזיק",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The rejected interpretation would assign this party the loss in value.",
+      "alternatives": []
+     },
+     {
+      "id": "p5",
+      "kind": "person",
+      "label": "Pit owner",
+      "form": "generic",
+      "setting": "hypothetical",
+      "mentions": [
+       {
+        "source_id": "s3",
+        "quote": "בעל הבור",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s5",
+        "quote": "בדנפשיה",
+        "occurrence": 1
+       }
+      ],
+      "reason": "The quoted duty and Abaye's example concern the pit owner's effort to retrieve the animal.",
+      "alternatives": []
+     },
+     {
+      "id": "p6",
+      "kind": "group",
+      "label": "אחרים",
+      "form": "unnamed",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s3",
+        "quote": "אחרים",
+        "occurrence": 1
+       }
+      ],
+      "reason": "A group designated אחרים supplies the retrieval rule.",
+      "alternatives": []
+     },
+     {
+      "id": "p7",
+      "kind": "person",
+      "label": "אביי",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s4",
+        "quote": "אביי",
+        "occurrence": 1
+       }
+      ],
+      "reason": "He directly asks Rava about the labor requirement.",
+      "alternatives": []
+     },
+     {
+      "id": "p8",
+      "kind": "person",
+      "label": "רבא",
+      "form": "named",
+      "setting": "reported",
+      "mentions": [
+       {
+        "source_id": "s4",
+        "quote": "לרבא",
+        "occurrence": 1
+       }
+      ],
+      "reason": "He is Abaye's explicit addressee.",
+      "alternatives": []
+     }
+    ],
+    "relationships": [
+     {
+      "id": "r1",
+      "subject": "p1",
+      "object": "p2",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "opposes",
+      "direction": "directed",
+      "verb": "disagrees about responsibility for handling the carcass",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The text retains disagreement between the two authorities but changes its subject from lost value to labor.",
+      "evidence": [
+       {
+        "source_id": "s1",
+        "quote": "דמר סבר פחת נבילה דניזק הוי ומר סבר דמזיק הוי",
+        "occurrence": 1
+       },
+       {
+        "source_id": "s2",
+        "quote": "לא דכ\"ע דניזק והכא בטורח נבילה קמיפלגי",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r2",
+      "subject": "p7",
+      "object": "p8",
+      "alternatives": [],
+      "category": "debate",
+      "relation": "asks",
+      "direction": "directed",
+      "verb": "asks what case requires labor over the carcass",
+      "modality": "asserted",
+      "scene_status": "actual_report",
+      "polarity": "positive",
+      "reason": "The text directly names the speaker and addressee.",
+      "evidence": [
+       {
+        "source_id": "s4",
+        "quote": "אמר ליה אביי לרבא האי טורח נבילה ה\"ד",
+        "occurrence": 1
+       }
+      ]
+     },
+     {
+      "id": "r3",
+      "subject": "p5",
+      "object": "p3",
+      "alternatives": [],
+      "category": "action",
+      "relation": "acts_on",
+      "direction": "directed",
+      "verb": "must return payment and the retrieved carcass to the owner",
+      "modality": "hypothetical",
+      "scene_status": "hypothetical",
+      "polarity": "positive",
+      "reason": "The cited rule links the pit owner's retrieval duty with returning money and the dead animal to its owner.",
+      "evidence": [
+       {
+        "source_id": "s3",
+        "quote": "שעל בעל הבור להעלות שור מבורו ת\"ל (שמות כא, לד) כסף ישיב לבעליו והמת",
+        "occurrence": 1
+       }
+      ]
+     }
+    ]
+   },
+   "reader": "codex",
+   "requestSha256": "351103107e72010d0d2245f124cd93ee497a11d9acaf29907f2a45abb9c7785a",
+   "check": {
+    "reader_family": "codex",
+    "checker_family": "claude",
+    "candidates": {
+     "r2": {
+      "subject": [
+       "abaye"
+      ],
+      "object": [
+       "rava"
+      ]
+     }
+    },
+    "verdicts": [
+     {
+      "id": "r2",
+      "supported": "yes",
+      "direction": "ok",
+      "subject_sage": "abaye",
+      "object_sage": "rava",
+      "note": ""
+     }
+    ]
+   }
+  }
+ ]
+}

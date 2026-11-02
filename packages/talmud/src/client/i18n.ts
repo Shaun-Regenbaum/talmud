@@ -602,6 +602,10 @@ const CATALOG = {
     en: 'Read and checked in the text ({count})',
     he: 'נקראו ונבדקו בטקסט ({count})',
   },
+  'sages.network.layer.crosschecked': {
+    en: 'Read in the text, then confirmed by a second model ({count})',
+    he: 'נקראו בטקסט ואושרו על ידי מודל שני ({count})',
+  },
   'sages.network.layer.curated': {
     en: 'Teacher, student, colleague, from Sefaria ({count})',
     he: 'רב, תלמיד, חבר, מספריא ({count})',

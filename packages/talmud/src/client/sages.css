@@ -845,6 +845,10 @@
 .key-edge.layer-checked {
   border-top: 2px solid var(--ink-slate);
 }
+.key-edge.layer-crosschecked {
+  border-top: 2px solid var(--ink-slate);
+  opacity: 0.75;
+}
 .key-edge.layer-curated {
   border-top: 2px solid var(--ink-teal);
   opacity: 0.6;
@@ -868,6 +872,11 @@
   stroke: var(--ink-slate);
   stroke-width: 1.4;
   stroke-opacity: 0.85;
+}
+.sages-link.layer-crosschecked {
+  stroke: var(--ink-slate);
+  stroke-width: 1.2;
+  stroke-opacity: 0.6;
 }
 .sages-link.layer-curated {
   stroke: var(--ink-teal);
