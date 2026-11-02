@@ -76,7 +76,9 @@ export function SourcePerson(props: {
             <p class="source-person-caption">
               {t(
                 p().initialReading?.checked
-                  ? 'checked.cardTitle'
+                  ? p().initialReading?.checked?.machine
+                    ? 'machine.cardTitle'
+                    : 'checked.cardTitle'
                   : p().initialReading
                     ? 'initial.cardTitle'
                     : 'sourcePerson.title',

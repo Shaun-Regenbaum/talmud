@@ -1,0 +1,1275 @@
+{
+  "note": "Real saved machine readings (compact-source-v1) and the frozen jobs they read. Test fixture; authorizes nothing.",
+  "cases": [
+    {
+      "job": {
+        "job_id": "v18-bavli-q02526",
+        "focal_ref": "Bava Batra 173b:5",
+        "sources": [
+          {
+            "source_id": "s1",
+            "ref": "Bava Batra 173b:3",
+            "text": "גמ׳ מאי טעמא רבה ורב יוסף דאמרי תרוייהו גברא אשלימת לי גברא אשלימי לך",
+            "sha256": "6e2c1f899c88402cc5b901c3cbdf9ac4aec49f2bf0670d722a7a6d266988ad32",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Bava Batra|173b|3|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Bava Batra",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:23:28Z",
+              "source_url": "https://www.sefaria.org/Bava%20Batra%20173b",
+              "raw_file": "raw/bavli/bava-batra/wikisource-talmud-bavli/173b.json",
+              "raw_file_sha256": "cf707002f3d5b85d6f6b00c7153bb2a2cc896e14703db6f3ff12a72381aa9b9b",
+              "unit_segments_sha256": "2daea83b8419f6c28b86e97abc9ec06348d5c3c1af1b0b403c4336f685b257ce",
+              "address": "3",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s2",
+            "ref": "Bava Batra 173b:4",
+            "text": "מתקיף לה רב נחמן האי דינא דפרסאי",
+            "sha256": "f54ed93f37a00907f05bbc5c3953dc2f09f0498f48afdf28720e47f2edebe88d",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Bava Batra|173b|4|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Bava Batra",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:23:28Z",
+              "source_url": "https://www.sefaria.org/Bava%20Batra%20173b",
+              "raw_file": "raw/bavli/bava-batra/wikisource-talmud-bavli/173b.json",
+              "raw_file_sha256": "cf707002f3d5b85d6f6b00c7153bb2a2cc896e14703db6f3ff12a72381aa9b9b",
+              "unit_segments_sha256": "2daea83b8419f6c28b86e97abc9ec06348d5c3c1af1b0b403c4336f685b257ce",
+              "address": "4",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s3",
+            "ref": "Bava Batra 173b:5",
+            "text": "אדרבה בתר ערבא אזלי",
+            "sha256": "88ce07f71ae1d6e37bcdce9f2292bef09b847f8a0b86d72bf3d9f84b2d246299",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Bava Batra|173b|5|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Bava Batra",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:23:28Z",
+              "source_url": "https://www.sefaria.org/Bava%20Batra%20173b",
+              "raw_file": "raw/bavli/bava-batra/wikisource-talmud-bavli/173b.json",
+              "raw_file_sha256": "cf707002f3d5b85d6f6b00c7153bb2a2cc896e14703db6f3ff12a72381aa9b9b",
+              "unit_segments_sha256": "2daea83b8419f6c28b86e97abc9ec06348d5c3c1af1b0b403c4336f685b257ce",
+              "address": "5",
+              "focal": true
+            }
+          },
+          {
+            "source_id": "s4",
+            "ref": "Bava Batra 173b:6",
+            "text": "אלא בי דינא דפרסאי דלא יהבי טעמא למילתייהו",
+            "sha256": "aac3352c70d9a5e88c0d43051cc3311c10a1b3bcd5ac7c8b12ed9b9374ca47bc",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Bava Batra|173b|6|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Bava Batra",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:23:28Z",
+              "source_url": "https://www.sefaria.org/Bava%20Batra%20173b",
+              "raw_file": "raw/bavli/bava-batra/wikisource-talmud-bavli/173b.json",
+              "raw_file_sha256": "cf707002f3d5b85d6f6b00c7153bb2a2cc896e14703db6f3ff12a72381aa9b9b",
+              "unit_segments_sha256": "2daea83b8419f6c28b86e97abc9ec06348d5c3c1af1b0b403c4336f685b257ce",
+              "address": "6",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s5",
+            "ref": "Bava Batra 173b:7",
+            "text": "אלא אמר רב נחמן מאי לא יפרע מן הערב לא יתבע ערב תחלה",
+            "sha256": "2892d2c83f98e210e2e7a79ff5d9e2da9db164bbc845b3329ee2ee60a57f9a69",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Bava Batra|173b|7|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Bava Batra",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:23:28Z",
+              "source_url": "https://www.sefaria.org/Bava%20Batra%20173b",
+              "raw_file": "raw/bavli/bava-batra/wikisource-talmud-bavli/173b.json",
+              "raw_file_sha256": "cf707002f3d5b85d6f6b00c7153bb2a2cc896e14703db6f3ff12a72381aa9b9b",
+              "unit_segments_sha256": "2daea83b8419f6c28b86e97abc9ec06348d5c3c1af1b0b403c4336f685b257ce",
+              "address": "7",
+              "focal": false
+            }
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "compact-source-v1",
+        "job_id": "v18-bavli-q02526",
+        "episode": {
+          "coverage": "complete_for_supplied_text",
+          "needed_context": [],
+          "notes": [
+            "Rav Nachman objects to the reason given by Rabbah and Rav Yosef; no meeting is stated, so the links are responses to their teaching.",
+            "The retort in s3 (אדרבה) and the reworking in s4 are the Gemara's anonymous voice, so no person link is made for them.",
+            "Rav Nachman's new reading in s5 interprets the anonymous mishna; no named author is answered.",
+            "The speech in s1 is a stock argument; it is read as the guarantor speaking to the lender about the borrower."
+          ]
+        },
+        "people": [
+          {
+            "id": "p1",
+            "kind": "person",
+            "label": "רבה",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "רבה",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named amora who, with Rav Yosef, gives the reason for the mishna.",
+            "alternatives": []
+          },
+          {
+            "id": "p2",
+            "kind": "person",
+            "label": "רב יוסף",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "ורב יוסף",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named amora who says the same reason as Rabbah (תרוייהו).",
+            "alternatives": []
+          },
+          {
+            "id": "p3",
+            "kind": "person",
+            "label": "רב נחמן",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "רב נחמן",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "רב נחמן",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Named amora who objects to their reason and then explains the mishna differently.",
+            "alternatives": []
+          },
+          {
+            "id": "p4",
+            "kind": "person",
+            "label": "the guarantor",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "לי",
+                "occurrence": 2
+              },
+              {
+                "source_id": "s3",
+                "quote": "ערבא",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "הערב",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "ערב",
+                "occurrence": 2
+              }
+            ],
+            "reason": "Generic guarantor; in s1 he is the speaker of the stock argument.",
+            "alternatives": []
+          },
+          {
+            "id": "p5",
+            "kind": "person",
+            "label": "the lender",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "לך",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Generic lender addressed in the stock argument.",
+            "alternatives": []
+          },
+          {
+            "id": "p6",
+            "kind": "person",
+            "label": "the borrower ('a man')",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "גברא",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s1",
+                "quote": "גברא",
+                "occurrence": 2
+              }
+            ],
+            "reason": "The man handed over and returned in the stock argument is the borrower.",
+            "alternatives": []
+          },
+          {
+            "id": "p7",
+            "kind": "group",
+            "label": "the Persians / Persian courts",
+            "form": "unnamed",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "דפרסאי",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s3",
+                "quote": "אזלי",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s4",
+                "quote": "בי דינא דפרסאי",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Group whose legal practice Rav Nachman and the Gemara describe.",
+            "alternatives": []
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "subject": "p3",
+            "object": "p1",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "opposes",
+            "direction": "directed",
+            "verb": "objects (מתקיף לה): האי דינא דפרסאי",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "Rav Nachman attacks the reason that Rabbah stated.",
+            "evidence": [
+              {
+                "source_id": "s1",
+                "quote": "רבה ורב יוסף דאמרי תרוייהו",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s2",
+                "quote": "מתקיף לה רב נחמן האי דינא דפרסאי",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r2",
+            "subject": "p3",
+            "object": "p2",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "opposes",
+            "direction": "directed",
+            "verb": "objects (מתקיף לה): האי דינא דפרסאי",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The same objection targets the reason that Rav Yosef also stated.",
+            "evidence": [
+              {
+                "source_id": "s1",
+                "quote": "רבה ורב יוסף דאמרי תרוייהו",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s2",
+                "quote": "מתקיף לה רב נחמן האי דינא דפרסאי",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r3",
+            "subject": "p4",
+            "object": "p5",
+            "alternatives": [],
+            "category": "action",
+            "relation": "speaks_to",
+            "direction": "directed",
+            "verb": "argues: גברא אשלימת לי גברא אשלימי לך",
+            "modality": "hypothetical",
+            "scene_status": "hypothetical",
+            "polarity": "positive",
+            "reason": "The stock argument is the guarantor telling the lender to collect from the borrower he was handed.",
+            "evidence": [
+              {
+                "source_id": "s1",
+                "quote": "גברא אשלימת לי גברא אשלימי לך",
+                "occurrence": 1
+              }
+            ]
+          }
+        ]
+      },
+      "reader": "claude",
+      "requestSha256": "e36006832cbef9af46c4665247d461f7557ce6137666701817c40c001bf8bdb6"
+    },
+    {
+      "job": {
+        "job_id": "v18-bavli-t15389",
+        "focal_ref": "Beitzah 11b:6",
+        "sources": [
+          {
+            "source_id": "s1",
+            "ref": "Beitzah 11b:4",
+            "text": "גמ׳ מאי תריסין אמר עולא תריסי חנויות",
+            "sha256": "63df23e21e7bc2756ce38149f5ac1e67b22d79295195909e928b78411c320ec8",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Beitzah|11b|4|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Beitzah",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:18:22Z",
+              "source_url": "https://www.sefaria.org/Beitzah%2011b",
+              "raw_file": "raw/bavli/beitzah/wikisource-talmud-bavli/11b.json",
+              "raw_file_sha256": "3af3c7b8e5830c0e171be34038a24e946d346cae9cebbf03474ba4dc4da5fbc0",
+              "unit_segments_sha256": "53499f3a238290e2b01c4ee428c0494f4cfd4648e90a305329252719ab4805a8",
+              "address": "4",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s2",
+            "ref": "Beitzah 11b:5",
+            "text": "אמר עולא שלשה דברים התירו סופן משום תחלתן ואלו הן עור לפני הדורסן ותריסי חנויות",
+            "sha256": "ad8b57a33fea357ac3d2216d9d8defc9dd3a2826822a3a9b19543c5a21c0e310",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Beitzah|11b|5|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Beitzah",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:18:22Z",
+              "source_url": "https://www.sefaria.org/Beitzah%2011b",
+              "raw_file": "raw/bavli/beitzah/wikisource-talmud-bavli/11b.json",
+              "raw_file_sha256": "3af3c7b8e5830c0e171be34038a24e946d346cae9cebbf03474ba4dc4da5fbc0",
+              "unit_segments_sha256": "53499f3a238290e2b01c4ee428c0494f4cfd4648e90a305329252719ab4805a8",
+              "address": "5",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s3",
+            "ref": "Beitzah 11b:6",
+            "text": "וחזרת רטיה במקדש",
+            "sha256": "13c5151f231bb374df8e3d6d63775b5ac235a92bc68bcdf7b1ca216dd80d27d2",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Beitzah|11b|6|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Beitzah",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:18:22Z",
+              "source_url": "https://www.sefaria.org/Beitzah%2011b",
+              "raw_file": "raw/bavli/beitzah/wikisource-talmud-bavli/11b.json",
+              "raw_file_sha256": "3af3c7b8e5830c0e171be34038a24e946d346cae9cebbf03474ba4dc4da5fbc0",
+              "unit_segments_sha256": "53499f3a238290e2b01c4ee428c0494f4cfd4648e90a305329252719ab4805a8",
+              "address": "6",
+              "focal": true
+            }
+          },
+          {
+            "source_id": "s4",
+            "ref": "Beitzah 11b:7",
+            "text": "ורחבא אמר רבי יהודה אף הפותח חביתו ומתחיל בעיסתו על גב הרגל",
+            "sha256": "5a3bf0bad8b6dd0e174720aec95156233b6323ef3f60c31c3737fb72617e3591",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Beitzah|11b|7|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Beitzah",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:18:22Z",
+              "source_url": "https://www.sefaria.org/Beitzah%2011b",
+              "raw_file": "raw/bavli/beitzah/wikisource-talmud-bavli/11b.json",
+              "raw_file_sha256": "3af3c7b8e5830c0e171be34038a24e946d346cae9cebbf03474ba4dc4da5fbc0",
+              "unit_segments_sha256": "53499f3a238290e2b01c4ee428c0494f4cfd4648e90a305329252719ab4805a8",
+              "address": "7",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s5",
+            "ref": "Beitzah 11b:8",
+            "text": "ואליבא דרבי יהודה דאמר יגמור",
+            "sha256": "97b474ecfe02be4a5eb880ea5b15dabc2494d63e195af2fbd64cc44225779532",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Beitzah|11b|8|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Beitzah",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:18:22Z",
+              "source_url": "https://www.sefaria.org/Beitzah%2011b",
+              "raw_file": "raw/bavli/beitzah/wikisource-talmud-bavli/11b.json",
+              "raw_file_sha256": "3af3c7b8e5830c0e171be34038a24e946d346cae9cebbf03474ba4dc4da5fbc0",
+              "unit_segments_sha256": "53499f3a238290e2b01c4ee428c0494f4cfd4648e90a305329252719ab4805a8",
+              "address": "8",
+              "focal": false
+            }
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "compact-source-v1",
+        "job_id": "v18-bavli-t15389",
+        "episode": {
+          "coverage": "needs_context",
+          "needed_context": [
+            "The Mishnah on shutters (Beitzah 11b:3), to name whose ruling Ulla is explaining when he defines 'shutters'."
+          ],
+          "notes": [
+            "'Rachava said Rabbi Yehudah: also one who opens his barrel' is read as Rachava adding to Ulla's list on Rabbi Yehudah's view; s5 confirms it follows Rabbi Yehudah, who says 'he may finish'. It could also be read as a report in Rabbi Yehudah's name.",
+            "The treader and the one who opens his barrel are generic actors."
+          ]
+        },
+        "people": [
+          {
+            "id": "p1",
+            "kind": "person",
+            "label": "Ulla",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "עולא",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s2",
+                "quote": "עולא",
+                "occurrence": 1
+              }
+            ],
+            "reason": "He defines 'shutters' and lists three things permitted at the end because of the start.",
+            "alternatives": []
+          },
+          {
+            "id": "p2",
+            "kind": "group",
+            "label": "the sages who permitted",
+            "form": "unnamed",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "התירו",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The unnamed 'they permitted' whose permissions Ulla explains.",
+            "alternatives": []
+          },
+          {
+            "id": "p3",
+            "kind": "person",
+            "label": "the treader of hides (hypothetical)",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "הדורסן",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Generic figure in the hide case on Ulla's list.",
+            "alternatives": []
+          },
+          {
+            "id": "p4",
+            "kind": "person",
+            "label": "Rachava",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s4",
+                "quote": "ורחבא",
+                "occurrence": 1
+              }
+            ],
+            "reason": "He adds opening a barrel and starting dough to the list.",
+            "alternatives": []
+          },
+          {
+            "id": "p5",
+            "kind": "person",
+            "label": "Rabbi Yehudah",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s4",
+                "quote": "רבי יהודה",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "דרבי יהודה",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Rachava's addition follows his view that one may finish.",
+            "alternatives": []
+          },
+          {
+            "id": "p6",
+            "kind": "person",
+            "label": "one who opens his barrel (hypothetical)",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s4",
+                "quote": "הפותח",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "יגמור",
+                "occurrence": 1
+              }
+            ],
+            "reason": "Generic actor who opens a barrel or starts dough before the festival and may finish.",
+            "alternatives": []
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "subject": "p1",
+            "object": null,
+            "alternatives": [],
+            "category": "debate",
+            "relation": "responds_to_teaching",
+            "direction": "directed",
+            "verb": "explains 'shutters' as shop shutters",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "Ulla explains a term from the Mishnah; its authors are not in the supplied text.",
+            "evidence": [
+              {
+                "source_id": "s1",
+                "quote": "מאי תריסין אמר עולא תריסי חנויות",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r2",
+            "subject": "p1",
+            "object": "p2",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "responds_to_teaching",
+            "direction": "directed",
+            "verb": "explains they permitted the end because of the start",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "Ulla gives the reason behind three permissions of the unnamed sages.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "שלשה דברים התירו סופן משום תחלתן",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r3",
+            "subject": "p4",
+            "object": "p1",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "responds_to_teaching",
+            "direction": "directed",
+            "verb": "adds 'also one who opens his barrel' to the list",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "His 'also' extends Ulla's list of three things.",
+            "evidence": [
+              {
+                "source_id": "s4",
+                "quote": "ורחבא אמר רבי יהודה אף הפותח חביתו",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r4",
+            "subject": "p4",
+            "object": "p5",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "responds_to_teaching",
+            "direction": "directed",
+            "verb": "adds an item according to Rabbi Yehudah's view",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "s5 says the addition follows Rabbi Yehudah, who says 'he may finish'.",
+            "evidence": [
+              {
+                "source_id": "s4",
+                "quote": "ורחבא אמר רבי יהודה",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "ואליבא דרבי יהודה דאמר יגמור",
+                "occurrence": 1
+              }
+            ]
+          }
+        ]
+      },
+      "reader": "claude",
+      "requestSha256": "6d2c498924c02380b139339a5b97a45fe74b183b91a86665eb18c9c13dfb1292"
+    },
+    {
+      "job": {
+        "job_id": "v18-bavli-t00252",
+        "focal_ref": "Arakhin 8b:2",
+        "sources": [
+          {
+            "source_id": "s1",
+            "ref": "Arakhin 8a:14",
+            "text": "עשרה ימים טמא ראיתי פתחה עשרה אחד עשר פתחה תשעה",
+            "sha256": "29fc2eb7422eed8eb7d96d5e01d665dc2bba9d0f6ee17bfac604084b1a25cf3e",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Arakhin|8a|14|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Arakhin",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:24:27Z",
+              "source_url": "https://www.sefaria.org/Arakhin%208a",
+              "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/8a.json",
+              "raw_file_sha256": "66c431063287d3f3806362ed48fd6a629e902dc8e439ed4ab1ca5c63df06f6a3",
+              "unit_segments_sha256": "e154c21ec3a28fb25ebd51d1a2164d4c55720f019df834244fda2b53f9fd92b8",
+              "address": "14",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s2",
+            "ref": "Arakhin 8b:1",
+            "text": "שנים עשר פתחה שמונה",
+            "sha256": "5f09c00d06b4c8e2ef8001120ea2cc003172ea1edaf7716ee6ce04c6be532c62",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Arakhin|8b|1|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Arakhin",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:24:28Z",
+              "source_url": "https://www.sefaria.org/Arakhin%208b",
+              "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/8b.json",
+              "raw_file_sha256": "4e6e88e8d443eb0977662fe12bcceeb2c12045311186e6c810aa333837a242a2",
+              "unit_segments_sha256": "45df0bef9d611840bc5b3fe5112cbf07fde6173c0b38c37d9ceef11ba1283b7c",
+              "address": "1",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s3",
+            "ref": "Arakhin 8b:2",
+            "text": "שלשה עשר פתחה שבעה",
+            "sha256": "994dd656bc15f7c726af1cc19630ba5dc6325ee341d7d88e66ee5d3bd968699e",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Arakhin|8b|2|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Arakhin",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:24:28Z",
+              "source_url": "https://www.sefaria.org/Arakhin%208b",
+              "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/8b.json",
+              "raw_file_sha256": "4e6e88e8d443eb0977662fe12bcceeb2c12045311186e6c810aa333837a242a2",
+              "unit_segments_sha256": "45df0bef9d611840bc5b3fe5112cbf07fde6173c0b38c37d9ceef11ba1283b7c",
+              "address": "2",
+              "focal": true
+            }
+          },
+          {
+            "source_id": "s4",
+            "ref": "Arakhin 8b:3",
+            "text": "שאין פתח בטועה פחות משבעה ולא יתר על שבעה עשר",
+            "sha256": "8bff05fac74030727c6ebbbb826f90cdd68737d46cc53d04c91bf9634332843f",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Arakhin|8b|3|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Arakhin",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:24:28Z",
+              "source_url": "https://www.sefaria.org/Arakhin%208b",
+              "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/8b.json",
+              "raw_file_sha256": "4e6e88e8d443eb0977662fe12bcceeb2c12045311186e6c810aa333837a242a2",
+              "unit_segments_sha256": "45df0bef9d611840bc5b3fe5112cbf07fde6173c0b38c37d9ceef11ba1283b7c",
+              "address": "3",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s5",
+            "ref": "Arakhin 8b:4",
+            "text": "אמר ליה רב אדא בר אהבה לרבה למה לי כולי האי תימני שבעה ותשתרי",
+            "sha256": "7c2c8fd49d24474970a974380ae9e5f2bbea3a48d004ec0e24862c28df328eff",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Arakhin|8b|4|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Arakhin",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:24:28Z",
+              "source_url": "https://www.sefaria.org/Arakhin%208b",
+              "raw_file": "raw/bavli/arakhin/wikisource-talmud-bavli/8b.json",
+              "raw_file_sha256": "4e6e88e8d443eb0977662fe12bcceeb2c12045311186e6c810aa333837a242a2",
+              "unit_segments_sha256": "45df0bef9d611840bc5b3fe5112cbf07fde6173c0b38c37d9ceef11ba1283b7c",
+              "address": "4",
+              "focal": false
+            }
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "compact-source-v1",
+        "job_id": "v18-bavli-t00252",
+        "episode": {
+          "coverage": "complete_for_supplied_text",
+          "needed_context": [],
+          "notes": [
+            "The woman's cases are hypothetical. The question between the named speakers is a reported conversation, and no answer is supplied."
+          ]
+        },
+        "people": [
+          {
+            "id": "p1",
+            "kind": "person",
+            "label": "Woman uncertain of her bleeding count",
+            "form": "generic",
+            "setting": "hypothetical",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "ראיתי",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s1",
+                "quote": "פתחה",
+                "occurrence": 2
+              },
+              {
+                "source_id": "s2",
+                "quote": "פתחה",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s3",
+                "quote": "פתחה",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s4",
+                "quote": "בטועה",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "תימני",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The consecutive counts and the final question concern the same generic woman role.",
+            "alternatives": []
+          },
+          {
+            "id": "p2",
+            "kind": "person",
+            "label": "רב אדא בר אהבה",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "רב אדא בר אהבה",
+                "occurrence": 1
+              }
+            ],
+            "reason": "He asks the concluding question.",
+            "alternatives": []
+          },
+          {
+            "id": "p3",
+            "kind": "person",
+            "label": "אהבה, father of אדא",
+            "form": "embedded_parent",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "אהבה",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The father is included in the patronymic.",
+            "alternatives": []
+          },
+          {
+            "id": "p4",
+            "kind": "person",
+            "label": "רבה",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s5",
+                "quote": "לרבה",
+                "occurrence": 1
+              }
+            ],
+            "reason": "He is explicitly addressed by the question.",
+            "alternatives": []
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "subject": "p2",
+            "object": "p3",
+            "alternatives": [],
+            "category": "family",
+            "relation": "child_of",
+            "direction": "directed",
+            "verb": "is the son of אהבה",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The patronymic states the relationship.",
+            "evidence": [
+              {
+                "source_id": "s5",
+                "quote": "רב אדא בר אהבה",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r2",
+            "subject": "p2",
+            "object": "p4",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "asks",
+            "direction": "directed",
+            "verb": "asks why the woman cannot simply count seven days",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The text explicitly reports him addressing Rabbah.",
+            "evidence": [
+              {
+                "source_id": "s5",
+                "quote": "אמר ליה רב אדא בר אהבה לרבה למה לי כולי האי תימני שבעה ותשתרי",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r3",
+            "subject": "p1",
+            "object": null,
+            "alternatives": [],
+            "category": "action",
+            "relation": "speaks_to",
+            "direction": "directed",
+            "verb": "reports ten days of impurity",
+            "modality": "uncertain",
+            "scene_status": "hypothetical",
+            "polarity": "positive",
+            "reason": "The first-person report has no identified listener.",
+            "evidence": [
+              {
+                "source_id": "s1",
+                "quote": "עשרה ימים טמא ראיתי",
+                "occurrence": 1
+              }
+            ]
+          }
+        ]
+      },
+      "reader": "codex",
+      "requestSha256": "804e95e7305c15dec669382a0ecadc68fa2d68b26e32db8cf62946da492ba339"
+    },
+    {
+      "job": {
+        "job_id": "v18-bavli-t28954",
+        "focal_ref": "Eruvin 83a:7",
+        "sources": [
+          {
+            "source_id": "s1",
+            "ref": "Eruvin 83a:5",
+            "text": "פשיטא שוחקות אתא לאשמועינן",
+            "sha256": "bd6d0c0c1cf5fc4de277613e9df16ef004ce07c492a0a3a70bd35787afcd9e0d",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Eruvin|83a|5|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Eruvin",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:08:58Z",
+              "source_url": "https://www.sefaria.org/Eruvin%2083a",
+              "raw_file": "raw/bavli/eruvin/wikisource-talmud-bavli/83a.json",
+              "raw_file_sha256": "ec2aa5de9054bcd2f43e704c3073fdc23d88bbd5d7977fd056e1c4925c07fc32",
+              "unit_segments_sha256": "b2b3d49b3c96c32bf84f17e784e9be3cc84119e71ec0c0d7cb31b8a88e09872f",
+              "address": "5",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s2",
+            "ref": "Eruvin 83a:6",
+            "text": "כי אתא רב דימי אמר שיגר בוניוס לרבי מודיא דקונדיס דמן נאוסא ושיער רבי מאתן ושבע עשרה ביעין",
+            "sha256": "c7015525c1825d7991183393efb2efe37c8abfba4f8fbf5ab18cca1b3a7875b2",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Eruvin|83a|6|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Eruvin",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:08:58Z",
+              "source_url": "https://www.sefaria.org/Eruvin%2083a",
+              "raw_file": "raw/bavli/eruvin/wikisource-talmud-bavli/83a.json",
+              "raw_file_sha256": "ec2aa5de9054bcd2f43e704c3073fdc23d88bbd5d7977fd056e1c4925c07fc32",
+              "unit_segments_sha256": "b2b3d49b3c96c32bf84f17e784e9be3cc84119e71ec0c0d7cb31b8a88e09872f",
+              "address": "6",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s3",
+            "ref": "Eruvin 83a:7",
+            "text": "הא סאה דהיכא אי דמדברית קמ\"ד הויא",
+            "sha256": "1a12ac20780cc95bd4c1be1b7e413127687967736a420465885919373405574d",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Eruvin|83a|7|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Eruvin",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:08:58Z",
+              "source_url": "https://www.sefaria.org/Eruvin%2083a",
+              "raw_file": "raw/bavli/eruvin/wikisource-talmud-bavli/83a.json",
+              "raw_file_sha256": "ec2aa5de9054bcd2f43e704c3073fdc23d88bbd5d7977fd056e1c4925c07fc32",
+              "unit_segments_sha256": "b2b3d49b3c96c32bf84f17e784e9be3cc84119e71ec0c0d7cb31b8a88e09872f",
+              "address": "7",
+              "focal": true
+            }
+          },
+          {
+            "source_id": "s4",
+            "ref": "Eruvin 83a:8",
+            "text": "ואי דירושלמית קע\"ג הויא",
+            "sha256": "b6248a957ce431272593d8f62ead445553fcf70b8c5adbb1597961d9c1156b1b",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Eruvin|83a|8|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Eruvin",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:08:58Z",
+              "source_url": "https://www.sefaria.org/Eruvin%2083a",
+              "raw_file": "raw/bavli/eruvin/wikisource-talmud-bavli/83a.json",
+              "raw_file_sha256": "ec2aa5de9054bcd2f43e704c3073fdc23d88bbd5d7977fd056e1c4925c07fc32",
+              "unit_segments_sha256": "b2b3d49b3c96c32bf84f17e784e9be3cc84119e71ec0c0d7cb31b8a88e09872f",
+              "address": "8",
+              "focal": false
+            }
+          },
+          {
+            "source_id": "s5",
+            "ref": "Eruvin 83a:9",
+            "text": "ואי דציפורית ר\"ז הויין",
+            "sha256": "47760eac76c5b3b0593f6c7ad012ebc6b448449b1d6cd2c6ed8737108f2491bb",
+            "edition": "Wikisource Talmud Bavli",
+            "provenance": {
+              "segment_id": "bavli|Eruvin|83a|9|Wikisource Talmud Bavli",
+              "corpus": "bavli",
+              "work": "Eruvin",
+              "license": "CC-BY-SA",
+              "version_source": "http://he.wikisource.org/wiki/%D7%AA%D7%9C%D7%9E%D7%95%D7%93_%D7%91%D7%91%D7%9C%D7%99",
+              "captured_at": "2026-09-20T08:08:58Z",
+              "source_url": "https://www.sefaria.org/Eruvin%2083a",
+              "raw_file": "raw/bavli/eruvin/wikisource-talmud-bavli/83a.json",
+              "raw_file_sha256": "ec2aa5de9054bcd2f43e704c3073fdc23d88bbd5d7977fd056e1c4925c07fc32",
+              "unit_segments_sha256": "b2b3d49b3c96c32bf84f17e784e9be3cc84119e71ec0c0d7cb31b8a88e09872f",
+              "address": "9",
+              "focal": false
+            }
+          }
+        ]
+      },
+      "answer": {
+        "schema_version": "compact-source-v1",
+        "job_id": "v18-bavli-t28954",
+        "episode": {
+          "coverage": "needs_context",
+          "needed_context": [
+            "Fetch the preceding teaching to identify the speaker referred to by אתא לאשמועינן.",
+            "Fetch the continuation to resolve which measure accounts for the 217 eggs."
+          ],
+          "notes": [
+            "ר\"ז in the final calculation is a number, not a person's name.",
+            "The qualifiers of מודיא describe the sent vessel and do not clearly introduce another person."
+          ]
+        },
+        "people": [
+          {
+            "id": "p1",
+            "kind": "person",
+            "label": "רב דימי",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "רב דימי",
+                "occurrence": 1
+              }
+            ],
+            "reason": "He arrives and reports the sending and measurement.",
+            "alternatives": []
+          },
+          {
+            "id": "p2",
+            "kind": "person",
+            "label": "בוניוס",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "בוניוס",
+                "occurrence": 1
+              }
+            ],
+            "reason": "He sends the measuring vessel to Rabbi.",
+            "alternatives": []
+          },
+          {
+            "id": "p3",
+            "kind": "person",
+            "label": "רבי",
+            "form": "named",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s2",
+                "quote": "לרבי",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s2",
+                "quote": "רבי",
+                "occurrence": 2
+              }
+            ],
+            "reason": "The recipient then measures the vessel in eggs.",
+            "alternatives": []
+          },
+          {
+            "id": "p4",
+            "kind": "person",
+            "label": "Teacher whose point was generous measures",
+            "form": "unnamed",
+            "setting": "reported",
+            "mentions": [
+              {
+                "source_id": "s1",
+                "quote": "אתא לאשמועינן",
+                "occurrence": 1
+              }
+            ],
+            "reason": "The opening refers to an earlier teacher without naming him.",
+            "alternatives": []
+          }
+        ],
+        "relationships": [
+          {
+            "id": "r1",
+            "subject": "p2",
+            "object": "p3",
+            "alternatives": [],
+            "category": "action",
+            "relation": "acts_on",
+            "direction": "directed",
+            "verb": "sends the vessel described as מודיא דקונדיס דמן נאוסא",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The narrative expressly states who sent it and to whom.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "שיגר בוניוס לרבי מודיא דקונדיס דמן נאוסא",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r2",
+            "subject": "p1",
+            "object": "p3",
+            "alternatives": [],
+            "category": "teaching",
+            "relation": "reports_in_name_of",
+            "direction": "directed",
+            "verb": "reports Rabbi's measurement as 217 eggs",
+            "modality": "asserted",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "Rav Dimi's report attributes the measurement to Rabbi.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "כי אתא רב דימי אמר שיגר בוניוס לרבי מודיא דקונדיס דמן נאוסא ושיער רבי מאתן ושבע עשרה ביעין",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r3",
+            "subject": null,
+            "object": "p4",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "responds_to_teaching",
+            "direction": "directed",
+            "verb": "explains that the novelty is using generous measures",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The anonymous objection and answer refer to an unnamed earlier teacher.",
+            "evidence": [
+              {
+                "source_id": "s1",
+                "quote": "פשיטא שוחקות אתא לאשמועינן",
+                "occurrence": 1
+              }
+            ]
+          },
+          {
+            "id": "r4",
+            "subject": null,
+            "object": "p3",
+            "alternatives": [],
+            "category": "debate",
+            "relation": "responds_to_teaching",
+            "direction": "directed",
+            "verb": "questions which seah standard fits his measurement",
+            "modality": "response_to_teaching",
+            "scene_status": "actual_report",
+            "polarity": "positive",
+            "reason": "The ensuing calculations test Rabbi's stated result against three standards.",
+            "evidence": [
+              {
+                "source_id": "s2",
+                "quote": "ושיער רבי מאתן ושבע עשרה ביעין",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s3",
+                "quote": "הא סאה דהיכא אי דמדברית קמ\"ד הויא",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s4",
+                "quote": "ואי דירושלמית קע\"ג הויא",
+                "occurrence": 1
+              },
+              {
+                "source_id": "s5",
+                "quote": "ואי דציפורית ר\"ז הויין",
+                "occurrence": 1
+              }
+            ]
+          }
+        ]
+      },
+      "reader": "codex",
+      "requestSha256": "10ce6f3d07fbd945722f77acd391c9f59f6dff22a3ff8d6cd843c0fc6926de98"
+    }
+  ]
+}

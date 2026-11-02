@@ -197,3 +197,47 @@ The Python API accepts a list of selection input dictionaries; the original sing
 This changes neither ownership nor historical identity. Context-only mentions stay context-only. The newest legacy
 copy and human corrections retain their existing priority. No checked row, artifact format, model recipe or cache key
 changes for this extension.
+
+## Add unreviewed machine readings
+
+A model can read a passage and pass the compact checker (`compact_source.validate.check`: schema, exact quotes,
+word boundaries, relation contract) without any review. `machine_source_store.py` stores such readings in the
+same store, as screening proposals, so they can be shown while nobody has checked them. They are not checked
+readings, and the rows say so:
+
+- The envelope has `origin: machine_unreviewed`. `planHash`, `approvalHash` and `rootApprovalFileSha256` are
+  `null`, `reviewHashes` is empty, `wholeReadingFullyChecked` is `false`, and every source is `unreviewed`.
+- Every person and connection decision is `accept_unreviewed`, never `replace`. The app shows the card as
+  "Machine reading, not reviewed".
+- The rows keep the checked row kinds and format (`checked-source-store-v1`), so the store contract and the
+  app decoder do not change. The IDs are `cs1-<artifact hash>` as before.
+
+What is stored from an answer:
+
+- A person keeps its ID, label, kind, form, setting and reason. `not_a_person` is held. A named mention is a
+  `printed_name` only if no letter, mark or digit touches it; a second person printing the same words is
+  `referential_evidence`.
+- A relationship becomes a connection only if both ends are retained, reported people, the ends differ, and it is
+  asserted, actually reported and positive. Anything else is held, with its reason, as a `checked_decision` row.
+  Broad types: family relations are `family`, `reports_in_name_of` is `transmission`, other debate and teaching
+  relations are `intellectual_connection`, and `acts_on`/`speaks_to` are `direct_interaction`.
+- Nothing is decided about who a person historically is.
+
+The release is pinned like a checked one, but by a selection that approves no content. A
+`machine-release-selection-v1` file lists the jobs, the artifact each is rebuilt from, and the people and
+connection counts. Its SHA-256 is given separately by the caller. The R2 object is the artifact file: the frozen
+job and the model's exact answer text, at `source-readings/machine-v1/artifacts/<sha256>.json`.
+
+1. `prepare-machine --store S --machine-selection FILE PIN --artifacts DIR --parent-db DB --parent-revision R
+   --ownership M --ownership-hash H --legacy-db DB --legacy-revision R --output DIR` writes `changes.json` and the
+   artifact files. It repeats the rebuild and refuses anything that differs from the selection.
+2. `extend_d1.py` prepares the revision with `--checked-selection PIN` (the same flag; it takes the machine pin too).
+3. Upload the artifacts, download them again, and compare each hash.
+4. Import into the store, leave it `loading`, export it, and run `verify --machine-selection FILE PIN ...`.
+   Add `--machine-only` when the parent holds reviewed readings whose approvals you do not have: only the new
+   machine readings are rebuilt, the receipt says `scope: machine-only`, and no full verification accepts it as a
+   parent receipt.
+5. Activate, then check pages and person cards.
+
+The legacy graph check is the same as for checked readings. A machine reading's ID is new, so it cannot already
+be in the graph.
