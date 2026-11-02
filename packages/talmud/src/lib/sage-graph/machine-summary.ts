@@ -6,10 +6,12 @@
 export interface MachineRows {
   /** The focal ref of each machine reading, for example "Arakhin 2a:11". */
   readings: string[];
-  /** Every kept person: its local ID (`<passage>/<id>`), label and form. */
-  people: { id: string; label: string; form: string }[];
-  /** Every kept connection: subject and object person IDs, relation and broad type. */
-  connections: { subject: string; object: string; relation: string; broadType: string }[];
+  /** Kept people, counted by form. */
+  peopleByForm: { form: string; n: number }[];
+  /** Kept connections, counted by relation and broad type. */
+  connectionsByKind: { relation: string; broadType: string; n: number }[];
+  /** Name pairs as written, counted by relation. Left in the order the reading gave them. */
+  pairs: { a: string; b: string; relation: string; n: number }[];
   /** Items held back, with the reason, grouped. */
   held: { reason: string; n: number }[];
 }
@@ -56,25 +58,22 @@ export function summarizeMachine(
     out.revisions[name] = revision;
     out.readings += rows.readings.length;
     for (const ref of rows.readings) works.set(workOf(ref), (works.get(workOf(ref)) ?? 0) + 1);
-    const label = new Map<string, string>();
-    for (const p of rows.people) {
-      label.set(p.id, p.label);
-      out.people.total += 1;
-      out.people.byForm[p.form] = (out.people.byForm[p.form] ?? 0) + 1;
+    for (const p of rows.peopleByForm) {
+      out.people.total += p.n;
+      out.people.byForm[p.form] = (out.people.byForm[p.form] ?? 0) + p.n;
     }
-    for (const c of rows.connections) {
-      out.connections.total += 1;
-      out.connections.byType[c.broadType] = (out.connections.byType[c.broadType] ?? 0) + 1;
-      relations.set(c.relation, (relations.get(c.relation) ?? 0) + 1);
-      const a = label.get(c.subject);
-      const b = label.get(c.object);
-      if (!a || !b) continue;
-      const symmetric = SYMMETRIC.has(c.relation);
-      const [x, y] = symmetric && b < a ? [b, a] : [a, b];
-      const key = JSON.stringify([x, y, c.relation]);
+    for (const c of rows.connectionsByKind) {
+      out.connections.total += c.n;
+      out.connections.byType[c.broadType] = (out.connections.byType[c.broadType] ?? 0) + c.n;
+      relations.set(c.relation, (relations.get(c.relation) ?? 0) + c.n);
+    }
+    for (const p of rows.pairs) {
+      const symmetric = SYMMETRIC.has(p.relation);
+      const [x, y] = symmetric && p.b < p.a ? [p.b, p.a] : [p.a, p.b];
+      const key = JSON.stringify([x, y, p.relation]);
       const found = pairs.get(key);
-      if (found) found.n += 1;
-      else pairs.set(key, { a: x, b: y, relation: c.relation, n: 1, symmetric });
+      if (found) found.n += p.n;
+      else pairs.set(key, { a: x, b: y, relation: p.relation, n: p.n, symmetric });
     }
     for (const h of rows.held) held.set(h.reason, (held.get(h.reason) ?? 0) + h.n);
   }

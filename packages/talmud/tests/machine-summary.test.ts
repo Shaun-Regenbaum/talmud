@@ -12,29 +12,50 @@ const rows = fixture.rows as {
 }[];
 const data = (r: { payload_json: string }) => JSON.parse(r.payload_json);
 const kept = (r: { payload_json: string }) => data(r).decision?.action === 'accept_unreviewed';
-const input = () => ({
-  readings: rows.filter((r) => r.kind === 'checked_reading').map((r) => r.ref),
-  people: rows
-    .filter((r) => r.kind === 'checked_person' && kept(r))
-    .map((r) => ({ id: r.subject_id, label: data(r).label, form: data(r).form })),
-  connections: rows
-    .filter((r) => r.kind === 'checked_connection' && kept(r))
-    .map((r) => ({
-      subject: r.subject_id,
-      object: r.object_id,
-      relation: data(r).predicate.value,
-      broadType: data(r).broadType,
-    })),
-  held: [] as { reason: string; n: number }[],
-});
+/** The same grouping the worker does in SQL, done here on the real stored rows. */
+const input = () => {
+  const people = rows.filter((r) => r.kind === 'checked_person' && kept(r));
+  const label = new Map(people.map((r) => [r.subject_id, data(r).label as string]));
+  const count = <K extends string>(keys: K[]) => {
+    const m = new Map<string, number>();
+    for (const k of keys) m.set(k, (m.get(k) ?? 0) + 1);
+    return [...m];
+  };
+  const connections = rows.filter((r) => r.kind === 'checked_connection' && kept(r));
+  return {
+    readings: rows.filter((r) => r.kind === 'checked_reading').map((r) => r.ref),
+    peopleByForm: count(people.map((r) => data(r).form)).map(([form, n]) => ({ form, n })),
+    connectionsByKind: count(
+      connections.map((r) => JSON.stringify([data(r).predicate.value, data(r).broadType])),
+    ).map(([k, n]) => {
+      const [relation, broadType] = JSON.parse(k);
+      return { relation, broadType, n };
+    }),
+    pairs: count(
+      connections
+        .filter((r) => label.has(r.subject_id) && label.has(r.object_id))
+        .map((r) =>
+          JSON.stringify([
+            label.get(r.subject_id),
+            label.get(r.object_id),
+            data(r).predicate.value,
+          ]),
+        ),
+    ).map(([k, n]) => {
+      const [a, b, relation] = JSON.parse(k);
+      return { a, b, relation, n };
+    }),
+    held: [] as { reason: string; n: number }[],
+  };
+};
 
 describe('machine reading summary', () => {
   it('counts what the stored rows hold', () => {
     const rowsIn = input();
     const s = summarizeMachine([{ name: 'bavli', revision: 'rev', rows: rowsIn }]);
     expect(s.readings).toBe(4);
-    expect(s.people.total).toBe(rowsIn.people.length);
-    expect(s.connections.total).toBe(rowsIn.connections.length);
+    expect(s.people.total).toBe(rowsIn.peopleByForm.reduce((n, p) => n + p.n, 0));
+    expect(s.connections.total).toBe(rowsIn.connectionsByKind.reduce((n, c) => n + c.n, 0));
     expect(s.connections.byRelation.reduce((n, r) => n + r.n, 0)).toBe(s.connections.total);
     expect(Object.values(s.people.byForm).reduce((n, v) => n + v, 0)).toBe(s.people.total);
     expect(s.revisions).toEqual({ bavli: 'rev' });
@@ -46,20 +67,17 @@ describe('machine reading summary', () => {
     expect(s.pairs.map((p) => p.n)).toEqual([...s.pairs.map((p) => p.n)].sort((a, b) => b - a));
   });
   it('treats a symmetric pair the same in either order', () => {
-    const people = [
-      { id: 'a/p1', label: 'ב', form: 'named' },
-      { id: 'a/p2', label: 'א', form: 'named' },
-    ];
     const s = summarizeMachine([
       {
         name: 'bavli',
         revision: null,
         rows: {
           readings: [],
-          people,
-          connections: [
-            { subject: 'a/p1', object: 'a/p2', relation: 'sibling_of', broadType: 'family' },
-            { subject: 'a/p2', object: 'a/p1', relation: 'sibling_of', broadType: 'family' },
+          peopleByForm: [],
+          connectionsByKind: [],
+          pairs: [
+            { a: 'ב', b: 'א', relation: 'sibling_of', n: 1 },
+            { a: 'א', b: 'ב', relation: 'sibling_of', n: 1 },
           ],
           held: [],
         },
