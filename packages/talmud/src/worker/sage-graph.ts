@@ -20,6 +20,7 @@ import {
   readingOccurrences,
 } from '../lib/sage-graph/initial-readings';
 import { type LegacyPayload, type LegacyRow, legacyCards } from '../lib/sage-graph/legacy-readings';
+import { type MachineRows, summarizeMachine } from '../lib/sage-graph/machine-summary';
 import { checkedNameSuggestion } from '../lib/sage-graph/name-candidates';
 import { buildSageNetwork, type HierarchyNode } from '../lib/sage-graph/network';
 import { buildSageOverview } from '../lib/sage-graph/overview';
@@ -166,6 +167,85 @@ sageGraph.get('/overview', async (c) => {
       'cache-control': 'public, max-age=300',
       'x-overview-cache': 'miss',
     },
+  });
+});
+
+// What the unreviewed machine readings hold, for the sages overview. Read from the source reading
+// stores, never from the reviewed graph, so its counts stay apart from the reviewed ones.
+sageGraph.get('/machine', async (c) => {
+  const stores = await resolveSourceStores(c.env, (name) => c.req.query(name));
+  if ('error' in stores) return c.json({ error: stores.error }, stores.status);
+  const cache =
+    typeof caches === 'undefined' ? null : (caches as unknown as { default: Cache }).default;
+  const key = new Request(
+    `https://cache.invalid/sage-machine/${stores.revisions.bavli}/${stores.revisions.other}`,
+  );
+  const kept = await cache?.match(key);
+  if (kept) {
+    return new Response(kept.body, {
+      headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=300' },
+    });
+  }
+  const machine = "json_extract(payload_json,'$.decision.action')='accept_unreviewed'";
+  const parts = [];
+  for (const store of stores.stores) {
+    try {
+      const [readings, people, connections, held] = await store.db.batch<Record<string, string>>([
+        store.db
+          .prepare(
+            `SELECT ref FROM sage_graph_all_records WHERE revision_id=? AND kind='checked_reading' AND json_extract(payload_json,'$.origin')='machine_unreviewed'`,
+          )
+          .bind(store.revision),
+        store.db
+          .prepare(
+            `SELECT subject_id AS id, json_extract(payload_json,'$.label') AS label, json_extract(payload_json,'$.form') AS form FROM sage_graph_all_records WHERE revision_id=? AND kind='checked_person' AND ${machine}`,
+          )
+          .bind(store.revision),
+        store.db
+          .prepare(
+            `SELECT subject_id AS subject, object_id AS object, json_extract(payload_json,'$.predicate.value') AS relation, json_extract(payload_json,'$.broadType') AS broadType FROM sage_graph_all_records WHERE revision_id=? AND kind='checked_connection' AND ${machine}`,
+          )
+          .bind(store.revision),
+        store.db
+          .prepare(
+            `SELECT json_extract(payload_json,'$.reason') AS reason, COUNT(*) AS n FROM sage_graph_all_records WHERE revision_id=? AND kind='checked_decision' AND json_extract(payload_json,'$.id') LIKE 'hold:%' GROUP BY reason`,
+          )
+          .bind(store.revision),
+      ]);
+      parts.push({
+        name: store.name,
+        revision: store.revision,
+        rows: {
+          readings: readings.results.map((r) => r.ref),
+          people: people.results as unknown as MachineRows['people'],
+          connections: connections.results as unknown as MachineRows['connections'],
+          held: held.results as unknown as MachineRows['held'],
+        },
+      });
+    } catch {
+      return c.json({ error: 'Source reading store is unavailable' }, 503);
+    }
+  }
+  const body = JSON.stringify(summarizeMachine(parts));
+  if (cache) {
+    try {
+      c.executionCtx.waitUntil(
+        cache.put(
+          key,
+          new Response(body, {
+            headers: {
+              'content-type': 'application/json',
+              'cache-control': 'public, max-age=86400',
+            },
+          }),
+        ),
+      );
+    } catch {
+      // No request context to extend. The answer is still returned, only not kept.
+    }
+  }
+  return new Response(body, {
+    headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=300' },
   });
 });
 
