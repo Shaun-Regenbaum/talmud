@@ -982,3 +982,50 @@
   background: var(--ink-slate);
   color: var(--surface);
 }
+
+.sage-seen {
+  margin: 1.4rem 0;
+}
+.sage-seen h3 {
+  margin: 0 0 0.2rem;
+}
+.sage-seen-note {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.sage-seen-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 46rem;
+}
+.sage-seen-list > li {
+  border-top: 1px solid var(--line);
+  padding: 0.35rem 0;
+}
+.sage-seen-list summary {
+  cursor: pointer;
+}
+.sage-seen-count {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+}
+.sage-seen-quotes {
+  list-style: none;
+  margin: 0.4rem 0 0.2rem;
+  padding-inline-start: 1rem;
+}
+.sage-seen-quotes li {
+  margin: 0.3rem 0;
+}
+.sage-seen-quotes q {
+  font-size: 1.05rem;
+  quotes: none;
+}
+.sage-seen-ref {
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
