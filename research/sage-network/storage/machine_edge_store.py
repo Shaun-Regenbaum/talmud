@@ -37,6 +37,10 @@ ARTIFACT_PREFIX = 'source-readings/machine-edges-v1/artifacts/'
 PASSAGE_PREFIX = 'mv1-'
 HEX = re.compile(r'[0-9a-f]{64}')
 SUPPORTED = ('yes', 'no', 'unsure')
+# The labels a checker may give an edge. "interacts_with" is for two actors who deal with each other
+# when no other label fits. A strict check keeps the reader's own label; a wider check may give a better one.
+RELATIONS = ('asks', 'answers', 'opposes', 'supports', 'responds_to_teaching', 'reports_in_name_of', 'speaks_to',
+             'acts_on', 'teaches', 'student_of', 'child_of', 'child_in_law_of', 'spouse_of', 'sibling_of', 'interacts_with')
 DIRECTION = ('ok', 'swapped', 'na')
 
 
@@ -72,6 +76,7 @@ def parse_artifact(text):
 def kept(verdict, candidates):
     """True when the check is clear on all three points."""
     require(verdict['supported'] in SUPPORTED and verdict['direction'] in DIRECTION, 'Unknown edge verdict')
+    require(verdict.get('relation', RELATIONS[0]) in RELATIONS, 'Unknown relation in an edge verdict')
     for end in ('subject', 'object'):
         chosen = verdict[end + '_sage']
         require(chosen in candidates[end] or chosen in ('none', 'unsure'), 'A sage was chosen that was not offered')
@@ -136,7 +141,9 @@ def records(artifact_text, selection, selection_pin, lookup):
                 ref=reading['ref'], subject_id=ends['subject']['sage'], object_id=ends['object']['sage'],
                 authority='screening', decision='needs_review',
                 data=dict(format=checked.FORMAT, releaseId=rid, readingPassageId=passage, edgeId=verdict['id'], jobId=item['job_id'],
-                          relation=data['predicate']['value'], broadType=data['broadType'], symmetric=data['direction']['status'] != 'supported',
+                          relation=verdict.get('relation') or data['predicate']['value'],
+                          **(dict(readerRelation=data['predicate']['value']) if verdict.get('relation') else {}),
+                          broadType=data['broadType'], symmetric=data['direction']['status'] != 'supported',
                           subject=ends['subject'], object=ends['object'], readerFamily=item['reader_family'],
                           checkerFamily=item['checker_family'], note=verdict.get('note', ''), historicalIdentityAccepted=False,
                           confirmedFacts=False)))
