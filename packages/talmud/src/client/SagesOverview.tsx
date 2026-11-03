@@ -380,17 +380,13 @@ function NetworkGraph(props: {
   return (
     <figure class="sages-graph">
       <figcaption>
-        {t(
-          props.overview.stats.connectionsConfirmed > 0
-            ? 'sages.overview.graphCaptionBoth'
-            : 'sages.overview.graphCaption',
-          {
-            confirmed: props.number(props.overview.stats.connectionsConfirmed),
-            connections: props.number(props.overview.stats.connections),
-            names: props.number(props.overview.nodes.length),
-            groups: props.number(props.overview.stats.components),
-          },
-        )}
+        {t('sages.overview.graphCaption', {
+          connections: props.number(
+            props.overview.stats.connections + props.overview.stats.connectionsConfirmed,
+          ),
+          names: props.number(props.overview.nodes.length),
+          groups: props.number(props.overview.stats.components),
+        })}
       </figcaption>
       {graph('main')}
       <Show when={smallCount() > 0}>
