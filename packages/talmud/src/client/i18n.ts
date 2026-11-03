@@ -597,6 +597,13 @@ const CATALOG = {
     en: '{people} sages and {links} links, in columns by period. Hover a sage to see their links, click to open them. {noEra} of the {registry} sages in our list have no era yet.',
     he: '{people} חכמים ו־{links} קשרים, בעמודות לפי תקופה. העבירו את העכבר על חכם כדי לראות את קשריו, ולחצו כדי לפתוח אותו. ל־{noEra} מתוך {registry} החכמים ברשימה שלנו אין עדיין תקופה.',
   },
+  'sages.network.captionShort': {
+    en: '{people} sages and {links} links. Hover a sage to see their links, click to open them.',
+    he: '{people} חכמים ו־{links} קשרים. העבירו את העכבר על חכם כדי לראות את קשריו, ולחצו כדי לפתוח אותו.',
+  },
+  'sages.network.view': { en: 'How to draw the graph', he: 'איך לצייר את הגרף' },
+  'sages.network.view.circle': { en: 'Circle', he: 'מעגל' },
+  'sages.network.view.period': { en: 'By period', he: 'לפי תקופה' },
   'sages.network.layers': { en: 'Which links to show', he: 'אילו קשרים להציג' },
   'sages.network.layer.checked': {
     en: 'Read and checked in the text ({count})',
