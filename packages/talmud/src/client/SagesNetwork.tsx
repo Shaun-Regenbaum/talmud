@@ -1,14 +1,19 @@
-/** Every sage link in one graph, in columns by period. Switch each source of links on or off. */
+/** Every sage link in one graph: round a circle by default, or in columns by period. */
 import { StatusMessage } from '@corpus/ui/Study';
 import { createMemo, createResource, createSignal, For, type JSX, Show } from 'solid-js';
 import type { NetworkLayer, SageNetwork } from '../lib/sage-graph/network';
 import { eraOf } from '../lib/sage-graph/overview';
 import { lang, t } from './i18n';
 import { shortGenLabel } from './sageArcLayout';
+import { bundledPath, layoutCircle } from './sageCircleLayout';
 import { HEADER, layoutTimeline } from './sageNetworkLayout';
 import { placeLabels } from './sageOverviewLayout';
 
-const LAYERS: NetworkLayer[] = ['checked', 'crosschecked', 'curated', 'learned'];
+// These links come from AI reading and are not checked, so the page does not draw them.
+const SHOWN_LAYERS = new Set<NetworkLayer>(['checked', 'crosschecked', 'curated']);
+const RING = 400;
+const SIDE = 190;
+const TOP_NAMES = 18;
 
 type Pt = { x: number; y: number };
 
@@ -60,16 +65,10 @@ export function SagesNetwork(): JSX.Element {
 }
 
 function Graph(props: { network: SageNetwork }): JSX.Element {
-  const [on, setOn] = createSignal<Record<NetworkLayer, boolean>>({
-    checked: true,
-    crosschecked: true,
-    curated: true,
-    // These links come from AI reading, not from a check, so they start switched off.
-    learned: false,
-  });
+  const [view, setView] = createSignal<'circle' | 'period'>('circle');
   const [focus, setFocus] = createSignal<number | null>(null);
   const number = (n: number) => n.toLocaleString(lang() === 'he' ? 'he-IL' : 'en-US');
-  const edges = createMemo(() => props.network.edges.filter((e) => on()[e[2]]));
+  const edges = createMemo(() => props.network.edges.filter((e) => SHOWN_LAYERS.has(e[2])));
   const degree = createMemo(() => {
     const d = new Map<number, number>();
     for (const e of edges()) {
@@ -130,118 +129,237 @@ function Graph(props: { network: SageNetwork }): JSX.Element {
   const open = (i: number) => {
     location.hash = `sages/${encodeURIComponent(props.network.nodes[i].id)}`;
   };
-  const toggle = (layer: NetworkLayer) => setOn({ ...on(), [layer]: !on()[layer] });
-  const s = () => props.network.stats;
+  const ring = createMemo(() =>
+    layoutCircle(
+      shown().map((x) => ({ id: String(x.i), generation: x.n.generation, degree: x.degree })),
+      edges().map((e) => [String(e[0]), String(e[1])] as [string, string]),
+      RING,
+    ),
+  );
+  const ringAt = (i: number) => ring().positions.get(String(i));
+  // Names sit just outside the ring, on the side of the circle they are on.
+  const ringLabels = createMemo(() => {
+    const f = focus();
+    const wanted =
+      f === null
+        ? [...shown()].sort((x, y) => y.degree - x.degree || x.i - y.i).slice(0, TOP_NAMES)
+        : shown().filter((x) => near().has(x.i));
+    const all = wanted.flatMap((x) => {
+      const p = ringAt(x.i);
+      if (!p) return [];
+      const text = nameOf(x.i);
+      const right = Math.cos(p.angle) >= 0;
+      const width = text.length * 8.6;
+      const x0 = p.x + Math.cos(p.angle) * 12;
+      return [
+        {
+          id: String(x.i),
+          x: right ? x0 + width / 2 : x0 - width / 2,
+          y: p.y + Math.sin(p.angle) * 12 + 4,
+          text,
+          right,
+          x0,
+          priority: x.i === f ? 1e9 : x.degree,
+        },
+      ];
+    });
+    const keep = placeLabels(all);
+    return all.filter((l) => keep.has(l.id));
+  });
   return (
     <figure class="sages-graph sages-network">
-      <figcaption>
-        {t('sages.network.caption', {
-          people: number(shown().length),
-          links: number(edges().length),
-          noEra: number(s().registryNoEra),
-          registry: number(s().registryPeople),
-        })}
-      </figcaption>
-      <fieldset class="sages-layers">
-        <legend>{t('sages.network.layers')}</legend>
-        <For each={LAYERS}>
-          {(layer) => (
-            <label>
-              <input type="checkbox" checked={on()[layer]} onChange={() => toggle(layer)} />
-              <i class={`key-edge layer-${layer}`} />
-              {t(`sages.network.layer.${layer}`, { count: number(s().edgesByLayer[layer]) })}
-            </label>
-          )}
-        </For>
-      </fieldset>
-      <div class="sages-graph-scroll">
-        <svg
-          viewBox={`0 0 ${Math.max(layout().width, 300)} ${Math.max(layout().height, 80)}`}
-          role="img"
-          aria-label={t('sages.network.label')}
-          classList={{ 'has-hover': focus() !== null }}
-        >
-          <For each={layout().bands}>
-            {(b, k) => (
-              <g class="sages-band">
-                <rect
-                  x={b.x}
-                  y={HEADER - 4}
-                  width={b.w}
-                  height={layout().height - HEADER + 4}
-                  rx="6"
-                />
-                <text x={b.x + b.w / 2} y={k() % 2 ? 26 : 12} text-anchor="middle">
-                  {b.gen ? shortGenLabel(b.gen, lang() === 'he') : t('sages.network.noEra')}
-                </text>
-              </g>
-            )}
-          </For>
-          <For each={edges()}>
-            {(e) => {
-              const a = () => at(e[0]);
-              const b = () => at(e[1]);
-              return (
-                <Show when={a() && b()}>
-                  <path
-                    class={`sages-link layer-${e[2]}`}
-                    classList={{
-                      'is-active': focus() !== null && (e[0] === focus() || e[1] === focus()),
-                    }}
-                    d={curve(a() as Pt, b() as Pt, e[0] + e[1])}
-                  />
-                </Show>
-              );
-            }}
-          </For>
-          <For each={shown()}>
-            {(item) => {
-              const p = () => at(item.i);
-              return (
-                <Show when={p()}>
-                  {/* biome-ignore lint/a11y/useSemanticElements: an <a> inside this SVG did not draw when tried */}
-                  <circle
-                    class={`sages-graph-node is-named era-${eraOf(item.n.generation)}`}
-                    classList={{ 'is-dim': focus() !== null && !near().has(item.i) }}
-                    cx={p()?.x}
-                    cy={p()?.y}
-                    r={3 + Math.min(3.5, item.degree * 0.25)}
-                    role="link"
-                    tabindex={0}
-                    aria-label={name(item.i)}
-                    onClick={() => open(item.i)}
-                    onPointerEnter={() => setFocus(item.i)}
-                    onPointerLeave={() => setFocus(null)}
-                    onFocus={() => setFocus(item.i)}
-                    onBlur={() => setFocus(null)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault();
-                        open(item.i);
-                      }
-                    }}
-                  >
-                    <title>{name(item.i)}</title>
-                  </circle>
-                </Show>
-              );
-            }}
-          </For>
-          <For each={focusLabels()}>
-            {(l) => (
-              <text class="sages-graph-label" x={l.x} y={l.y} text-anchor="middle">
-                {l.text}
-              </text>
-            )}
-          </For>
-        </svg>
+      <div class="sages-network-bar">
+        <p class="sages-network-caption">
+          {t('sages.network.captionShort', {
+            people: number(shown().length),
+            links: number(edges().length),
+          })}
+        </p>
+        <fieldset class="sages-view" aria-label={t('sages.network.view')}>
+          <button
+            type="button"
+            aria-pressed={view() === 'circle'}
+            onClick={() => setView('circle')}
+          >
+            {t('sages.network.view.circle')}
+          </button>
+          <button
+            type="button"
+            aria-pressed={view() === 'period'}
+            onClick={() => setView('period')}
+          >
+            {t('sages.network.view.period')}
+          </button>
+        </fieldset>
       </div>
-      <p class="sages-network-note">
-        {t('sages.network.note', {
-          unplaced: number(s().checkedUnplaced),
-          dropped: number(s().dropped),
-        })}
-      </p>
+      <Show when={view() === 'circle'}>
+        <div class="sages-graph-scroll">
+          <svg
+            viewBox={`${-(RING + SIDE)} ${-(RING + 40)} ${2 * (RING + SIDE)} ${2 * (RING + 40)}`}
+            role="img"
+            aria-label={t('sages.network.label')}
+            classList={{ 'has-hover': focus() !== null }}
+          >
+            <For each={edges()}>
+              {(e) => {
+                const a = () => ringAt(e[0]);
+                const b = () => ringAt(e[1]);
+                return (
+                  <Show when={a() && b()}>
+                    <path
+                      class={`sages-link layer-${e[2]}`}
+                      classList={{
+                        'is-active': focus() !== null && (e[0] === focus() || e[1] === focus()),
+                      }}
+                      d={bundledPath(a() as Pt, b() as Pt)}
+                    />
+                  </Show>
+                );
+              }}
+            </For>
+            <For each={shown()}>
+              {(item) => {
+                const p = () => ringAt(item.i);
+                return (
+                  <Show when={p()}>
+                    {/* biome-ignore lint/a11y/useSemanticElements: an <a> inside this SVG did not draw when tried */}
+                    <circle
+                      class={`sages-graph-node is-named era-${eraOf(item.n.generation)}`}
+                      classList={{ 'is-dim': focus() !== null && !near().has(item.i) }}
+                      cx={p()?.x}
+                      cy={p()?.y}
+                      r={3 + Math.min(5, item.degree * 0.22)}
+                      role="link"
+                      tabindex={0}
+                      aria-label={name(item.i)}
+                      onClick={() => open(item.i)}
+                      onPointerEnter={() => setFocus(item.i)}
+                      onPointerLeave={() => setFocus(null)}
+                      onFocus={() => setFocus(item.i)}
+                      onBlur={() => setFocus(null)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          open(item.i);
+                        }
+                      }}
+                    >
+                      <title>{name(item.i)}</title>
+                    </circle>
+                  </Show>
+                );
+              }}
+            </For>
+            <For each={ringLabels()}>
+              {(l) => (
+                <text
+                  class="sages-graph-label"
+                  x={l.x0}
+                  y={l.y}
+                  text-anchor={l.right ? 'start' : 'end'}
+                >
+                  {l.text}
+                </text>
+              )}
+            </For>
+          </svg>
+        </div>
+      </Show>
+      <Show when={view() === 'period'}>
+        <div class="sages-graph-scroll">
+          <svg
+            viewBox={`0 0 ${Math.max(layout().width, 300)} ${Math.max(layout().height, 80)}`}
+            role="img"
+            aria-label={t('sages.network.label')}
+            classList={{ 'has-hover': focus() !== null }}
+          >
+            <For each={layout().bands}>
+              {(b, k) => (
+                <g class="sages-band">
+                  <rect
+                    x={b.x}
+                    y={HEADER - 4}
+                    width={b.w}
+                    height={layout().height - HEADER + 4}
+                    rx="6"
+                  />
+                  <text x={b.x + b.w / 2} y={k() % 2 ? 26 : 12} text-anchor="middle">
+                    {b.gen ? shortGenLabel(b.gen, lang() === 'he') : t('sages.network.noEra')}
+                  </text>
+                </g>
+              )}
+            </For>
+            <For each={edges()}>
+              {(e) => {
+                const a = () => at(e[0]);
+                const b = () => at(e[1]);
+                return (
+                  <Show when={a() && b()}>
+                    <path
+                      class={`sages-link layer-${e[2]}`}
+                      classList={{
+                        'is-active': focus() !== null && (e[0] === focus() || e[1] === focus()),
+                      }}
+                      d={curve(a() as Pt, b() as Pt, e[0] + e[1])}
+                    />
+                  </Show>
+                );
+              }}
+            </For>
+            <For each={shown()}>
+              {(item) => {
+                const p = () => at(item.i);
+                return (
+                  <Show when={p()}>
+                    {/* biome-ignore lint/a11y/useSemanticElements: an <a> inside this SVG did not draw when tried */}
+                    <circle
+                      class={`sages-graph-node is-named era-${eraOf(item.n.generation)}`}
+                      classList={{ 'is-dim': focus() !== null && !near().has(item.i) }}
+                      cx={p()?.x}
+                      cy={p()?.y}
+                      r={3 + Math.min(3.5, item.degree * 0.25)}
+                      role="link"
+                      tabindex={0}
+                      aria-label={name(item.i)}
+                      onClick={() => open(item.i)}
+                      onPointerEnter={() => setFocus(item.i)}
+                      onPointerLeave={() => setFocus(null)}
+                      onFocus={() => setFocus(item.i)}
+                      onBlur={() => setFocus(null)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          open(item.i);
+                        }
+                      }}
+                    >
+                      <title>{name(item.i)}</title>
+                    </circle>
+                  </Show>
+                );
+              }}
+            </For>
+            <For each={focusLabels()}>
+              {(l) => (
+                <text class="sages-graph-label" x={l.x} y={l.y} text-anchor="middle">
+                  {l.text}
+                </text>
+              )}
+            </For>
+          </svg>
+        </div>
+      </Show>
+      <ul class="sages-graph-key">
+        <li>
+          <i class="key-node era-tanna is-named" /> {t('sages.overview.key.tanna')}
+        </li>
+        <li>
+          <i class="key-node era-amora-ey is-named" /> {t('sages.overview.key.amoraEy')}
+        </li>
+        <li>
+          <i class="key-node era-amora-bavel is-named" /> {t('sages.overview.key.amoraBavel')}
+        </li>
+      </ul>
     </figure>
   );
 }

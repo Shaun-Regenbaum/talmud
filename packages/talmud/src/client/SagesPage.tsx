@@ -13,7 +13,7 @@ import { SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
 import { SagePair } from './SagePair';
 import { SageReviewedPair } from './SageReviewedPair';
-import { SagesOverview } from './SagesOverview';
+import { SagesNetwork } from './SagesNetwork';
 import { academyLabel, placeLabel, roleLabel } from './sageLabels';
 import type { IndexRow } from './sageSearch';
 import './sages.css';
@@ -142,10 +142,6 @@ export function SagesPage(): JSX.Element {
           {t('usage.backToDaf')}
         </a>
       </header>
-      <p>
-        <a href="#stories">{t('stories.title')}</a> ·{' '}
-        <a href="#initial-readings">{t('initial.title')}</a>
-      </p>
       <SageAutocomplete
         rows={index()?.rows ?? []}
         loading={index.loading}
@@ -158,9 +154,7 @@ export function SagesPage(): JSX.Element {
         keyed
         fallback={
           <div class="sages-search-start">
-            <h2>{t('sages.welcome.title')}</h2>
-            <p>{t('sages.search.start')}</p>
-            <SagesOverview />
+            <SagesNetwork />
           </div>
         }
       >
