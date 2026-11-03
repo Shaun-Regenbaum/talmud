@@ -1,0 +1,3021 @@
+{
+  "slug": "abaye",
+  "rows": [
+    {
+      "ref": "Chullin 10b:11",
+      "s": "abaye",
+      "o": "rav-aha-b-yaakov",
+      "relation": "answers",
+      "quote": "מתקיף לה רב אחא בר יעקב",
+      "reason": "Abaye's direct reply follows Aha's proposal."
+    },
+    {
+      "ref": "Chullin 10b:11",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל רבא דקאמרת יציאה דרך אחוריו לא שמה יציאה כהן גדול ביום הכפורים יוכיח",
+      "reason": "Rava explicitly repeats and answers Abaye's claims."
+    },
+    {
+      "ref": "Berakhot 44a:12",
+      "s": "abaye",
+      "o": "rav-dimi",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרב דימי מאי ניהו ברכה אחת מעין שלש",
+      "reason": "Explicit named question and addressee."
+    },
+    {
+      "ref": "Berakhot 44a:12",
+      "s": "rav-dimi",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי לרב דימי מאי ניהו ברכה אחת מעין שלש א\"ל אפירי דעץ על העץ",
+      "reason": "The reply follows the named question and continues with the grain version."
+    },
+    {
+      "ref": "Arakhin 4b:24",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "אמר רבא לומר שנידון בכבודו",
+      "reason": "Abaye's א\"ל addresses Rava after Rava's explanation."
+    },
+    {
+      "ref": "Bava Batra 168b:6",
+      "s": "abaye",
+      "o": "rav-yehudah-b-yechezkel",
+      "relation": "responds_to_teaching",
+      "quote": "א\"ר יהודה מקום עדים ומקום הזמן ומקום התורף אביי אמר שתי וערב",
+      "reason": "Abaye gives an alternative to the immediately preceding definition."
+    },
+    {
+      "ref": "Bava Batra 168b:6",
+      "s": "abaye",
+      "o": "rav-safra",
+      "relation": "reports_in_name_of",
+      "quote": "דאמר רב ספרא אין כותבין שני שטרות על שדה אחת",
+      "reason": "The reply explicitly names Rav Safra as the authority."
+    },
+    {
+      "ref": "Eruvin 20a:2",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "בעא מיניה אביי מרבה חצר שראשה נכנס לבין הפסין מהו לטלטל מתוכה לבין הפסין ומבין הפסין לתוכה",
+      "reason": "The text names both participants in the question."
+    },
+    {
+      "ref": "Eruvin 20a:2",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "בעא מיניה אביי מרבה",
+      "reason": "The reply immediately follows the named question."
+    },
+    {
+      "ref": "Eruvin 20a:2",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "בעא מיניה אביי מרבה",
+      "reason": "The abbreviated follow-up continues the same exchange."
+    },
+    {
+      "ref": "Eruvin 20a:2",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "שתים מאי אמר ליה אסור",
+      "reason": "The reply continues the established question-and-answer roles."
+    },
+    {
+      "ref": "Berakhot 54b:19",
+      "s": "mar-zutra",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אביי אמר וצריך לאודויי קמי עשרה",
+      "reason": "ותרין מינייהו qualifies אביי's preceding requirement of ten."
+    },
+    {
+      "ref": "Chagigah 10b:3",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "לכדאמר ליה רב פפא לאביי ממאי דהאי וחגותם אותו חג לה' זביחה דלמא חוגו חגא קאמר רחמנא",
+      "reason": "The question explicitly names both participants."
+    },
+    {
+      "ref": "Eruvin 44b:12",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרבה ואת לא תסברא דהבלעת תחומין מילתא היא ומה אילו שבת במערה",
+      "reason": "The text directly names Abaye and Rabbah as speaker and addressee."
+    },
+    {
+      "ref": "Eruvin 73b:14",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר ליה אביי לרב יוסף מאי טעמא דלא תני פתוחות זו לזו",
+      "reason": "The opening formula explicitly gives the speaker and addressee."
+    },
+    {
+      "ref": "Berakhot 21a:9",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "מתיב רב יוסף (דברים ו, ז) ובשכבך ובקומך אמר ליה אביי ההוא בדברי תורה כתיב",
+      "reason": "אמר ליה explicitly marks an answer to יוסף."
+    },
+    {
+      "ref": "Berakhot 33b:30",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר ליה רב פפא לאביי ודילמא מעיקרא לא כוון דעתיה ולבסוף כוון דעתיה",
+      "reason": "The speaker and addressee are named even though the case is hypothetical."
+    },
+    {
+      "ref": "Berakhot 33b:30",
+      "s": "abaye",
+      "o": "rav-pappa",
+      "relation": "answers",
+      "quote": "אמר ליה רב פפא לאביי",
+      "reason": "אמר ליה continues the named exchange, and the following source supplies the answer."
+    },
+    {
+      "ref": "Bava Kamma 66b:6",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "איתיביה אביי לרב יוסף עורות של בעל הבית מחשבה מטמאתן",
+      "reason": "The text names both participants in the objection."
+    },
+    {
+      "ref": "Eruvin 66b:3",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "אמר רב יוסף לא שמיע לי הא שמעתא אמר ליה אביי את אמרת ניהלן",
+      "reason": "Abaye directly answers Rav Yosef's denial of having heard it."
+    },
+    {
+      "ref": "Eruvin 66b:3",
+      "s": "abaye",
+      "o": "shmuel-(amora)",
+      "relation": "reports_in_name_of",
+      "quote": "אמר ליה אביי את אמרת ניהלן ואהא אמרת ניהלן דאמר שמואל אין ביטול רשות מחצר לחצר",
+      "reason": "Abaye's reminder expressly cites Shmuel."
+    },
+    {
+      "ref": "Eruvin 66b:3",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אנא אמינא משמיה דשמואל הכי והאמר שמואל אין לנו בעירובין אלא כלשון משנתנו",
+      "reason": "Rav Yosef responds by citing Shmuel's restrictive formulation."
+    },
+    {
+      "ref": "Eruvin 15a:2",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "לחי העומד מאליו אביי אמר הוי לחי רבא אמר לא הוי לחי",
+      "reason": "The text explicitly calls their contrasting rulings a dispute."
+    },
+    {
+      "ref": "Bava Metzia 22a:6",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "תרגמה רבא אליבא דאביי דשויה שליח",
+      "reason": "The text expressly says Rava explains the rule according to Abaye."
+    },
+    {
+      "ref": "Bava Batra 122a:10",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר ליה רב פפא לאביי אימא רונגר בעלמא",
+      "reason": "The text explicitly addresses the question to Abaye."
+    },
+    {
+      "ref": "Eruvin 29a:1",
+      "s": "abaye",
+      "o": "rav-chisda",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רב חסדא תבשיל של תרדין יפה ללב וטוב לעינים וכל שכן לבני מעיים אמר אביי והוא דיתיב אבי תפי ועביד תוך תוך",
+      "reason": "Abaye adds a cooking condition to Hisda's statement."
+    },
+    {
+      "ref": "Beitzah 22a:10",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "ההיא רבי יהודה היא כי קאמינא אנא לרבנן",
+      "reason": "The final sentence answers Abaye's objection."
+    },
+    {
+      "ref": "Beitzah 22a:10",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "בעא מיניה אביי מרבה מהו לכבות את הדלקה ביו\"ט",
+      "reason": "The question explicitly names Abaye and Rabbah."
+    },
+    {
+      "ref": "Beitzah 22a:10",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "משום אבוד ממון מאי א\"ל אסור",
+      "reason": "Rabbah answers the question directed to him."
+    },
+    {
+      "ref": "Beitzah 22a:10",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "opposes",
+      "quote": "איתיביה אין מכבין את הבקעת כדי לחוס עליה ואם בשביל שלא יתעשן הבית או הקדרה מותר",
+      "reason": "The objection continues Abaye's exchange with Rabbah."
+    },
+    {
+      "ref": "Avodah Zarah 50b:13",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרבא מאי שנא שבר דהוה ליה כעין זביחה זרק נמי הוה ליה כעין זריקה",
+      "reason": "The named question is addressed directly to רבא."
+    },
+    {
+      "ref": "Avodah Zarah 50b:13",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה בעינא זריקה משתברת וליכא",
+      "reason": "אמר ליה follows אביי's direct question."
+    },
+    {
+      "ref": "Avodah Zarah 50b:13",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "opposes",
+      "quote": "אמר ליה בעינא זריקה משתברת וליכא",
+      "reason": "איתיביה continues the same exchange and challenges רבא's requirement."
+    },
+    {
+      "ref": "Eruvin 12a:16",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר ליה אביי לרב יוסף מי אמר שמואל הכי והא אמר ליה שמואל לרב חנניה בר שילא",
+      "reason": "Abaye directly questions Yosef about the conflicting report."
+    },
+    {
+      "ref": "Eruvin 12a:16",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה אביי לרב יוסף מי אמר שמואל הכי",
+      "reason": "The reply continues Yosef's exchange with Abaye."
+    },
+    {
+      "ref": "Eruvin 12a:16",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "לשון ים הנכנס לחצר הוה",
+      "reason": "Abaye replies to the sea-inlet case Yosef has just cited."
+    },
+    {
+      "ref": "Bava Batra 8a:15",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "opposes",
+      "quote": "רבה רמא צדקה איתמי דבי בר מריון א\"ל אביי והתני רב שמואל בר יהודה אין פוסקין צדקה על היתומים",
+      "reason": "Abaye addresses the person who imposed the assessment."
+    },
+    {
+      "ref": "Bava Batra 8a:15",
+      "s": "abaye",
+      "o": "rav-shmuel-b-yehuda",
+      "relation": "reports_in_name_of",
+      "quote": "א\"ל אביי והתני רב שמואל בר יהודה אין פוסקין צדקה על היתומים",
+      "reason": "Abaye expressly names the teacher of the rule."
+    },
+    {
+      "ref": "Bava Batra 8a:15",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה אנא לאחשובינהו קא עבידנא",
+      "reason": "The final reply answers Abaye's objection."
+    },
+    {
+      "ref": "Chullin 9a:4",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "אמר רב יוסף אף אנן נמי תנינא ר\"ש אומר אם שהה כדי ביקור מאי לאו כדי ביקור סימנין",
+      "reason": "Abaye's א\"ל answers Rav Yosef's preceding interpretation."
+    },
+    {
+      "ref": "Horayot 2a:8",
+      "s": "abaye",
+      "o": "rav-dimi-of-neharde-a",
+      "relation": "responds_to_teaching",
+      "quote": "רב דימי מנהרדעא אמר אפילו מותרים אתם נגמרה הוראה אמר אביי והא לא תנן הכי",
+      "reason": "Abaye's objection directly follows Dimi's statement."
+    },
+    {
+      "ref": "Gittin 23a:18",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אלא א\"ר יוסף",
+      "reason": "א\"ל follows Yosef's explanation and directly introduces Abaye's challenge."
+    },
+    {
+      "ref": "Eruvin 95a:4",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אין לה פצימין אביי אמר כשירה ורבא אמר פסולה",
+      "reason": "The passage explicitly presents their contrary rulings as a dispute."
+    },
+    {
+      "ref": "Beitzah 7a:9",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "אמר רב יוסף דלא כרבי יעקב",
+      "reason": "אמר ליה makes this a direct challenge to the preceding speaker."
+    },
+    {
+      "ref": "Bava Batra 13a:2",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "responds_to_teaching",
+      "quote": "א\"ר יוסף כגון זה כופין על מדת סדום מתקיף לה אביי מצי אמר בעינא דאפיש אריסי",
+      "reason": "The challenge explicitly names Abaye after Rav Yosef's ruling."
+    },
+    {
+      "ref": "Berakhot 6b:20",
+      "s": "abaye",
+      "o": "rav-huna",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רב הונא כל המתפלל אחורי בית הכנסת נקרא רשע",
+      "reason": "Abaye qualifies Huna's teaching."
+    },
+    {
+      "ref": "Bava Kamma 94a:10",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל רב פפא לאביי איכפל כל הני תנאי לאשמועינן כב\"ש",
+      "reason": "The text directly names both participants in the question."
+    },
+    {
+      "ref": "Bava Kamma 94a:10",
+      "s": "abaye",
+      "o": "rav-pappa",
+      "relation": "answers",
+      "quote": "א\"ל רב פפא לאביי איכפל כל הני תנאי לאשמועינן כב\"ש א\"ל הכי קאמרי לא נחלקו בית שמאי וב\"ה בדבר זה",
+      "reason": "The second א\"ל is the reply in the same exchange."
+    },
+    {
+      "ref": "Chullin 120a:13",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "opposes",
+      "quote": "אמר רבה פירמא",
+      "reason": "א\"ל connects Abaye's objection to Rabbah's preceding explanation."
+    },
+    {
+      "ref": "Eruvin 46a:7",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר ליה רבא לאביי מכדי עירובין דרבנן מה לי יחיד במקום יחיד ומה לי יחיד במקום רבים",
+      "reason": "The direct conversation names both participants."
+    },
+    {
+      "ref": "Bava Batra 149b:3",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "מתקיף לה רב יוסף",
+      "reason": "אמר ליה follows Rav Yosef's objection."
+    },
+    {
+      "ref": "Eruvin 66b:8",
+      "s": "abaye",
+      "o": "shmuel-(amora)",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי הא דאמר שמואל אין ביטול רשות מחצר לחצר לא אמרן אלא בשתי חצירות ופתח אחד ביניהן",
+      "reason": "Abaye expressly interprets Shmuel's rule and exempts nested courtyards."
+    },
+    {
+      "ref": "Avodah Zarah 15b:3",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "אמר רבה מי דמי",
+      "reason": "א\"ל links Abaye's question to Rabbah's immediately preceding statement."
+    },
+    {
+      "ref": "Eruvin 93a:6",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "שלח ליה רבא לאביי ביד רב שמעיה בר זעירא ולא מצינו מחיצה לאיסור",
+      "reason": "The text names sender and recipient and gives the objection."
+    },
+    {
+      "ref": "Eruvin 93a:6",
+      "s": "rav-shemaya-b-ze-ira",
+      "o": "abaye",
+      "relation": "speaks_to",
+      "quote": "שלח ליה רבא לאביי ביד רב שמעיה בר זעירא ולא מצינו מחיצה לאיסור",
+      "reason": "The message is explicitly sent to Abaye through Rav Shemaya."
+    },
+    {
+      "ref": "Bava Batra 142a:4",
+      "s": "abaye",
+      "o": "rav-sheshet",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רב ששת מנא אמינא לה",
+      "reason": "Abaye answers the proof introduced by Rav Sheshet."
+    },
+    {
+      "ref": "Gittin 29a:16",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי התם טעמא מאי משום בזיון דבעל",
+      "reason": "The text contrasts their reasons and asks what practical case separates them."
+    },
+    {
+      "ref": "Bava Kamma 94b:1",
+      "s": "abaye",
+      "o": "rav-yehudah-b-yechezkel",
+      "relation": "reports_in_name_of",
+      "quote": "אביי מתני הכי אמר רב יהודה אמר שמואל",
+      "reason": "אביי מתני הכי introduces the attribution chain."
+    },
+    {
+      "ref": "Bava Kamma 94b:1",
+      "s": "abaye",
+      "o": "rabbi-shimon-b-elazar",
+      "relation": "responds_to_teaching",
+      "quote": "לאביי דאמר כי קאמר רשב\"א בהכחשה דלא הדר קאמר",
+      "reason": "The first source explicitly attributes this reading to Abaye."
+    },
+    {
+      "ref": "Eruvin 45b:9",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "reports_in_name_of",
+      "quote": "אמר רב יוסף ת\"ש גשמים שירדו",
+      "reason": "The phrase this teaching points back to the argument introduced by Rav Yosef."
+    },
+    {
+      "ref": "Eruvin 45b:9",
+      "s": "rav-safra",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "א\"ל רב ספרא לאביי ודילמא בגשמים הסמוכין לעיר עסקינן ואנשי אותה העיר דעתם עילייהו",
+      "reason": "The objection directly names Rav Safra and Abaye."
+    },
+    {
+      "ref": "Eruvin 45b:9",
+      "s": "abaye",
+      "o": "rav-safra",
+      "relation": "answers",
+      "quote": "א\"ל רב ספרא לאביי",
+      "reason": "The reply follows Rav Safra's direct objection to Abaye."
+    },
+    {
+      "ref": "Eruvin 58b:4",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "אמר רב יוסף אלפים",
+      "reason": "איתיביה places Abaye's objection directly after Rav Yosef's answer."
+    },
+    {
+      "ref": "Eruvin 68a:4",
+      "s": "rabbah-bar-rav-hanan",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל רבה בר רב חנן לאביי מבואה דאית ביה תרי גברי רברבי כרבנן לא ליהוי ביה לא עירוב ולא שיתוף",
+      "reason": "The first question and later proposal form the same direct exchange with Abaye."
+    },
+    {
+      "ref": "Eruvin 68a:4",
+      "s": "abaye",
+      "o": "rabbah-bar-rav-hanan",
+      "relation": "answers",
+      "quote": "א\"ל מאי נעביד מר לאו אורחיה אנא טרידנא בגירסאי אינהו לא משגחי",
+      "reason": "Abaye replies with practical obstacles and cited rules."
+    },
+    {
+      "ref": "Bava Batra 12b:1",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי תדע",
+      "reason": "Rava directly challenges Abaye's proof."
+    },
+    {
+      "ref": "Berakhot 38a:11",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "מתיב רב יוסף",
+      "reason": "Abaye's direct reply answers Rav Yosef; the next source gives an alternative wording."
+    },
+    {
+      "ref": "Bava Kamma 108a:12",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אביי אמר לבעל הפקדון רבא אמר למי שהפקדון אצלו",
+      "reason": "The text explicitly calls their competing interpretations a dispute."
+    },
+    {
+      "ref": "Beitzah 28a:11",
+      "s": "abaye",
+      "o": "rabbi-yehoshua-b-hananyah",
+      "relation": "responds_to_teaching",
+      "quote": "אביי ודלמא לא היא עד כאן לא קאמר ר' יהושע הכא אלא דליכא בזיון קדשים אבל התם דאיכא בזיון קדשים לא",
+      "reason": "Abaye explains why Joshua's ruling need not apply elsewhere."
+    },
+    {
+      "ref": "Beitzah 15a:11",
+      "s": "rav-huna-son-of-rav-ika",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי תפלין הואיל ואתו לידן נימא בהו מילתא היה בא בדרך ותפלין בראשו ושקעה עליו חמה מניח ידו עליהם עד שמגיע לביתו",
+      "reason": "Huna's objection follows Abaye's rule allowing the wearer to reach home."
+    },
+    {
+      "ref": "Arakhin 19b:15",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "אמר רבא אומדין אותו אומד של נזקין",
+      "reason": "א\"ל follows Rava's proposal and names Abaye as the questioner."
+    },
+    {
+      "ref": "Arakhin 19b:15",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רבא אומדין אותו אומד של נזקין",
+      "reason": "Abaye's following proposal replaces the method he just challenged."
+    },
+    {
+      "ref": "Berakhot 25a:20",
+      "s": "abaye",
+      "o": "rabbah-b-rav-huna",
+      "relation": "reports_in_name_of",
+      "quote": "א\"ל אביי מאי חזית דסמכת אהא סמוך אהא דאמר רבה בר רב הונא",
+      "reason": "Abaye supplies this report in his challenge."
+    },
+    {
+      "ref": "Eruvin 41a:8",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "אמר רב יוסף לא שמיע לי הא שמעתא אמר ליה אביי את אמרת ניהלן",
+      "reason": "Abaye directly answers Rav Yosef's failure to recall it."
+    },
+    {
+      "ref": "Bava Batra 106b:9",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר ליה רב פפא לאביי לשמואל דאמר מקמצין למימרא דקם דינא והא רב ושמואל דאמרי תרוייהו",
+      "reason": "Both speaker and recipient are explicit."
+    },
+    {
+      "ref": "Bava Batra 106b:9",
+      "s": "abaye",
+      "o": "rav-pappa",
+      "relation": "answers",
+      "quote": "אמר ליה רב פפא לאביי",
+      "reason": "The explanation follows Rav Pappa's question to Abaye."
+    },
+    {
+      "ref": "Gittin 50a:5",
+      "s": "abaye",
+      "o": "rav-nachman-b-yaakov",
+      "relation": "supports",
+      "quote": "משמיה דרב נחמן שט\"ח היוצא על היתומין אע\"פ שכתוב בו שבח אינו גובה אלא מן הזיבורית",
+      "reason": "תדע supports the preceding ruling, whose named author is רב נחמן."
+    },
+    {
+      "ref": "Gittin 50a:5",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר אביי תדע",
+      "reason": "א״ל follows אביי's argument and introduces רבא's direct reply."
+    },
+    {
+      "ref": "Arakhin 23a:12",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אמר אביי ליכא דנסבי עצה",
+      "reason": "The named speaker replies directly to Abaye's proposal."
+    },
+    {
+      "ref": "Bava Kamma 117b:11",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "opposes",
+      "quote": "דרבה פטריה אמר ליה אביי והא מציל עצמו בממון חבירו הוא",
+      "reason": "Abaye challenges the second judge in the separate ferry case."
+    },
+    {
+      "ref": "Bava Kamma 117b:11",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל האי מעיקרא רודף הוה",
+      "reason": "The reply supplies the reason for the ferry exemption."
+    },
+    {
+      "ref": "Bava Kamma 117b:11",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "opposes",
+      "quote": "דרבא פטריה א\"ל אביי והא מציל עצמו בממון חבירו הוא",
+      "reason": "Abaye directly challenges the exemption."
+    },
+    {
+      "ref": "Bava Kamma 117b:11",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אין לך פדיון שבויים גדול מזה",
+      "reason": "Rava replies that the fund served its purpose."
+    },
+    {
+      "ref": "Eruvin 27b:2",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר רב יוסף",
+      "reason": "אמר ליה directly links Abaye's objection to Rav Yosef's preceding statement."
+    },
+    {
+      "ref": "Gittin 16b:2",
+      "s": "abaye",
+      "o": "rav-shmuel-b-yehuda",
+      "relation": "asks",
+      "quote": "אמר רב שמואל בר יהודה אמר רבי יוחנן",
+      "reason": "Abaye addresses the reporter who has just presented Yohanan's ruling."
+    },
+    {
+      "ref": "Gittin 16b:2",
+      "s": "rav-shmuel-b-yehuda",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "הא גט יוצא מתחת ידי שניהם מכשרי רבנן אמר ליה אין",
+      "reason": "The affirmative answer returns to Abaye in the same exchange."
+    },
+    {
+      "ref": "Bava Kamma 84a:18",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "אמר רבה לומר שאין שמין אותו כעבד א\"ל אביי אלא כמאן כבן חורין בן חורין מי אית ליה דמי",
+      "reason": "א\"ל introduces Abaye's direct challenge to Rabba."
+    },
+    {
+      "ref": "Bava Kamma 43b:15",
+      "s": "abaye",
+      "o": "rav-dimi",
+      "relation": "asks",
+      "quote": "כי אתא רב דימי א\"ר יוחנן",
+      "reason": "The objection follows רב דימי’s report and addresses him directly."
+    },
+    {
+      "ref": "Bava Kamma 43b:15",
+      "s": "abaye",
+      "o": "rabbi-shimon-b-lakish",
+      "relation": "reports_in_name_of",
+      "quote": "א\"ל אביי אלא מעתה עבד נמי",
+      "reason": "אביי explicitly quotes ריש לקיש in his objection."
+    },
+    {
+      "ref": "Bava Kamma 43b:15",
+      "s": "rav-dimi",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי",
+      "reason": "The reply continues the exchange between the reporter and אביי."
+    },
+    {
+      "ref": "Beitzah 4a:6",
+      "s": "abaye",
+      "o": "rav-zera",
+      "relation": "responds_to_teaching",
+      "quote": "א\"ר זירא תאכל אגב אמה",
+      "reason": "היכי דמי asks for the case behind Rabbi Zeira's interpretation, and Abaye supplies it."
+    },
+    {
+      "ref": "Bava Batra 8b:2",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "speaks_to",
+      "quote": "יתיב רב יוסף וקא מעיין בה מאי מצוה רבה א\"ל אביי",
+      "reason": "Abaye addresses Rav Yosef while he considers the request."
+    },
+    {
+      "ref": "Bava Batra 8b:2",
+      "s": "abaye",
+      "o": "rav-shmuel-b-yehuda",
+      "relation": "reports_in_name_of",
+      "quote": "א\"ל אביי מדתני רב שמואל בר יהודה אין פוסקין צדקה על היתומים",
+      "reason": "Abaye names Shmuel bar Yehuda as the teacher."
+    },
+    {
+      "ref": "Eruvin 25b:3",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "מתקיף לה רב יוסף וכי אויר המותר לו אוסרו",
+      "reason": "א\"ל directly links Abaye's answer to Rav Yosef's challenge."
+    },
+    {
+      "ref": "Beitzah 11b:16",
+      "s": "abaye",
+      "o": "rabbi-shimon-b-elazar",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רבי שמעון בן אלעזר",
+      "reason": "Abaye reconciles the named report in s2 with the contrary teaching in s3."
+    },
+    {
+      "ref": "Eruvin 78a:15",
+      "s": "rav-huna-b-rav-yehoshua",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אביי אמר אפילו אחד עשר ומשהו",
+      "reason": "The adjacent alternatives give different minimum lengths."
+    },
+    {
+      "ref": "Eruvin 8b:6",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר אביי עושה צורת הפתח לגדול",
+      "reason": "Questions Abaye's proposed arrangement."
+    },
+    {
+      "ref": "Bava Batra 19a:13",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר רב יוסף לפי שאין דרכן של בני אדם להטמין בסלעים אמר ליה אביי וכי דרכן של בני אדם להטמין בגיזי צמר ולשונות של ארגמן",
+      "reason": "Abaye directly asks Rav Yosef whether wool and purple fabric are customary insulation."
+    },
+    {
+      "ref": "Bava Batra 19a:13",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אלא אמר אביי (איוב לו, לג) יגיד עליו ריעו תנא הכא סלעים וה\"ה לחול תנא התם חול והוא הדין לסלעים א\"ל רבא אי יגיד עליו ריעו ליתנינהו לכולהו בחדא וליתני חדא מנייהו באידך וה\"ה לאידך",
+      "reason": "Rava directly addresses Abaye after his explanation and proposes a different arrangement of the lists."
+    },
+    {
+      "ref": "Bava Kamma 108b:1",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "opposes",
+      "quote": "אביי דייק מרישא רבא דייק מסיפא",
+      "reason": "Their contrasting inferences and the challenges to each are explicitly compared."
+    },
+    {
+      "ref": "Gittin 57a:22",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרב יוסף ומאחר דהוו צדיקים כולי האי מאי טעמא איענוש",
+      "reason": "Abaye asks why the righteous people were punished."
+    },
+    {
+      "ref": "Gittin 57a:22",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל משום דלא איאבול על ירושלים",
+      "reason": "Rav Yosef says they failed to mourn Jerusalem."
+    },
+    {
+      "ref": "Bava Kamma 46a:3",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "אמר רבה מאי טעמא דר\"א",
+      "reason": "א\"ל follows Rabbah's explanation and introduces Abaye's objection to him."
+    },
+    {
+      "ref": "Eruvin 99b:1",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי היא היא אמר רבא היא גופא גזירה ואנן ניקום ונגזור גזירה לגזירה",
+      "reason": "Rava counters Abaye's ruling and his reading of the winepress clause."
+    },
+    {
+      "ref": "Bava Kamma 28b:17",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "אמר רבה במתכוין להורידה למטה מכתיפו א\"ל אביי מכלל דמחייב ר\"מ אפילו נפשרה",
+      "reason": "Abaye directly addresses Rabbah after his explanation."
+    },
+    {
+      "ref": "Bava Kamma 28b:17",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי מכלל דמחייב ר\"מ אפילו נפשרה א\"ל אין מחייב היה ר\"מ אפי' אזנה בידו",
+      "reason": "The next reply answers Abaye's question."
+    },
+    {
+      "ref": "Bava Kamma 23b:16",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אמר אביי",
+      "reason": "Rava gives a competing reading of the same words."
+    },
+    {
+      "ref": "Eruvin 74a:1",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר ליה אביי לרב יוסף אמר רבי יוחנן אפילו בשביל של כרמים",
+      "reason": "The opening אמר ליה names the questioner and addressee."
+    },
+    {
+      "ref": "Eruvin 74a:1",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה אביי לרב יוסף",
+      "reason": "The second אמר ליה answers the immediately preceding named question."
+    },
+    {
+      "ref": "Avodah Zarah 26a:12",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "סבר רב יוסף למימר אולודי עובדת כוכבים בשבתא בשכר שרי משום איבה א\"ל אביי יכלה למימר לה",
+      "reason": "א\"ל directly connects Abaye's answer to Rav Yosef's proposal."
+    },
+    {
+      "ref": "Avodah Zarah 26a:12",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "סבר רב יוסף למימר אנוקי בשכר שרי משום איבה אמר ליה אביי יכלה למימר אי פנויה היא בעינא לאינסובי אי אשת איש היא לא קא מזדהמנא באפי גברא",
+      "reason": "The second reply is another direct exchange between the named speakers."
+    },
+    {
+      "ref": "Gittin 4a:8",
+      "s": "abaye",
+      "o": "rabbi-eliezer-b-hyrcanus",
+      "relation": "responds_to_teaching",
+      "quote": "רבי אליעזר אומר אפילו מכפר לודים ללוד ואמר אביי בעיירות הסמוכות לארץ ישראל ומובלעות בתחום א\"י עסקינן",
+      "reason": "The same explanation explicitly covers Rabbi Eliezer's village-to-Lod rule."
+    },
+    {
+      "ref": "Gittin 75a:11",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אלא אמר אביי הא מני ר\"מ היא דאמר בעינן תנאי כפול והכא הא לא כפליה לתנאיה",
+      "reason": "Rava challenges the doubled-condition explanation given by Abaye immediately before it."
+    },
+    {
+      "ref": "Gittin 49b:16",
+      "s": "rav-aha-b-yaakov",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי ת\"ש",
+      "reason": "His case answers אביי's immediately preceding proof."
+    },
+    {
+      "ref": "Eruvin 101a:5",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אמר אביי בשיש להם ציר רבא אמר בשהיה להן ציר",
+      "reason": "Their contrasting explanations are repeated in their separate defenses."
+    },
+    {
+      "ref": "Bava Batra 129a:9",
+      "s": "abaye",
+      "o": "rabbi-yochanan-b-napacha",
+      "relation": "responds_to_teaching",
+      "quote": "אמר ליה אביי לרבין",
+      "reason": "The next clause continues Abaye's comparison."
+    },
+    {
+      "ref": "Bava Metzia 21b:3",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "יאוש שלא מדעת אביי אמר לא הוי יאוש ורבא אמר הוי יאוש",
+      "reason": "The passage expressly calls their positions a dispute about an object without a distinguishing mark."
+    },
+    {
+      "ref": "Horayot 2a:3",
+      "s": "abaye",
+      "o": "rav-dimi-of-neharde-a",
+      "relation": "responds_to_teaching",
+      "quote": "רב דימי מנהרדעא אמר עד שיאמרו להם מותרין אתם לעשות",
+      "reason": "Abaye's citation supports Dimi's requirement of permission to act."
+    },
+    {
+      "ref": "Bava Kamma 7a:9",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "רמי ליה אביי לרבא כתיב מיטב שדהו ומיטב כרמו ישלם מיטב אין מידי אחרינא לא",
+      "reason": "Abaye directly addresses Rava with the apparent conflict."
+    },
+    {
+      "ref": "Bekhorot 54b:4",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי (במדבר יח, יב) ראשיתם",
+      "reason": "Rava explicitly removes the need for the word used by Abaye."
+    },
+    {
+      "ref": "Bava Kamma 70b:5",
+      "s": "abaye",
+      "o": "rabbi-akiva",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי אפילו תימא רבי עקיבא מי לא מודה רבי עקיבא בשנים אומרים קידש ושנים אומרים בעל",
+      "reason": "Abaye explicitly interprets what Akiva would accept; no direct meeting is reported."
+    },
+    {
+      "ref": "Avodah Zarah 38b:6",
+      "s": "abaye",
+      "o": "rabbi-yochanan-b-napacha",
+      "relation": "supports",
+      "quote": "הכי אמר אביי הלכתא כוותיה דרבי יוחנן",
+      "reason": "The attributed ruling explicitly selects Yohanan's position."
+    },
+    {
+      "ref": "Eruvin 26b:7",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל רב פפא לאביי לר\"א אי אמר לא מבטילנא ולרבנן אי אמר מבטילנא מאי",
+      "reason": "א\"ל names both participants in this actual question about a hypothetical case."
+    },
+    {
+      "ref": "Chullin 140b:7",
+      "s": "abaye",
+      "o": "rav-zera",
+      "relation": "answers",
+      "quote": "בעי ר' זירא יונה על ביצי תסיל מהו תסיל על ביצי יונה מהו",
+      "reason": "Abaye's proposed proof directly follows Rabbi Zeira's question."
+    },
+    {
+      "ref": "Beitzah 36b:4",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "acts_on",
+      "quote": "בי רחיא דאביי דלוף אתא לקמיה דרבה",
+      "reason": "The owner Abaye is the continuing subject of אתא."
+    },
+    {
+      "ref": "Beitzah 36b:4",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "speaks_to",
+      "quote": "אתא לקמיה דרבה אמר ליה זיל עייליה לפוריך להתם דלהוי כגרף של רעי ואפקיה",
+      "reason": "Rabbah directly gives instructions to the visiting Abaye."
+    },
+    {
+      "ref": "Beitzah 36b:4",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "responds_to_teaching",
+      "quote": "דרבה אמר ליה זיל עייליה לפוריך להתם דלהוי כגרף של רעי ואפקיה",
+      "reason": "Abaye's hesitation responds to Rabbah's preceding advice, without stated direct speech to him."
+    },
+    {
+      "ref": "Beitzah 36b:4",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "student_of",
+      "quote": "אתא לקמיה דרבה אמר ליה",
+      "reason": "Abaye describes failing to follow the preceding adviser's instruction as disobeying his master."
+    },
+    {
+      "ref": "Berakhot 20b:6",
+      "s": "abaye",
+      "o": "rav-ada-b-ahavah",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רב אדא בר אהבה נשים חייבות בקדוש היום דבר תורה אמאי מצות עשה שהזמן גרמא הוא וכל מצות עשה שהזמן גרמא נשים פטורות אמר אביי מדרבנן",
+      "reason": "Abaye responds to the challenge against אדא's ruling."
+    },
+    {
+      "ref": "Bava Kamma 43a:9",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "opposes",
+      "quote": "אמר רבה שור שהמית בן חורין שלא בכוונה פטור מכופר",
+      "reason": "איתיביה follows רבה’s ruling and introduces אביי’s objection."
+    },
+    {
+      "ref": "Eruvin 61a:8",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "speaks_to",
+      "quote": "אמר רב יוסף אמר רמי בר אבא אמר רב הונא",
+      "reason": "Abaye addresses Rav Yosef as the reporter who taught them the unit."
+    },
+    {
+      "ref": "Bava Kamma 93b:13",
+      "s": "abaye",
+      "o": "rabbi-shimon-b-yehudah",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי לא קשיא הא רבנן אליבא דר\"ש הא ר\"ש בן יהודה אליבא דר\"ש",
+      "reason": "Abaye identifies Rabbi Shimon ben Yehuda as the source of the second version."
+    },
+    {
+      "ref": "Bava Kamma 93b:13",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי לא קשיא הא רבי שמעון הא רבנן",
+      "reason": "Rava's הא והא reverses Abaye's preceding assignment to two authorities."
+    },
+    {
+      "ref": "Bava Kamma 60b:1",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "בכי רב יוסף כולי האי נמי לאין דומין א\"ל אביי טיבותא הוא לגבייהו",
+      "reason": "Abaye directly answers Rav Yosef's distressed remark."
+    },
+    {
+      "ref": "Bava Batra 143b:8",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אמר אביי ת\"ש (בראשית מו, כג) ובני דן חושים א\"ל רבא דלמא כדתנא דבי חזקיה שהיו מרובין כחושים של קנה",
+      "reason": "Rava directly answers Abaye with another reading."
+    },
+    {
+      "ref": "Gittin 21b:16",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "על עלה של עציץ נקוב אביי אמר כשר ורבא אמר פסול",
+      "reason": "Rava explicitly rejects the leaf document that Abaye permits."
+    },
+    {
+      "ref": "Eruvin 57b:6",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל רבא לאביי כמה יהא בין חיצון לאמצעי",
+      "reason": "The question names both participants."
+    },
+    {
+      "ref": "Eruvin 57b:6",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "answers",
+      "quote": "א\"ל רבא לאביי כמה יהא בין חיצון לאמצעי א\"ל אלפים אמה",
+      "reason": "The second א\"ל is Abaye's immediate reply."
+    },
+    {
+      "ref": "Eruvin 57b:6",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל רבא לאביי כמה יהא בין חיצון לאמצעי א\"ל אלפים אמה",
+      "reason": "The second-person objection follows Abaye's answer in the same exchange."
+    },
+    {
+      "ref": "Eruvin 100a:8",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "ההוא דיקלא דהוה לאביי והוה סליק באיפומא אתא לקמיה דרב יוסף ושרא ליה",
+      "reason": "Abaye's approach is followed by Rav Yosef granting him permission."
+    },
+    {
+      "ref": "Eruvin 100a:8",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "דהוה לאביי והוה סליק באיפומא אתא לקמיה דרב יוסף ושרא ליה",
+      "reason": "ושרא ליה states Rav Yosef's answer to Abaye."
+    },
+    {
+      "ref": "Beitzah 2b:12",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "דאמר רבה",
+      "reason": "Abaye directly challenges the preparation explanation just attributed to Rabbah."
+    },
+    {
+      "ref": "Beitzah 2b:12",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי אלא מעתה יום טוב בעלמא תשתרי גזרה משום יום טוב אחר השבת שבת דעלמא תשתרי גזרה משום שבת אחר יום טוב",
+      "reason": "The short replies answer Abaye's paired questions in the same exchange."
+    },
+    {
+      "ref": "Beitzah 2b:12",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "ומי גזרינן והא תניא השוחט את התרנגולת ומצא בה ביצים גמורות מותרות לאכלן ביום טוב ואם איתא ליגזר משום הנך דמתילדן ביומיהן",
+      "reason": "The next question continues Abaye's objection and receives a direct reply."
+    },
+    {
+      "ref": "Beitzah 2b:12",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה ביצים גמורות במעי אמן מילתא דלא שכיחא היא ומילתא דלא שכיחא לא גזרו בה רבנן",
+      "reason": "אמר ליה introduces Rabbah's answer to the continuing objection."
+    },
+    {
+      "ref": "Avodah Zarah 76a:5",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "opposes",
+      "quote": "אלא אמר רבא מאי הגעלה נמי שטיפה ומריקה",
+      "reason": "א\"ל reports Abaye directly answering Rava's preceding explanation."
+    },
+    {
+      "ref": "Bava Metzia 20a:1",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רבא",
+      "reason": "Abaye answers Rava's inference and then the concern about two documents."
+    },
+    {
+      "ref": "Bava Metzia 20a:1",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אביי אמר אפילו תימא ליתיה לדשמואל הכא במאי עסקינן בששטר כתובה יוצא מתחת ידה ורבא אמר אי משום שטר כתובה חיישינן לשתי כתובות",
+      "reason": "Rava's reply directly addresses Abaye's retained-document explanation."
+    },
+    {
+      "ref": "Eruvin 31b:10",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "speaks_to",
+      "quote": "כדאמר ליה רב פפא לאביי",
+      "reason": "The text recalls Rav Pappa speaking to Abaye without supplying the words."
+    },
+    {
+      "ref": "Eruvin 31b:10",
+      "s": "abaye",
+      "o": "rav-pappa",
+      "relation": "answers",
+      "quote": "כדאמר ליה רב פפא לאביי קמ\"ל כדשני ליה",
+      "reason": "The recalled reply runs from Abaye back to Rav Pappa."
+    },
+    {
+      "ref": "Bava Batra 21a:1",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אמר אביי סיפא אתאן לחצר אחרת א\"ל רבא אי הכי ליתני חצר אחרת מותר",
+      "reason": "Rava directly addresses Abaye and says the rule should then have named another courtyard."
+    },
+    {
+      "ref": "Bava Metzia 72a:9",
+      "s": "abaye",
+      "o": "rabbi-assi-2",
+      "relation": "reports_in_name_of",
+      "quote": "אמר אביי ולאו היינו דרבי אסי דאמר ר' אסי",
+      "reason": "Abaye explicitly cites Rabbi Asi, whose teaching continues outside the excerpt."
+    },
+    {
+      "ref": "Beitzah 5a:3",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "אמר רבה",
+      "reason": "א\"ל אביי directly addresses the speaker of the preceding ruling."
+    },
+    {
+      "ref": "Beitzah 5a:3",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אמינא לך אנא רבן יוחנן בן זכאי ואת אמרת לי רב ושמואל",
+      "reason": "The second א\"ל in the same exchange introduces Rabbah's reply to Abaye."
+    },
+    {
+      "ref": "Bava Batra 143a:12",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "אמר ליה אביי בשלמא התם אהרן בר חלוקה הוא",
+      "reason": "Abaye directly challenges the preceding argument."
+    },
+    {
+      "ref": "Bava Batra 124b:16",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "opposes",
+      "quote": "אמר ליה אביי לרבה לדידך קשיא",
+      "reason": "Abaye directly addresses Rabbah's distinction."
+    },
+    {
+      "ref": "Bava Batra 124b:16",
+      "s": "abaye",
+      "o": "rav-nachman-b-yaakov",
+      "relation": "responds_to_teaching",
+      "quote": "ורב נחמן אמר גבו מעות יש לו גבו קרקע אין לו",
+      "reason": "Abaye challenges Rav Nahman's teaching while speaking to Rabbah."
+    },
+    {
+      "ref": "Bava Metzia 113b:17",
+      "s": "abaye",
+      "o": "rav-chaga",
+      "relation": "answers",
+      "quote": "מתקיף לה רב חגא ולימא ליה לאו עלי קרמית אמר ליה אביי",
+      "reason": "אמר ליה אביי directly answers Rav Haga, with the answer continuing in s4."
+    },
+    {
+      "ref": "Bekhorot 15a:8",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר ליה רב פפא לאביי אי מה צבי ואיל אין אותו ואת בנו נוהג בהן אף פסולי המוקדשין אין אותו ואת בנו נוהג בו",
+      "reason": "The text explicitly names Rav Pappa speaking to Abaye."
+    },
+    {
+      "ref": "Bekhorot 15a:8",
+      "s": "abaye",
+      "o": "rav-pappa",
+      "relation": "answers",
+      "quote": "אמר ליה רב פפא לאביי",
+      "reason": "א\"ל supplies Abaye's immediate answer to Rav Pappa's question."
+    },
+    {
+      "ref": "Eruvin 9a:7",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי מסתברא מילתיה דר' יוחנן תחת הקורה אבל בין לחיין אסור ורבא אמר בין לחיים נמי מותר",
+      "reason": "Disagrees with Abaye and permits the space between the side posts too."
+    },
+    {
+      "ref": "Chagigah 4b:11",
+      "s": "rav-beivai-bar-abaye",
+      "o": "abaye",
+      "relation": "child_of",
+      "quote": "דרב ביבי בר אביי",
+      "reason": "His patronymic identifies Abaye as his father."
+    },
+    {
+      "ref": "Chagigah 17b:9",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "reports_in_name_of",
+      "quote": "אמר רבא ותסברא אטו עצרת יומי מנינן שבועי לא מנינן והאמר אביי מצוה למימני יומי",
+      "reason": "אביי is cited within רבא's response."
+    },
+    {
+      "ref": "Eruvin 28b:15",
+      "s": "abaye",
+      "o": "rabbi-yehudah-b-ilai",
+      "relation": "responds_to_teaching",
+      "quote": "רבי יהודה אומר קור הרי הוא כעץ לכל דבריו אלא שניקח בכסף מעשר היינו תנא קמא",
+      "reason": "Abaye explains the comparison explicitly raised in s1."
+    },
+    {
+      "ref": "Eruvin 28b:15",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי שלקו וטגנו איכא בינייהו",
+      "reason": "Rava explicitly attacks Abaye's explanation and replaces it."
+    },
+    {
+      "ref": "Bava Batra 110b:1",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר ליה רב פפא לאביי אימא אי איכא בן לירות בן איכא בת תירות בת איכא בן ובת לא האי לירות ולא האי לירות",
+      "reason": "The text explicitly names both sides of the question."
+    },
+    {
+      "ref": "Bava Batra 110b:1",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "הכי קא אמינא איכא בן ובת לא האי לירות כוליה ולא האי לירות כוליה אלא כי הדדי לירתו",
+      "reason": "הכי קא אמינא clarifies Rav Pappa's preceding proposal to Abaye."
+    },
+    {
+      "ref": "Bava Batra 110b:1",
+      "s": "abaye",
+      "o": "rav-pappa",
+      "relation": "answers",
+      "quote": "א\"ל אביי ואצטריך קרא לאשמועינן היכא דלית ליה אלא חד ברא לירתינהו לכולהו נכסי",
+      "reason": "Abaye is explicitly named in the answer to Rav Pappa's interpretation."
+    },
+    {
+      "ref": "Chullin 54a:2",
+      "s": "rav-beivai-bar-abaye",
+      "o": "abaye",
+      "relation": "child_of",
+      "quote": "רב ביבי בר אביי",
+      "reason": "בר אביי names Bibi's parent."
+    },
+    {
+      "ref": "Gittin 48b:14",
+      "s": "abaye",
+      "o": "rabbi-yishmael-b-elisha",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי לא צריכא אלא לרבי ישמעאל דאמר מדאורייתא בדניזק שיימינן קמ\"ל מפני תיקון העולם שיימינן בדמזיק",
+      "reason": "אביי expressly invokes ישמעאל's rule and explains the later assessment by the damager's land."
+    },
+    {
+      "ref": "Chullin 36b:6",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "מתיב רב יוסף רבי שמעון אומר הוכשרו בשחיטה הוכשרו ואפילו למימני בהו ראשון ושני",
+      "reason": "Abaye answers the objection, and Yosef later explicitly says he had addressed it to him."
+    },
+    {
+      "ref": "Chullin 36b:6",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "א\"ל אביי עשאוהו כהכשר מים מדרבנן",
+      "reason": "The named reply follows Yosef's objection and is confirmed by his later recollection."
+    },
+    {
+      "ref": "Chullin 36b:6",
+      "s": "rav-zera",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר רבי זירא ת\"ש הבוצר לגת שמאי אומר הוכשר הלל אומר לא הוכשר",
+      "reason": "Abaye replies to Zeira, and Yosef explicitly recalls that Zeira addressed Abaye."
+    },
+    {
+      "ref": "Chullin 36b:6",
+      "s": "abaye",
+      "o": "rav-zera",
+      "relation": "answers",
+      "quote": "אמר רבי זירא ת\"ש",
+      "reason": "The named reply directly follows Zeira's objection."
+    },
+    {
+      "ref": "Chullin 36b:6",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל רב יוסף אמינא לך אנא הוכשרו בשחיטה ואת אמרת לי עשאוהו כהכשר מים ואמר לך רבי זירא ואמרת ליה עשאוהו כהכשר מים לר\"ש בן לקיש נמי עשאוהו כהכשר מים",
+      "reason": "Yosef directly addresses the respondent to both earlier objections."
+    },
+    {
+      "ref": "Chullin 36b:6",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "א\"ל רב יוסף אמינא לך אנא",
+      "reason": "The reply continues the direct exchange with Yosef and clarifies Shimon ben Lakish's question."
+    },
+    {
+      "ref": "Eruvin 57b:11",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "ואמר ליה רבא לאביי כמה יהא בין חיצון לחיצון",
+      "reason": "Both participants are named in the question."
+    },
+    {
+      "ref": "Eruvin 57b:11",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "answers",
+      "quote": "ואמר ליה רבא לאביי כמה יהא בין חיצון לחיצון כמה יהא מאי נפקא לך מינה כל שאילו מכניס אמצעי ביניהן ואין בין זה לזה אלא מאה וארבעים ואחת ושליש",
+      "reason": "The second-person reply follows Rava's question to Abaye."
+    },
+    {
+      "ref": "Eruvin 57b:11",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "ואפילו ד' אלפים אמה א\"ל אין",
+      "reason": "This is the next question in the same exchange."
+    },
+    {
+      "ref": "Eruvin 57b:11",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "answers",
+      "quote": "ואפילו ד' אלפים אמה א\"ל אין",
+      "reason": "א\"ל אין is the direct affirmative reply."
+    },
+    {
+      "ref": "Eruvin 57b:11",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל אין והאמר רב הונא עיר העשויה כקשת אם יש בין ב' ראשיה פחות מארבעת אלפים אמה מודדין לה מן היתר ואם לאו מודדין לה מן הקשת",
+      "reason": "The objection challenges Abaye's affirmative answer."
+    },
+    {
+      "ref": "Eruvin 57b:11",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "answers",
+      "quote": "א\"ל התם ליכא למימר מלי הכא איכא למימר מלי",
+      "reason": "The direct answer resolves the objection in the continuing exchange."
+    },
+    {
+      "ref": "Bava Kamma 115a:27",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי ליזיל מרי דספרא ויהב ליה לבר מחוזא תמנן זוזי",
+      "reason": "The challenge and replacement ruling target אביי’s ruling."
+    },
+    {
+      "ref": "Beitzah 32a:16",
+      "s": "abaye",
+      "o": "rav-yehudah-b-yechezkel",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רב יהודה ערניות מאי ערניות אמר אביי צעי חקלייתא",
+      "reason": "Abaye explains the term supplied by Rav Judah."
+    },
+    {
+      "ref": "Arakhin 32b:2",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי הכי קאמר עד גמלא בגליל",
+      "reason": "Rava supplies a competing explanation after Abaye's reading."
+    },
+    {
+      "ref": "Bava Batra 82b:15",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "א\"ל אביי לרב יוסף לא תפלוג עליה דרב נחמן דתנן מתניתין כוותיה",
+      "reason": "The direct address is followed by a supporting vineyard citation."
+    },
+    {
+      "ref": "Bava Batra 82b:15",
+      "s": "abaye",
+      "o": "rav-nachman-b-yaakov",
+      "relation": "supports",
+      "quote": "לא תפלוג עליה דרב נחמן דתנן מתניתין כוותיה",
+      "reason": "אביי explicitly says the cited teaching agrees with רב נחמן."
+    },
+    {
+      "ref": "Bava Batra 82b:15",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי לרב יוסף",
+      "reason": "The reply follows אביי's challenge and continues into the narrated case."
+    },
+    {
+      "ref": "Bava Metzia 37b:2",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרבא מי א\"ר עקיבא",
+      "reason": "The question explicitly names Abaye and Rava."
+    },
+    {
+      "ref": "Beitzah 24a:14",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "אמר רב יוסף אמר רב יהודה אמר שמואל",
+      "reason": "אמר ליה addresses the immediate transmitter Rav Yosef."
+    },
+    {
+      "ref": "Eruvin 73a:2",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "אמר רב יוסף לא שמיע לי הא שמעתא אמר ליה אביי את אמרת ניהלן",
+      "reason": "אמר ליה identifies Abaye’s direct reply to Rav Yosef."
+    },
+    {
+      "ref": "Berakhot 5a:1",
+      "s": "abaye",
+      "o": "rav-nachman-b-yaakov",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רב נחמן",
+      "reason": "Abaye adds a requirement immediately after Rav Naḥman's exemption."
+    },
+    {
+      "ref": "Chullin 120a:8",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "opposes",
+      "quote": "אמר רבא שומנא",
+      "reason": "א\"ל אביי directly answers Rava's immediately preceding explanation."
+    },
+    {
+      "ref": "Bava Batra 171b:12",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל רבא אין עבד לוה לאיש מלוה",
+      "reason": "Rava directly answers Abaye with the borrower-creditor saying."
+    },
+    {
+      "ref": "Arakhin 26a:3",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רבה מ\"ט דר\"א",
+      "reason": "Abaye's objection immediately addresses Rabba's division of the verses."
+    },
+    {
+      "ref": "Arakhin 26a:3",
+      "s": "abaye",
+      "o": "rabbi-eliezer-b-hyrcanus",
+      "relation": "responds_to_teaching",
+      "quote": "אלא אמר אביי טעמא דרבי אליעזר כדתניא לא יגאל יכול לא תהא נגאלת שתהא לפניו כשדה מקנה",
+      "reason": "Abaye expressly replaces the earlier explanation of Rabbi Eliezer."
+    },
+    {
+      "ref": "Chullin 3b:20",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אלא רבא מאי טעמא לא אמר כשמעתיה",
+      "reason": "The answer explains Rava's argument as addressed to Abaye's position."
+    },
+    {
+      "ref": "Bava Metzia 31a:5",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אמר אביי (איוב לו, לג) יגיד עליו ריעו",
+      "reason": "Rava directly replies to Abaye's immediately preceding explanation."
+    },
+    {
+      "ref": "Eruvin 60a:5",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "speaks_to",
+      "quote": "א\"ל לאביי זיל ערב להו וחזי דלא מצווח' עלה בבי מדרשא",
+      "reason": "Rav Yosef responds to the residents by directing Abaye to act."
+    },
+    {
+      "ref": "Bava Batra 36b:6",
+      "s": "abaye",
+      "o": "rabbi-yishmael-b-elisha",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי מדרבי ישמעאל נשמע לרבנן היו לו שלשים אילנות",
+      "reason": "Abaye explicitly bases his inference on Yishmael."
+    },
+    {
+      "ref": "Bava Batra 135a:1",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "opposes",
+      "quote": "א\"ל אביי והא כי אתא ר' יצחק בר יוסף אמר ר' יוחנן בעל שאמר גרשתי את אשתי אינו נאמן",
+      "reason": "Abaye directly objects to Rava’s position."
+    },
+    {
+      "ref": "Bava Batra 135a:1",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל ולאו מי לא שנינהו כאן למפרע וכאן להבא",
+      "reason": "Rava answers Abaye’s stated objection."
+    },
+    {
+      "ref": "Eruvin 19b:22",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "בעא מיניה אביי מרבה תל המתלקט עשרה מתוך ארבע נידון משום דיומד או אינו נידון משום דיומד",
+      "reason": "Both speakers are explicit in the reported question."
+    },
+    {
+      "ref": "Eruvin 19b:22",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "בעא מיניה אביי מרבה",
+      "reason": "The immediate א\"ל continues the explicitly named exchange."
+    },
+    {
+      "ref": "Eruvin 19b:22",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "בעא מיניה אביי מרבה חיצת הקנים קנה קנה פחות משלשה נידון משום דיומד או לאו",
+      "reason": "The final line reports a second direct question."
+    },
+    {
+      "ref": "Bava Metzia 109a:12",
+      "s": "rav-beivai-bar-abaye",
+      "o": "abaye",
+      "relation": "child_of",
+      "quote": "רב ביבי בר אביי",
+      "reason": "בר אביי names Bibi's father."
+    },
+    {
+      "ref": "Chullin 18b:7",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר ליה אביי לרב יוסף והא רבנן דאתו ממחוזא אמרי אמר רבי זירא משמיה דרב נחמן מוגרמת כשרה",
+      "reason": "Abaye directly addresses Rav Yosef."
+    },
+    {
+      "ref": "Chullin 18b:7",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה אביי לרב יוסף",
+      "reason": "The reply follows Abaye's direct question to Rav Yosef."
+    },
+    {
+      "ref": "Chullin 18b:7",
+      "s": "rav-ashi",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי",
+      "reason": "אפילו תימא follows Abaye's regional distinction with an alternative."
+    },
+    {
+      "ref": "Beitzah 7a:14",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "אמר רב יוסף ר' יעקב היא דאמר אם היו מעורות בגידין אסורות א\"ל אביי ממאי דאשכול מהנך דתליא באשכול דלמא אשכול גופיה",
+      "reason": "The direct reply challenges Rav Yosef's interpretation."
+    },
+    {
+      "ref": "Bava Kamma 8b:11",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "סבר אביי למימר אתו כולהו גבו מעידית",
+      "reason": "א\"ל רבא directly follows Abaye's proposed ruling."
+    },
+    {
+      "ref": "Bekhorot 5a:8",
+      "s": "abaye",
+      "o": "rabban-yochanan-b-zakkai",
+      "relation": "responds_to_teaching",
+      "quote": "שאל קונטרוקוס השר את רבן יוחנן בן זכאי",
+      "reason": "Abaye explains the reason for Rabban Yochanan ben Zakkai's answer."
+    },
+    {
+      "ref": "Bava Kamma 24b:7",
+      "s": "abaye",
+      "o": "rav-zera",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רבי זירא",
+      "reason": "Abaye directly challenges Rabbi Zeira's inference, without an explicit report of face-to-face speech."
+    },
+    {
+      "ref": "Bava Kamma 41a:4",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "במאי פליגי ברגל שדרסה על גבי תינוק בחצר הניזק לאביי משלם כופר לרבא לא משלם כופר",
+      "reason": "The passage explicitly identifies this as their disagreement, without reporting direct speech."
+    },
+    {
+      "ref": "Bekhorot 11b:9",
+      "s": "abaye",
+      "o": "rav-dimi",
+      "relation": "asks",
+      "quote": "יתיב רב דימי וקאמר להא שמעתא א\"ל אביי טעמא דמספקא לן אי חלפינהו אי לא חלפינהו הא ודאי חלפינהו דכולי עלמא בעי למיתבינהו לכהן",
+      "reason": "א\"ל אביי explicitly introduces Abaye's question to the reciting Rav Dimi."
+    },
+    {
+      "ref": "Bava Batra 128b:5",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי הכי קאמר",
+      "reason": "Rava objects that Abaye's reading does not fit the words נאמן and אינו נאמן."
+    },
+    {
+      "ref": "Eruvin 15a:12",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "opposes",
+      "quote": "כי פליגי בלחי אביי לטעמיה דאמר לחי משום מחיצה ומחיצה העשויה מאליה הויא מחיצה ורבא לטעמיה דאמר לחי משום היכר",
+      "reason": "כי פליגי explicitly identifies the post dispute and each person's reason."
+    },
+    {
+      "ref": "Gittin 22a:14",
+      "s": "abaye",
+      "o": "rav-shmuel-b-yehuda",
+      "relation": "responds_to_teaching",
+      "quote": "כדקתני רב שמואל בר יהודה כדי לצור משקל קטנה וכמה אמר אביי כי ריבעא דריבעא דפומבדיתא",
+      "reason": "Abaye answers the question about the measure just attributed to Rav Shmuel."
+    },
+    {
+      "ref": "Bava Kamma 93b:8",
+      "s": "rav-ashi",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי תנא דידן קתני שינוי דרבנן דהדרא",
+      "reason": "Rav Ashi's alternative answers Abaye's distinction without establishing a direct conversation."
+    },
+    {
+      "ref": "Bava Kamma 93a:18",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "חייביה רב יוסף א\"ל אביי והתניא לשמור ולא לחלק לעניים",
+      "reason": "Abaye directly challenges Yosef after his ruling."
+    },
+    {
+      "ref": "Bava Kamma 93a:18",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי והתניא לשמור ולא לחלק לעניים",
+      "reason": "The reply explains why the charity exclusion does not apply to this deposit."
+    },
+    {
+      "ref": "Bava Batra 112a:7",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר ליה רב פפא לאביי ממאי דלמא לעולם אימא לך בעל לא ירית וקראי בסבת הבן כדשנינן ויאיר דזבין מיזבן ופנחס נמי דזבין מיזבן",
+      "reason": "The text explicitly names speaker and addressee; the hypothetical content does not make their conversation hypothetical."
+    },
+    {
+      "ref": "Bava Batra 112a:7",
+      "s": "abaye",
+      "o": "rav-pappa",
+      "relation": "answers",
+      "quote": "א\"ל פנחס דזבין מיזבן לא מצית אמרת דאם כן נמצאת שדה חוזרת ביובל ונמצא צדיק קבור בקבר שאינו שלו",
+      "reason": "The next אמר ליה answers Rav Pappa's question to Abaye."
+    },
+    {
+      "ref": "Beitzah 12b:14",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "opposes",
+      "quote": "אתא לקמיה דרבא א\"ל מוללין מלילות ומפרכין קטניות ביו\"ט",
+      "reason": "איתיביה links Abaye's objection to Rava's immediately preceding ruling."
+    },
+    {
+      "ref": "Berakhot 39a:10",
+      "s": "abaye",
+      "o": "rav-chisda",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רב חסדא תבשיל של תרדין יפה ללב וטוב לעינים וכ\"ש לבני מעים אמר אביי והוא דיתיב אבי תפי ועביד תוך תוך",
+      "reason": "Abaye qualifies Rav Hisda's immediately preceding statement."
+    },
+    {
+      "ref": "Berakhot 20a:6",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר ליה רב פפא לאביי מאי שנא ראשונים דאתרחיש להו ניסא ומאי שנא אנן דלא מתרחיש לן ניסא",
+      "reason": "The question has an explicit speaker and addressee."
+    },
+    {
+      "ref": "Berakhot 20a:6",
+      "s": "abaye",
+      "o": "rav-pappa",
+      "relation": "answers",
+      "quote": "אמר ליה קמאי הוו קא מסרי נפשייהו אקדושת השם אנן לא מסרינן נפשין אקדושת השם",
+      "reason": "The reply answers פפא's question."
+    },
+    {
+      "ref": "Avodah Zarah 24a:16",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "מתקיף לה רב יוסף ודלמא מעבודת כוכבים הוא דהדרי בהו א\"ל אביי לעבדו שכם אחד כתיב",
+      "reason": "The second version names Abaye as the respondent to Rav Yosef."
+    },
+    {
+      "ref": "Avodah Zarah 24a:16",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר רב יוסף מאי קרא (צפניה ג, ט) כי אז אהפוך אל עמים שפה ברורה וגו' אמר ליה אביי ודלמא מעבודת כוכבים הוא דהדור בהו",
+      "reason": "In the first version Abaye addresses Rav Yosef directly."
+    },
+    {
+      "ref": "Avodah Zarah 24a:16",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה אביי ודלמא מעבודת כוכבים הוא דהדור בהו אמר ליה רב יוסף לעבדו שכם אחד כתיב",
+      "reason": "The first version explicitly names Rav Yosef as the respondent."
+    },
+    {
+      "ref": "Chullin 29a:3",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "opposes",
+      "quote": "אמר רבא שאני לענין טרפה דבעינן רוב הנראה לעינים",
+      "reason": "א\"ל explicitly introduces אביי's direct objection to the preceding speaker רבא."
+    },
+    {
+      "ref": "Eruvin 10b:13",
+      "s": "abaye",
+      "o": "rav-dimi",
+      "relation": "asks",
+      "quote": "כי אתא רב דימי אמר אצבעיים מכאן",
+      "reason": "Asks Rav Dimi whether he and Rabin disagree."
+    },
+    {
+      "ref": "Eruvin 10b:13",
+      "s": "rav-dimi",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי לרב דימי מי פליגיתו א\"ל לא הא ברברבתא הא בזוטרתא ולא פליגין",
+      "reason": "Says the measurements use different-sized units and do not conflict."
+    },
+    {
+      "ref": "Beitzah 15a:6",
+      "s": "abaye",
+      "o": "rav-sheshet",
+      "relation": "asks",
+      "quote": "רב ששת שרא להו לרבנן לשדורי תפלין ביומא טבא אמר ליה אביי והא אנן תנן כל שנאותין בו ביום טוב משלחין אותו",
+      "reason": "Abaye addresses the person who just gave the permission."
+    },
+    {
+      "ref": "Beitzah 15a:6",
+      "s": "rav-sheshet",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה אביי והא אנן תנן כל שנאותין בו ביום טוב משלחין אותו הכי קאמר כל שנאותין בו בחול משלחין אותו ביום טוב",
+      "reason": "The explanation continues Sheshet's exchange with Abaye."
+    },
+    {
+      "ref": "Bava Metzia 109a:7",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "responds_to_teaching",
+      "quote": "תרגמא אביי אליבא דרבא שאני התם דאמר קרא",
+      "reason": "אליבא דרבא explicitly attributes the defended position to Rava."
+    },
+    {
+      "ref": "Gittin 22a:4",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אביי אמר בתר נקבו אזלינן רבא אמר בתר נופו אזלינן",
+      "reason": "The following sentence explicitly calls these rulings a dispute when the plant has not rooted."
+    },
+    {
+      "ref": "Chagigah 5a:4",
+      "s": "rav-beivai-bar-abaye",
+      "o": "abaye",
+      "relation": "child_of",
+      "quote": "רב ביבי בר אביי",
+      "reason": "The name gives the father."
+    },
+    {
+      "ref": "Bava Batra 5a:6",
+      "s": "abaye",
+      "o": "rabbi-shimon-b-lakish",
+      "relation": "responds_to_teaching",
+      "quote": "אמר ריש לקיש הקובע זמן לחבירו ואמר לו פרעתיך בתוך זמני אינו נאמן",
+      "reason": "The joint statement directly counters Resh Lakish's rule."
+    },
+    {
+      "ref": "Berakhot 38a:1",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרב יוסף האי כובא דארעא מאי מברכין עלויה",
+      "reason": "Both participants are explicitly identified."
+    },
+    {
+      "ref": "Berakhot 38a:1",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי לרב יוסף האי כובא דארעא מאי מברכין עלויה א\"ל מי סברת נהמא הוא גובלא בעלמא הוא ומברכין עלויה בורא מיני מזונות",
+      "reason": "The reply continues the direct exchange."
+    },
+    {
+      "ref": "Berakhot 14b:5",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר רב יוסף כמה מעליא הא שמעתתא",
+      "reason": "Abaye directly challenges Joseph's praise."
+    },
+    {
+      "ref": "Gittin 29a:1",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "א\"ר יוסף",
+      "reason": "Abaye addresses the speaker of the immediately preceding rule."
+    },
+    {
+      "ref": "Gittin 29a:1",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי ב\"ד של ישראל נמי אפשר דחזו ליה זכותא כי חזו ליה זכותא מקמי דליגמר דינא בתר גמר דינא תו לא חזו ליה זכותא",
+      "reason": "The reply answers Abaye within the same exchange."
+    },
+    {
+      "ref": "Bava Metzia 49a:8",
+      "s": "abaye",
+      "o": "rabbi-yosei-b-rabbi-yehuda",
+      "relation": "responds_to_teaching",
+      "quote": "רבי יוסי ברבי יהודה אומר",
+      "reason": "Abaye interprets Rabbi Yose's quoted teaching."
+    },
+    {
+      "ref": "Arakhin 20a:26",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "acts_on",
+      "quote": "רבא חלש עול לגביה אביי ורבנן",
+      "reason": "The text names Abaye as entering Rava's presence after reporting his illness."
+    },
+    {
+      "ref": "Bava Kamma 117b:6",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "opposes",
+      "quote": "דרבה פטריה א\"ל אביי האי מציל עצמו בממון חבירו הוא",
+      "reason": "Abaye directly challenges Rabbah's exemption."
+    },
+    {
+      "ref": "Bava Kamma 42a:9",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "אלא אמר רבא איצטריך",
+      "reason": "א\"ל introduces Abaye directly addressing Rava's preceding argument."
+    },
+    {
+      "ref": "Bekhorot 41a:21",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי אמר קרא (ויקרא כב, כב) או חרוץ או שבור חרוץ דומיא דשבור",
+      "reason": "Rava explicitly says the word used in Abaye's proof is unnecessary."
+    },
+    {
+      "ref": "Beitzah 13b:5",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל רב פפא לאביי אי הכי אפילו הקדימו בכרי נמי",
+      "reason": "The question explicitly names its speaker and addressee."
+    },
+    {
+      "ref": "Beitzah 13b:5",
+      "s": "abaye",
+      "o": "rav-pappa",
+      "relation": "answers",
+      "quote": "א\"ל רב פפא לאביי אי הכי אפילו הקדימו בכרי נמי אמר ליה עליך אמר קרא (במדבר יח, כט) מכל (מעשרותיכם) תרימו את כל תרומת ה'",
+      "reason": "אמר ליה continues the named exchange with a reply to Rav Pappa."
+    },
+    {
+      "ref": "Eruvin 74b:3",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרב יוסף אמר רב אפילו בחצר",
+      "reason": "The formula explicitly identifies the questioner and addressee."
+    },
+    {
+      "ref": "Eruvin 74b:3",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי לרב יוסף אמר רב אפילו בחצר אמר ליה אין דאי לא אמר מאי",
+      "reason": "אמר ליה אין answers the named question."
+    },
+    {
+      "ref": "Berakhot 25b:8",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "נוגע אביי אמר אסור ורבא אמר מותר",
+      "reason": "The disagreement is clear, though the versions differ on whether it concerns touching or facing."
+    },
+    {
+      "ref": "Berakhot 25b:8",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי צואה כל שהוא מבטלה ברוק אמר רבא וברוק עבה",
+      "reason": "Rava's qualification immediately follows Abaye's rule."
+    },
+    {
+      "ref": "Eruvin 78a:5",
+      "s": "abaye",
+      "o": "rav-ada-b-ahavah",
+      "relation": "opposes",
+      "quote": "אמר רב אדא בר אהבה ובגבוה שלשה אביי ורבא דאמרי תרוייהו אף על פי שאין גבוה שלשה",
+      "reason": "The joint alternative explicitly allows a peg below three."
+    },
+    {
+      "ref": "Bava Kamma 23a:2",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "reports_in_name_of",
+      "quote": "אמר רבא קשיא ליה לאביי למ\"ד אשו משום חציו טמון באש דפטר רחמנא היכי משכחת לה",
+      "reason": "Rava expressly attributes the difficulty to Abaye."
+    },
+    {
+      "ref": "Bava Batra 5b:4",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "רב פפא ורב הונא בריה דרב יהושע עבדי כאביי ורבא",
+      "reason": "The text names both the practitioner and the authority."
+    },
+    {
+      "ref": "Bava Batra 5b:4",
+      "s": "rav-huna-b-rav-yehoshua",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "רב פפא ורב הונא בריה דרב יהושע עבדי כאביי ורבא",
+      "reason": "Rav Huna is included in the stated practice."
+    },
+    {
+      "ref": "Eruvin 15a:7",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "חיצת הקנים קנה קנה פחות משלשה טפחים כדבעא מיניה אביי מרבה",
+      "reason": "בעא מיניה explicitly reports a question from אביי to רבה."
+    },
+    {
+      "ref": "Bava Batra 168a:3",
+      "s": "abaye",
+      "o": "rav-yirmeyah-bar-abba",
+      "relation": "supports",
+      "quote": "אמר לה איברא אנת הות אמר אביי אע\"ג דצורבא מרבנן לאו אורחיה למידק כיון דדק דק",
+      "reason": "Abaye's comment supports the signer's definite identification."
+    },
+    {
+      "ref": "Eruvin 67b:18",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "אמר [ליה דתניא] הזאה שבות ואמירה לנכרי שבות",
+      "reason": "Abaye answers the request to explain his objection with a cited legal analogy."
+    },
+    {
+      "ref": "Eruvin 67b:18",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "answers",
+      "quote": "א\"ל אביי והא לא ערבינן",
+      "reason": "Abaye answers Rabbah's successive proposals."
+    },
+    {
+      "ref": "Eruvin 67b:18",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי והא לא ערבינן",
+      "reason": "Rabbah responds to Abaye's first objection."
+    },
+    {
+      "ref": "Eruvin 67b:18",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "opposes",
+      "quote": "אמר אביי בעי לאותביה למר ולא שבקן רב יוסף",
+      "reason": "Abaye explicitly reports wanting to object, not having completed the objection to Rabbah."
+    },
+    {
+      "ref": "Eruvin 67b:18",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "acts_on",
+      "quote": "אמר אביי בעי לאותביה למר ולא שבקן רב יוסף",
+      "reason": "Abaye says Yosef did not allow his immediate objection."
+    },
+    {
+      "ref": "Eruvin 67b:18",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "ולא שבקן רב יוסף",
+      "reason": "The exchange continues between Yosef, who stopped the objection, and Abaye."
+    },
+    {
+      "ref": "Bava Metzia 111a:15",
+      "s": "abaye",
+      "o": "rav-sheshet",
+      "relation": "responds_to_teaching",
+      "quote": "מתקיף לה אביי איזה הוא גזל שחייבה עליו תורה קרבן דומיא דפקדון בעינן דקא כפר ליה ממונא",
+      "reason": "The follow-up explicitly names Sheshet as the holder of the challenged distinction."
+    },
+    {
+      "ref": "Chullin 31b:10",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר ליה אביי לרב יוסף לימא תיהוי תיובתא דרבי יוחנן מהא",
+      "reason": "Both participants are explicitly named."
+    },
+    {
+      "ref": "Chullin 31b:10",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה אביי לרב יוסף",
+      "reason": "The reply continues the explicit Abaye–Rav Yosef exchange."
+    },
+    {
+      "ref": "Chullin 31b:10",
+      "s": "abaye",
+      "o": "rabbi-yochanan-b-napacha",
+      "relation": "responds_to_teaching",
+      "quote": "אמר ליה אביי לרב יוסף לימא תיהוי תיובתא דרבי יוחנן מהא",
+      "reason": "Abaye explicitly targets Yohanan's teaching, without addressing him directly."
+    },
+    {
+      "ref": "Arakhin 18b:14",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרב יוסף מי פלגיתו",
+      "reason": "The text directly names both speaker and addressee."
+    },
+    {
+      "ref": "Arakhin 18b:14",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי לרב יוסף מי פלגיתו א\"ל לא אנא אמרי חדא והוא אמר חדא",
+      "reason": "The reply follows Abaye's direct question."
+    },
+    {
+      "ref": "Bava Batra 4a:15",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אמר אביי הכי קאמר וכן סתם גינה ובמקום שנהגו לגדור בבקעה מחייבין אותו אמר ליה רבא אם כן מאי אבל",
+      "reason": "Rava directly addresses the preceding speaker."
+    },
+    {
+      "ref": "Gittin 21a:10",
+      "s": "rav-shimi-bar-ashi",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי מכדי חצר מהיכא איתרבי מידה",
+      "reason": "Rav Shimi's objection follows Abaye's argument about consent."
+    },
+    {
+      "ref": "Berakhot 28a:18",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "acts_on",
+      "quote": "בעא אביי לאנוחי דעתיה דרב יוסף",
+      "reason": "Abaye's stated intention motivates his questioning; success is not asserted."
+    },
+    {
+      "ref": "Berakhot 28a:18",
+      "s": "abaye",
+      "o": "rav-avya",
+      "relation": "asks",
+      "quote": "א\"ל מ\"ט לא אתא מר לפרקא",
+      "reason": "Abaye's questions directly address the returning Avya."
+    },
+    {
+      "ref": "Berakhot 28a:18",
+      "s": "rav-avya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל דהוה חליש לבאי ולא מצינא",
+      "reason": "Avya replies to each proposed way he could have attended."
+    },
+    {
+      "ref": "Berakhot 28a:18",
+      "s": "abaye",
+      "o": "rav-avya",
+      "relation": "answers",
+      "quote": "א\"ל איבעי ליה למר לצלויי צלותא דמוספין ביחיד ולטעום מידי ולמיתי",
+      "reason": "Abaye directly replies to Avya's legal reasons for staying away."
+    },
+    {
+      "ref": "Berakhot 6b:10",
+      "s": "abaye",
+      "o": "rav-huna",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רבי חלבו אמר רב הונא היוצא מבית הכנסת אל יפסיע פסיעה גסה אמר אביי לא אמרן אלא למיפק אבל למיעל מצוה למרהט",
+      "reason": "Abaye qualifies Huna's teaching without an explicit direct exchange."
+    },
+    {
+      "ref": "Horayot 2b:3",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "אמר רבא",
+      "reason": "The explicit אמר ליה follows Rava's explanation."
+    },
+    {
+      "ref": "Horayot 2b:3",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה אביי",
+      "reason": "The reply's first-person clarification continues their exchange."
+    },
+    {
+      "ref": "Horayot 2b:3",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "אמר רבא כגון שמעון בן עזאי ושמעון בן זומא א\"ל אביי כי האי גוונא מזיד הוא",
+      "reason": "The text explicitly names Abaye after Rava's examples."
+    },
+    {
+      "ref": "Horayot 2b:3",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי כי האי גוונא מזיד הוא",
+      "reason": "ולטעמיך naturally continues Rava's reply to Abaye's objection."
+    },
+    {
+      "ref": "Bava Batra 131a:6",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר ליה רב פפא לאביי בין למאן דאמר יסבון ובין למאן דאמר ירתון הא אין אדם מקנה דבר שלא בא לעולם",
+      "reason": "Pappa explicitly addresses Abaye and continues with the future-recipient difficulty."
+    },
+    {
+      "ref": "Bava Batra 169b:16",
+      "s": "abaye",
+      "o": "rav-dimi",
+      "relation": "asks",
+      "quote": "רב דימי אמר",
+      "reason": "Abaye addresses the speaker of the preceding explanation."
+    },
+    {
+      "ref": "Bava Batra 169b:16",
+      "s": "rav-dimi",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה אביי א\"כ פלוגתא לדמר אמר ליה ותפלוג",
+      "reason": "The reply follows Abaye's objection."
+    },
+    {
+      "ref": "Avodah Zarah 71b:9",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי משום דמיחזי כי מקח טעות",
+      "reason": "Rava questions the explanation immediately attributed to Abaye and supplies another distinction."
+    },
+    {
+      "ref": "Eruvin 93a:1",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "אמר ליה רבא לאביי ולא מצינו מחיצה לאיסור והא אתמר",
+      "reason": "Rava explicitly addresses Abaye and introduces the case continued in s3."
+    },
+    {
+      "ref": "Eruvin 93a:1",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "answers",
+      "quote": "אמר ליה רבא לאביי",
+      "reason": "The named reply continues Rava's direct question."
+    },
+    {
+      "ref": "Eruvin 93a:1",
+      "s": "rabbah-bar-rav-hanan",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל רבה בר רב חנן לאביי ולא מצינו מחיצה לאיסור והתניא בית שחציו מקורה וחציו אינו מקורה גפנים כאן מותר לזרוע כאן",
+      "reason": "Both participants are explicitly named."
+    },
+    {
+      "ref": "Eruvin 19b:7",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "בעא מיניה אביי מרבה האריך בדיומדין כשיעור פשוטין לר\"מ מהו",
+      "reason": "This is a reported conversation about a hypothetical construction."
+    },
+    {
+      "ref": "Chullin 123b:18",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "מתיב רב יוסף",
+      "reason": "The direct reply follows Yosef's objection."
+    },
+    {
+      "ref": "Chullin 123b:18",
+      "s": "abaye",
+      "o": "rabbi-yohanan-b-nuri",
+      "relation": "responds_to_teaching",
+      "quote": "רבי יוחנן בן נורי אומר אינו חבור",
+      "reason": "Abaye assigns the no-connection side to a dispute about protective status."
+    },
+    {
+      "ref": "Bekhorot 36a:11",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "responds_to_teaching",
+      "quote": "ואמר רבא מה לו לשקר אי בעי אמר באורחא דנרש אזלי ואמר אביי מה לו לשקר במקום עדים לא אמרינן",
+      "reason": "Abaye's statement directly answers Rava's argument."
+    },
+    {
+      "ref": "Eruvin 31b:5",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל רב פפא לאביי אי הכי אפילו הקדימו בכרי נמי",
+      "reason": "Rav Pappa directly asks Abaye about a hypothetical case."
+    },
+    {
+      "ref": "Eruvin 31b:5",
+      "s": "abaye",
+      "o": "rav-pappa",
+      "relation": "answers",
+      "quote": "א\"ל רב פפא לאביי אי הכי אפילו הקדימו בכרי נמי א\"ל עליך אמר קרא",
+      "reason": "The second אמר ליה is Abaye's reply to Rav Pappa."
+    },
+    {
+      "ref": "Beitzah 7b:19",
+      "s": "abaye",
+      "o": "rav-zera",
+      "relation": "reports_in_name_of",
+      "quote": "א\"ל אביי לרב יוסף לימא מר ורבה בדרבי זירא אמר רב קא מפלגיתו דא\"ר זירא אמר רב",
+      "reason": "Abaye invokes the named report in his question."
+    },
+    {
+      "ref": "Beitzah 7b:19",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרב יוסף לימא מר ורבה בדרבי זירא אמר רב קא מפלגיתו",
+      "reason": "This is a direct question about the basis of the two interpretations."
+    },
+    {
+      "ref": "Eruvin 69a:1",
+      "s": "abaye",
+      "o": "rabbi-meir",
+      "relation": "responds_to_teaching",
+      "quote": "אוסר דברי רבי מאיר",
+      "reason": "Abaye resolves the same contradiction involving Meir's teaching by distinguishing the residents' actions."
+    },
+    {
+      "ref": "Chagigah 6a:2",
+      "s": "abaye",
+      "o": "rav-zera",
+      "relation": "answers",
+      "quote": "מתקיף לה רבי זירא",
+      "reason": "The answer is a reported exchange despite its hypothetical family example."
+    },
+    {
+      "ref": "Eruvin 52a:2",
+      "s": "abaye",
+      "o": "rabbah-bar-rav-hanan",
+      "relation": "asks",
+      "quote": "רבה בר רב חנן",
+      "reason": "Abaye directly asks what ruling the traveler relied on."
+    },
+    {
+      "ref": "Eruvin 52a:2",
+      "s": "abaye",
+      "o": "rav-chisda",
+      "relation": "reports_in_name_of",
+      "quote": "א\"ל אביי מאי דעתיך ר\"מ ורבי יהודה הלכה כרבי יהודה ואמר רב חסדא מחלוקת במקום פלוני",
+      "reason": "Abaye's question quotes Rav Chisda's explanation."
+    },
+    {
+      "ref": "Eruvin 52a:2",
+      "s": "rabbah-bar-rav-hanan",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי מאי דעתיך",
+      "reason": "The traveler answers Abaye with הדרי בי."
+    },
+    {
+      "ref": "Bava Metzia 102a:19",
+      "s": "rav-ashi",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אמר אביי הכי קאמר ושברפת שבחצר הרי אלו של בעל הבית אמר רב אשי זאת אומרת המשכיר חצירו סתם לא השכיר רפת שבה",
+      "reason": "זאת אומרת draws a conclusion from the interpretation immediately attributed to Abaye."
+    },
+    {
+      "ref": "Beitzah 13b:15",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "reports_in_name_of",
+      "quote": "אביי משמיה דרב יוסף אמר חדא אחדא",
+      "reason": "משמיה explicitly marks the attribution."
+    },
+    {
+      "ref": "Bava Kamma 34b:2",
+      "s": "abaye",
+      "o": "rabbi-yehudah-b-ilai",
+      "relation": "responds_to_teaching",
+      "quote": "א\"ל אביי",
+      "reason": "Abaye distinguishes the scope of Judah's cited ruling while challenging the interpretation."
+    },
+    {
+      "ref": "Beitzah 17b:15",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "אמר רבה גזרה",
+      "reason": "Abaye directly questions Rabbah's explanation; the cistern owner is only the example."
+    },
+    {
+      "ref": "Beitzah 17b:15",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי יש לו בור בחצירו מאי איכא למימר א\"ל גזירה בור בחצרו אטו בור ברשות הרבים",
+      "reason": "The reply directly continues Rabbah's exchange with Abaye."
+    },
+    {
+      "ref": "Bava Kamma 25a:7",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "asks",
+      "quote": "א\"ל רב פפא לאביי הא האי תנא דלא דריש דיו ואע\"ג דלא מפריך ק\"ו",
+      "reason": "Rav Pappa directly puts the difficulty to Abaye."
+    },
+    {
+      "ref": "Beitzah 37a:11",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר רב יוסף לא קשיא הא ר\"א הא ר' יהושע",
+      "reason": "א\"ל introduces Abaye's direct challenge to Rav Yosef's preceding explanation."
+    },
+    {
+      "ref": "Bava Batra 137b:5",
+      "s": "rav-beivai-bar-abaye",
+      "o": "abaye",
+      "relation": "child_of",
+      "quote": "דרב ביבי בר אביי",
+      "reason": "בר identifies the father."
+    },
+    {
+      "ref": "Bava Batra 135a:11",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רבא זאת אומרת מנה לי בידך והלה אומר איני יודע פטור",
+      "reason": "Abaye’s continuous statement answers Rava’s preceding inference."
+    },
+    {
+      "ref": "Eruvin 19b:12",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "בעא מיניה אביי מרבה יותר משלש עשרה אמה ושליש לר' יהודה מהו פשוטין עביד או בדיומדין מאריך",
+      "reason": "The text explicitly names both participants in a real reported question about hypothetical construction."
+    },
+    {
+      "ref": "Chullin 51a:4",
+      "s": "rav-safra",
+      "o": "abaye",
+      "relation": "speaks_to",
+      "quote": "א\"ל רב ספרא לאביי חזי מר האי צורבא מרבנן דאתא ממערבא ואמר רב עוירא שמני",
+      "reason": "The initial addressee is explicit."
+    },
+    {
+      "ref": "Chullin 50a:18",
+      "s": "rav-pappa",
+      "o": "abaye",
+      "relation": "responds_to_teaching",
+      "quote": "אביי ורבא דאמרי תרוייהו מקיפין בקנה אמר רב פפא לא אמרן אלא באותה חוליא",
+      "reason": "Papa qualifies the joint ruling."
+    },
+    {
+      "ref": "Chullin 50a:18",
+      "s": "abaye",
+      "o": "rav-nachman-b-yaakov",
+      "relation": "responds_to_teaching",
+      "quote": "הכי אמר רב נחמן מקום הדבק אפילו ניטל כולו כשר והוא שנשתייר בו כדי תפיסה וכמה אמר אביי כמלא בטדא בתורא",
+      "reason": "Abaye answers the measure question about Nahman's corrected ruling."
+    },
+    {
+      "ref": "Arakhin 6a:5",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "מתיב רב יוסף (נחמיה ב, ח) ואיגרת אל אסף שומר הפרדס אשר למלך וגו' אמר ליה אביי שאני מלכותא דלא הדרא ביה",
+      "reason": "אמר ליה follows Rav Yosef's objection and names Abaye as the respondent."
+    },
+    {
+      "ref": "Berakhot 11b:6",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "responds_to_teaching",
+      "quote": "אמר רבא כדי להזכיר מדת יום בלילה ומדת לילה ביום",
+      "reason": "Abaye resolves the question about Rava's day-and-night requirement without a reported direct meeting."
+    },
+    {
+      "ref": "Berakhot 29a:20",
+      "s": "rav-beivai-bar-abaye",
+      "o": "abaye",
+      "relation": "child_of",
+      "quote": "רב ביבי בר אביי",
+      "reason": "בר identifies the father."
+    },
+    {
+      "ref": "Gittin 17b:9",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר ליה אביי לרב יוסף ג' גיטין פסולים ואם ניסת הולד כשר מה הועילו חכמים בתקנתן",
+      "reason": "This is a direct question between the two named scholars."
+    },
+    {
+      "ref": "Gittin 17b:9",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "מה הועילו חכמים בתקנתן אהנו דלכתחילה לא תינשא",
+      "reason": "The answer continues the explicitly named exchange."
+    },
+    {
+      "ref": "Gittin 17b:9",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "גזייה לזמן דידיה ויהביה ניהלה מאי",
+      "reason": "The follow-up question continues Abaye's inquiry."
+    },
+    {
+      "ref": "Gittin 17b:9",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה לרמאי לא חיישינן",
+      "reason": "The direct answer follows the hypothetical tampering case."
+    },
+    {
+      "ref": "Gittin 17b:9",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "כתוב בו שבוע שנה חדש שבת מאי",
+      "reason": "Abaye asks about coarse dating and presses the same objection."
+    },
+    {
+      "ref": "Gittin 17b:9",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה כשר",
+      "reason": "Rav Yosef answers the broad-date question."
+    },
+    {
+      "ref": "Chullin 121b:19",
+      "s": "abaye",
+      "o": "rav-zera",
+      "relation": "responds_to_teaching",
+      "quote": "בעא מיניה רבי זירא מרב ששת",
+      "reason": "Abaye resolves the preceding disagreement against Rabbi Zeira's counterargument."
+    },
+    {
+      "ref": "Eruvin 77b:10",
+      "s": "rav-beivai-bar-abaye",
+      "o": "abaye",
+      "relation": "child_of",
+      "quote": "רב ביבי בר אביי",
+      "reason": "בר supplies the parent relation."
+    },
+    {
+      "ref": "Bava Metzia 30b:5",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "speaks_to",
+      "quote": "אביי הוה יתיב קמיה דרבה חזא להנך עיזי דקיימו שקל קלא ושדא בהו א\"ל איחייבת בהו קום אהדרינהו",
+      "reason": "Rabbah tells Abaye that throwing the clod made him responsible."
+    },
+    {
+      "ref": "Eruvin 75a:16",
+      "s": "rav-beivai-bar-abaye",
+      "o": "abaye",
+      "relation": "child_of",
+      "quote": "רב ביבי בר אביי",
+      "reason": "The patronymic supplies the father."
+    },
+    {
+      "ref": "Chullin 136a:11",
+      "s": "rav-beivai-bar-abaye",
+      "o": "abaye",
+      "relation": "child_of",
+      "quote": "רב ביבי בר אביי",
+      "reason": "The patronymic explicitly names Abaye."
+    },
+    {
+      "ref": "Beitzah 24a:9",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר רב יוסף אמר רב יהודה אמר שמואל הלכה כרבי שמעון בן גמליאל אמר ליה אביי הלכה מכלל דפליגי",
+      "reason": "Abaye addresses the immediate transmitter Rav Yosef."
+    },
+    {
+      "ref": "Beitzah 24a:9",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה ומאי נפקא לך מינה",
+      "reason": "The first reply continues the named exchange."
+    },
+    {
+      "ref": "Beitzah 24a:9",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "אמר ליה גמרא גמור זמורתא תהא",
+      "reason": "The second reply returns to Abaye in the alternating dialogue."
+    },
+    {
+      "ref": "Bava Batra 79a:12",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "אמר רבה מחלוקת בשדה ואילן",
+      "reason": "א״ל follows רבה's explanation and introduces אביי's objection."
+    },
+    {
+      "ref": "Bava Batra 79a:12",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי",
+      "reason": "The revised explanation answers אביי's objection."
+    },
+    {
+      "ref": "Bava Batra 82b:10",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרב יוסף אותן אורה וסלו מי זורען",
+      "reason": "The question explicitly names both participants."
+    },
+    {
+      "ref": "Bava Batra 82b:10",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי לרב יוסף אותן אורה וסלו מי זורען א\"ל תניתוה החיצון זורע את הדרך",
+      "reason": "The second א״ל is the addressee's reply."
+    },
+    {
+      "ref": "Bava Batra 82b:10",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "א\"ל מי דמי התם לית ליה פסידא ללוקח אבל הכא אית ליה פסידא ללוקח דא\"ל קמיטנפי פירי",
+      "reason": "The direct reply distinguishes the cases, and the final citation supports אביי."
+    },
+    {
+      "ref": "Bava Metzia 36b:7",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "reports_in_name_of",
+      "quote": "אביי משמיה דרבה אמר חייב",
+      "reason": "The attribution is explicit."
+    },
+    {
+      "ref": "Bava Metzia 36b:7",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אביי משמיה דרבה אמר חייב",
+      "reason": "The supplied arguments explicitly oppose each other on the same death case."
+    },
+    {
+      "ref": "Bava Metzia 36b:7",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "אמר ליה אביי לרבא לדידך דאמרת מלאך המות מה לי הכא ומה לי התם",
+      "reason": "Abaye directly addresses Rava."
+    },
+    {
+      "ref": "Bava Metzia 36b:7",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל לדידכו דמתניתו אין רצוני שיהא פקדוני ביד אחר",
+      "reason": "The immediate reply answers Abaye's question."
+    },
+    {
+      "ref": "Chullin 82b:3",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרב יוסף מאי טעמא דסומכוס",
+      "reason": "The address explicitly names Abaye and Rav Yosef."
+    },
+    {
+      "ref": "Eruvin 62b:11",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "reports_in_name_of",
+      "quote": "א\"ל הכי א\"ר יוסף",
+      "reason": "The reply explicitly names its source."
+    },
+    {
+      "ref": "Eruvin 62b:11",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "א\"ל אביי לרב יוסף",
+      "reason": "The question continues Abaye's named address."
+    },
+    {
+      "ref": "Eruvin 62b:11",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אפילו ביעתא בכותחא בעו מיניה מרב חסדא כל שני דרב הונא ולא אורי",
+      "reason": "This is Rav Yosef's direct reply."
+    },
+    {
+      "ref": "Beitzah 32a:11",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "א\"ל אביי ממאי דלמא עד כאן לא קאמר ר' מאיר התם אלא דחזי לקבולי ביה מידי",
+      "reason": "In each version Abaye addresses the immediately preceding speaker, Rav Yosef."
+    },
+    {
+      "ref": "Bekhorot 52a:8",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "opposes",
+      "quote": "אמר אביי ל\"ש אלא בשבח ששבחו נכסים בין מיתה ליבום אבל דבין יבום לחלוקה שקיל",
+      "reason": "Rava directly counters the distinction made in Abaye's teaching."
+    },
+    {
+      "ref": "Bava Metzia 110b:2",
+      "s": "abaye",
+      "o": "rabbi-yochanan-b-napacha",
+      "relation": "responds_to_teaching",
+      "quote": "הכי א\"ר יוחנן על היתומים להביא ראיה",
+      "reason": "Abaye's אף אנן continues the defense of the rule attributed to Yohanan."
+    },
+    {
+      "ref": "Bava Batra 12a:1",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "speaks_to",
+      "quote": "אמר ליה אביי לרבא תניא דמסייע לך",
+      "reason": "Abaye directly addresses Rava."
+    },
+    {
+      "ref": "Avodah Zarah 26a:17",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "סבר רב יוסף למימר",
+      "reason": "The direct reply in s2 answers Rav Yosef's proposal in s1."
+    },
+    {
+      "ref": "Eruvin 60a:15",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר ליה אביי לרב יוסף הא דרבי יצחק גמרא או סברא",
+      "reason": "The question names both speakers."
+    },
+    {
+      "ref": "Eruvin 60a:15",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה מאי נפקא לן מינה",
+      "reason": "The next turn is Rav Yosef's reply to Abaye."
+    },
+    {
+      "ref": "Eruvin 60a:15",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "answers",
+      "quote": "אמר ליה גמרא גמור זמורתא תהא",
+      "reason": "The alternating dialogue assigns this reply to Abaye."
+    },
+    {
+      "ref": "Eruvin 30a:2",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "אמר רב יוסף מנא אמינא לה דהני פרסאי אכלי טבהקי בלא נהמא אמר ליה אביי ופרסאי הוו רובא דעלמא",
+      "reason": "Abaye directly replies to Yosef with the majority objection."
+    },
+    {
+      "ref": "Chullin 49b:8",
+      "s": "abaye",
+      "o": "rav-zera",
+      "relation": "responds_to_teaching",
+      "quote": "בעי רבי זירא חלב חיה מאי",
+      "reason": "Abaye explicitly answers the preceding uncertainty."
+    },
+    {
+      "ref": "Berakhot 31a:6",
+      "s": "abaye",
+      "o": "rav-zera",
+      "relation": "reports_in_name_of",
+      "quote": "אמר אביי כי הא דר' זירא דאמר ר' זירא",
+      "reason": "Abaye names Zeira as his example's source."
+    },
+    {
+      "ref": "Eruvin 20a:7",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "supports",
+      "quote": "א\"ל אביי לרבא תניא דמסייע לך",
+      "reason": "The text explicitly reports אביי addressing רבא with support."
+    },
+    {
+      "ref": "Eruvin 20a:7",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "asks",
+      "quote": "בעא מיניה אביי מרבה יבשו מים בשבת מהו",
+      "reason": "Both participants are explicit in the reported question."
+    },
+    {
+      "ref": "Eruvin 20a:7",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "בעא מיניה אביי מרבה",
+      "reason": "The answer follows the explicitly named question."
+    },
+    {
+      "ref": "Eruvin 20a:7",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "reports_in_name_of",
+      "quote": "בעא מיניה אביי מרבה יבשו מים בשבת מהו",
+      "reason": "The reported prior question and ruling match the exchange with רבה in s3."
+    },
+    {
+      "ref": "Bava Kamma 66b:1",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "opposes",
+      "quote": "איתיבי' אביי לרבה (ויקרא א, ג) קרבנו ולא הגזול",
+      "reason": "The last source explicitly names Abaye's objection to Rabbah, even though its continuation is missing."
+    },
+    {
+      "ref": "Bava Batra 4b:3",
+      "s": "abaye",
+      "o": "rav-nachman-b-yaakov",
+      "relation": "responds_to_teaching",
+      "quote": "הוצא אמר רב נחמן סינופי יריכי מלבר",
+      "reason": "Abaye's ruling offers a different remedy for the reed partition addressed by Rav Nahman."
+    },
+    {
+      "ref": "Bava Kamma 11a:4",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "אמר ליה אביי לרבא האי טורח נבילה ה\"ד",
+      "reason": "The text directly names the speaker and addressee."
+    },
+    {
+      "ref": "Bava Batra 130a:10",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "אמר רבא מאי טעמיה",
+      "reason": "Abaye's direct address follows Rava's explanation."
+    },
+    {
+      "ref": "Chullin 29b:14",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "opposes",
+      "quote": "אמר רב יוסף תרי גברי בחד זיבחא קאמרת בר מיניה דההוא",
+      "reason": "אביי's direct reply challenges the prohibition יוסף invoked; כהנא's spelling comment supplies supporting detail."
+    },
+    {
+      "ref": "Chullin 29b:14",
+      "s": "abaye",
+      "o": "rabbah-bar-bar-chanah",
+      "relation": "reports_in_name_of",
+      "quote": "א\"ל אביי לאו אתמר עלה אמר רבה בר בר חנה",
+      "reason": "אביי explicitly names the intermediary in his citation."
+    },
+    {
+      "ref": "Gittin 37a:17",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "asks",
+      "quote": "אמר רבא משום דתפס ליה אמר ליה אביי אלא מעתה הלוהו ודר בחצרו דתפיס ליה הכי נמי דלא משמט",
+      "reason": "Abaye directly challenges Rava with an imagined loan."
+    },
+    {
+      "ref": "Gittin 37a:17",
+      "s": "rabbah-b-nachmani",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה תלי ליה נמי עד דאמר הכי",
+      "reason": "Rabbah answers Abaye's challenge directly."
+    },
+    {
+      "ref": "Gittin 37a:17",
+      "s": "rava",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "אמר ליה שאני משכון דקני ליה מדרבי יצחק",
+      "reason": "Rava answers Abaye's objection."
+    },
+    {
+      "ref": "Gittin 37a:17",
+      "s": "abaye",
+      "o": "rabbah-b-nachmani",
+      "relation": "opposes",
+      "quote": "אמר רבה ותלי לי' עד דאמר הכי איתיביה אביי כשהוא נותן לו אל יאמר לו בחובי אני נותן לך",
+      "reason": "איתיביה identifies a direct objection to Rabbah."
+    },
+    {
+      "ref": "Eruvin 15a:17",
+      "s": "abaye",
+      "o": "rava",
+      "relation": "opposes",
+      "quote": "דההוא ברקא דהוה בי בר חבו דהוו פליגי בה אביי ורבא כולי שנייהו",
+      "reason": "The text expressly reports their continuing dispute over that feature."
+    },
+    {
+      "ref": "Bava Metzia 15a:12",
+      "s": "abaye",
+      "o": "rav-yosef-b-chiyya",
+      "relation": "asks",
+      "quote": "אמר רב יוסף הכא במאי עסקינן כגון שיש לו קרקע",
+      "reason": "Abaye directly challenges Rav Yosef under each version's condition."
+    },
+    {
+      "ref": "Bava Metzia 15a:12",
+      "s": "rav-yosef-b-chiyya",
+      "o": "abaye",
+      "relation": "answers",
+      "quote": "א\"ל אביי וכי מותר ללות סאה בסאה במקום שיש לו קרקע",
+      "reason": "The reply directly follows Abaye's objection in the first account."
+    },
+    {
+      "ref": "Bava Kamma 45b:3",
+      "s": "abaye",
+      "o": "rav-rabbah-b-avuha",
+      "relation": "reports_in_name_of",
+      "quote": "אביי אמר לעולם כר' מאיר וכדמחליף רבה בר אבוה ותני",
+      "reason": "אביי explicitly relies on the version taught by רבה בר אבוה."
+    },
+    {
+      "ref": "Eruvin 9a:12",
+      "s": "abaye",
+      "o": "rav-chama-b-guria",
+      "relation": "reports_in_name_of",
+      "quote": "אמר אביי מנא אמינא לה דאמר רב חמא בר גוריא",
+      "reason": "Cites Rav Hama's report as his proof."
+    }
+  ]
+}

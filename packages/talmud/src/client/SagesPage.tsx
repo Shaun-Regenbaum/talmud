@@ -13,6 +13,7 @@ import { SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
 import { SagePair } from './SagePair';
 import { SageReviewedPair } from './SageReviewedPair';
+import { SageSeenInText } from './SageSeenInText';
 import { SagesNetwork } from './SagesNetwork';
 import { academyLabel, placeLabel, roleLabel } from './sageLabels';
 import type { IndexRow } from './sageSearch';
@@ -393,6 +394,7 @@ function SageDetail(props: {
         nameFor={props.nameFor}
         onSelect={props.onSelect}
       />
+      <SageSeenInText slug={props.slug} nameFor={props.nameFor} onSelect={props.onSelect} />
       <Show when={unified()}>
         {(u) => (
           <section class="sages-background" aria-label={t('sages.background')}>

@@ -30,6 +30,7 @@ import {
   possibleEra,
 } from '../lib/sage-graph/possible-era';
 import { shareReviewedRelationships } from '../lib/sage-graph/reviewed-relationships';
+import { type SageLinkRow, summarizeSageLinks } from '../lib/sage-graph/sage-links';
 import {
   applyReadingCoverage,
   type OwnedReadingUnit,
@@ -300,6 +301,89 @@ sageGraph.get('/machine', async (c) => {
     }
   }
   const body = JSON.stringify(summarizeMachine(parts));
+  if (cache) {
+    try {
+      c.executionCtx.waitUntil(
+        cache.put(
+          key,
+          new Response(body, {
+            headers: {
+              'content-type': 'application/json',
+              'cache-control': 'public, max-age=86400',
+            },
+          }),
+        ),
+      );
+    } catch {
+      // No request context to extend. The answer is still returned, only not kept.
+    }
+  }
+  return new Response(body, {
+    headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=300' },
+  });
+});
+
+// What the text says about one sage: the confirmed links that touch them, with the quoted words.
+// Two light lookups: the links first, then the stored wording of each.
+sageGraph.get('/sage-links/:slug', async (c) => {
+  const slug = canonicalSlug(c.req.param('slug'));
+  if (!slug || slug.length > 120) return c.json({ error: 'Unknown sage' }, 400);
+  const stores = await resolveSourceStores(c.env, (name) => c.req.query(name));
+  if ('error' in stores) return c.json({ links: [] });
+  const cache =
+    typeof caches === 'undefined' ? null : (caches as unknown as { default: Cache }).default;
+  const key = new Request(
+    `https://cache.invalid/sage-links-v1/${encodeURIComponent(slug)}/${stores.stores.map((s) => s.revision).join(',')}`,
+  );
+  const kept = await cache?.match(key);
+  if (kept) {
+    return new Response(kept.body, {
+      headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=300' },
+    });
+  }
+  const rows: SageLinkRow[] = [];
+  for (const store of stores.stores) {
+    try {
+      const edges = await store.db
+        .prepare(
+          `SELECT ref, subject_id AS s, object_id AS o, json_extract(payload_json,'$.relation') AS relation, json_extract(payload_json,'$.readingPassageId') AS passage, json_extract(payload_json,'$.edgeId') AS edge FROM sage_graph_all_records WHERE revision_id=? AND kind='machine_verified_edge' AND (subject_id=? OR object_id=?) LIMIT 2000`,
+        )
+        .bind(store.revision, slug, slug)
+        .all<{
+          ref: string;
+          s: string;
+          o: string;
+          relation: string;
+          passage: string;
+          edge: string;
+        }>();
+      const wording = new Map<string, { quote: string | null; reason: string | null }>();
+      for (let i = 0; i < edges.results.length; i += 90) {
+        const part = edges.results.slice(i, i + 90);
+        const found = await store.db
+          .prepare(
+            `SELECT record_id, json_extract(payload_json,'$.evidence[0].quote') AS quote, json_extract(payload_json,'$.reason') AS reason FROM sage_graph_all_records WHERE revision_id=? AND kind='checked_connection' AND record_id IN (${part.map(() => '?').join(',')})`,
+          )
+          .bind(store.revision, ...part.map((e) => `checked_connection:${e.passage}/${e.edge}`))
+          .all<{ record_id: string; quote: string | null; reason: string | null }>();
+        for (const f of found.results) wording.set(f.record_id, f);
+      }
+      for (const e of edges.results) {
+        const w = wording.get(`checked_connection:${e.passage}/${e.edge}`);
+        rows.push({
+          ref: e.ref,
+          s: e.s,
+          o: e.o,
+          relation: e.relation,
+          quote: w?.quote ?? null,
+          reason: w?.reason ?? null,
+        });
+      }
+    } catch {
+      return c.json({ error: 'Source reading store is unavailable' }, 503);
+    }
+  }
+  const body = JSON.stringify({ slug, links: summarizeSageLinks(slug, rows) });
   if (cache) {
     try {
       c.executionCtx.waitUntil(
