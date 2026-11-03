@@ -201,8 +201,8 @@ export interface LabelCandidate {
   priority: number;
 }
 
-const CHAR_WIDTH = 6;
-const LABEL_HEIGHT = 13;
+const CHAR_WIDTH = 8.6;
+const LABEL_HEIGHT = 18;
 
 /** Picks the labels that fit. A label that would sit on one already placed is left to the tooltip. */
 export function placeLabels(candidates: LabelCandidate[]): Set<string> {

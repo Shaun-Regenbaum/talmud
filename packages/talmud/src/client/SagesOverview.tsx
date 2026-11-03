@@ -12,7 +12,10 @@ import { MachineReadings } from './MachineReadings';
 import { SagesNetwork } from './SagesNetwork';
 import { layoutOverview, placeLabels } from './sageOverviewLayout';
 
-const WIDTH = 960;
+// The drawing is wider than the page, so the big group has room. The page shrinks it to fit,
+// and the dots, lines and text are drawn larger by the same factor (see sages.css).
+const WIDTH = 1400;
+const LABEL_CHAR = 8.6;
 // An edge the passage only reports is dashed. One it shows happening is solid.
 const SHOWN = new Set(['occurred', 'established']);
 
@@ -192,7 +195,7 @@ function NetworkGraph(props: {
   // A drawn label has little room, so the bracketed part of a long name is left to the tooltip.
   const shortName = (n: OverviewNode) => name(n).replace(/\s*\[[^\]]*\]/, '');
   const byId = createMemo(() => new Map(props.overview.nodes.map((n) => [n.id, n])));
-  const radius = (id: string) => 4.5 + Math.min(6, (degree().get(id) ?? 1) * 0.8);
+  const radius = (id: string) => 6.5 + Math.min(8, (degree().get(id) ?? 1) * 1.1);
   const compactIds = createMemo(
     () =>
       new Set(
@@ -208,7 +211,7 @@ function NetworkGraph(props: {
       .map((n) => {
         const p = layout().positions.get(n.id) as { x: number; y: number };
         const text = shortName(n);
-        const half = (text.length * 6) / 2 + 3;
+        const half = (text.length * LABEL_CHAR) / 2 + 3;
         return {
           id: n.id,
           // A label near the edge slides inward so it is never cut off.
@@ -222,7 +225,7 @@ function NetworkGraph(props: {
   });
   const labelX = (n: OverviewNode) => {
     const x = (layout().positions.get(n.id) as { x: number }).x;
-    const half = (shortName(n).length * 6) / 2 + 3;
+    const half = (shortName(n).length * LABEL_CHAR) / 2 + 3;
     return Math.min(WIDTH - half, Math.max(half, x));
   };
   const edgeTitle = (e: OverviewEdge) =>
@@ -314,10 +317,10 @@ function NetworkGraph(props: {
                   <text
                     class="sages-graph-label is-below"
                     x={p().x}
-                    y={p().y + radius(n.id) + 14}
+                    y={p().y + radius(n.id) + 18}
                     text-anchor="middle"
                   >
-                    {clip(shortName(n), 14)}
+                    {clip(shortName(n), 12)}
                   </text>
                 </Show>
                 <Show when={!compact() && labels().has(n.id)}>
