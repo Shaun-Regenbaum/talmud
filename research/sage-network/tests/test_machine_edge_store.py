@@ -234,6 +234,34 @@ class EdgeStoreTests(unittest.TestCase):
             f'SELECT {stores.COLUMNS} FROM sage_graph_all_records WHERE revision_id=?', (first['revision'],))}
         self.assertEqual(self.changes(rows=rows)['records'], [])
 
+    def test_a_wider_check_may_give_a_better_label_and_the_readers_is_kept(self):
+        # The real fixture, with one kept verdict given a new label. The label here is made up for this test of
+        # the rule; real wider checks give their own labels.
+        items = json.loads(self.artifact)['items']
+        plain = edges.records(self.artifact, edges.selected_cases(self.selection, self.pin), self.pin, self.parent_rows().get)[1:]
+        target = plain[0]['data']['edgeId']
+        for item in items:
+            for verdict in item['verdicts']:
+                if verdict['id'] == target and item['job_id'] == plain[0]['data']['jobId']:
+                    verdict['relation'] = 'interacts_with'
+        artifact = edges.canonical_text(dict(version=edges.ARTIFACT_VERSION, items=items))
+        selection = json.loads(self.selection)
+        selection['artifactSha256'] = edges.sha(artifact)
+        rows = edges.records(artifact, edges.selected_cases(text(selection), edges.sha(text(selection))), edges.sha(text(selection)),
+                             self.parent_rows().get)[1:]
+        changed = [r for r in rows if r['data']['edgeId'] == target and r['data']['jobId'] == plain[0]['data']['jobId']][0]['data']
+        self.assertEqual(changed['relation'], 'interacts_with')
+        self.assertEqual(changed['readerRelation'], plain[0]['data']['relation'])
+        # Rows with no new label look exactly as before, so earlier releases still verify.
+        untouched = [r for r in rows if r['data']['edgeId'] != target or r['data']['jobId'] != plain[0]['data']['jobId']]
+        self.assertTrue(all('readerRelation' not in r['data'] for r in untouched))
+        items[0]['verdicts'][0]['relation'] = 'not-a-relation'
+        bad = edges.canonical_text(dict(version=edges.ARTIFACT_VERSION, items=items))
+        selection['artifactSha256'] = edges.sha(bad)
+        with self.assertRaisesRegex(ValueError, 'Unknown relation'):
+            edges.records(bad, edges.selected_cases(text(selection), edges.sha(text(selection))), edges.sha(text(selection)),
+                          self.parent_rows().get)
+
 
 if __name__ == '__main__':
     unittest.main()

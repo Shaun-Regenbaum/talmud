@@ -634,6 +634,8 @@ const CATALOG = {
     he: 'חתן או כלה של',
   },
   'sages.seen.child_in_law_of.object': { en: 'Parent-in-law of', he: 'חם או חמות של' },
+  'sages.seen.interacts_with.subject': { en: 'Had dealings with', he: 'היה בדין ודברים עם' },
+  'sages.seen.interacts_with.object': { en: 'Had dealings with', he: 'היה בדין ודברים עם' },
   'sages.seen.spouse_of.subject': { en: 'Married to', he: 'נשוי ל' },
   'sages.seen.spouse_of.object': { en: 'Married to', he: 'נשוי ל' },
   'sages.seen.sibling_of.subject': { en: 'Sibling of', he: 'אח או אחות של' },
