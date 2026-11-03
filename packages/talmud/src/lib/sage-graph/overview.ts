@@ -16,6 +16,8 @@ export interface OverviewEdge {
   /** What the text says happened: stated, occurred, established, failed, detail_disputed. */
   outcome: string;
   ref: string;
+  /** Only for outcome 'confirmed': how many passages say it. */
+  passages?: number;
 }
 
 export interface SageOverview {
@@ -27,6 +29,8 @@ export interface SageOverview {
     passagesWithConnections: number;
     connections: number;
     connectionsStatedOnly: number;
+    /** Sage-to-sage links read from the text and confirmed by a second model, one per pair. */
+    connectionsConfirmed: number;
     nodes: number;
     nodesNamed: number;
     nodesWithEra: number;
@@ -57,6 +61,10 @@ export interface OverviewInput {
   /** Raw payloads of the graph_node and connection records. */
   nodePayloads: unknown[];
   edgePayloads: unknown[];
+  /** Links a second model confirmed, between two sages of the registry. */
+  confirmed?: { a: string; b: string; weight: number }[];
+  /** Who a registry sage is, for a sage that the checked graph does not hold. */
+  registry?: Record<string, { label: string; labelHe: string | null; generation: string | null }>;
 }
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v ? v : null);
@@ -106,6 +114,8 @@ function parseEdge(raw: unknown): (OverviewEdge & { passageId: string | null }) 
   };
 }
 
+const pairKey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+
 function components(ids: Iterable<string>, edges: { a: string; b: string }[]): number[] {
   const parent = new Map<string, string>();
   const find = (x: string): string => {
@@ -141,12 +151,33 @@ export function buildSageOverview(input: OverviewInput): SageOverview {
     .filter(
       (e): e is NonNullable<typeof e> => e !== null && allNodes.has(e.a) && allNodes.has(e.b),
     );
-  const connected = new Set(parsed.flatMap((e) => [e.a, e.b]));
+  const all = [...allNodes.values()];
+  // One confirmed link per pair of sages. A pair the checked graph already links is not drawn twice.
+  const linked = new Set(parsed.map((e) => pairKey(e.a, e.b)));
+  const confirmed = new Map<string, { a: string; b: string; weight: number }>();
+  for (const e of input.confirmed ?? []) {
+    const key = pairKey(e.a, e.b);
+    if (e.a === e.b || linked.has(key)) continue;
+    const known = (id: string) => allNodes.has(id) || input.registry?.[id] !== undefined;
+    if (!known(e.a) || !known(e.b)) continue;
+    const old = confirmed.get(key);
+    if (old) old.weight += e.weight;
+    else confirmed.set(key, { ...e });
+  }
+  for (const e of confirmed.values()) {
+    for (const id of [e.a, e.b]) {
+      const who = input.registry?.[id];
+      if (!allNodes.has(id) && who) {
+        allNodes.set(id, { id, ...who, named: true });
+      }
+    }
+  }
+  const drawn = [...confirmed.values()];
+  const connected = new Set([...parsed, ...drawn].flatMap((e) => [e.a, e.b]));
   const nodes = [...allNodes.values()].filter((n) => connected.has(n.id));
-  const sizes = components(connected, parsed);
+  const sizes = components(connected, [...parsed, ...drawn]);
   const byWork = new Map<string, number>();
   for (const e of parsed) byWork.set(workOf(e.ref), (byWork.get(workOf(e.ref)) ?? 0) + 1);
-  const all = [...allNodes.values()];
   const mentions = count('name_occurrence');
   const pending = count('name_occurrence', ['page_placement_pending']);
   return {
@@ -158,6 +189,7 @@ export function buildSageOverview(input: OverviewInput): SageOverview {
       passagesWithConnections: new Set(parsed.map((e) => e.passageId ?? e.ref)).size,
       connections: parsed.length,
       connectionsStatedOnly: parsed.filter((e) => e.outcome === 'stated').length,
+      connectionsConfirmed: drawn.length,
       nodes: all.length,
       nodesNamed: all.filter((n) => n.named).length,
       nodesWithEra: all.filter((n) => n.generation).length,
@@ -179,6 +211,16 @@ export function buildSageOverview(input: OverviewInput): SageOverview {
       .map(([work, connections]) => ({ work, connections }))
       .sort((x, y) => y.connections - x.connections || x.work.localeCompare(y.work)),
     nodes,
-    edges: parsed.map(({ passageId: _passageId, ...edge }) => edge),
+    edges: [
+      ...parsed.map(({ passageId: _passageId, ...edge }) => edge),
+      ...drawn.map((e) => ({
+        a: e.a,
+        b: e.b,
+        mode: 'stated',
+        outcome: 'confirmed',
+        ref: '',
+        passages: e.weight,
+      })),
+    ],
   };
 }

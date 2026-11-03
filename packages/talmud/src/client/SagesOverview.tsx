@@ -226,7 +226,11 @@ function NetworkGraph(props: {
     return Math.min(WIDTH - half, Math.max(half, x));
   };
   const edgeTitle = (e: OverviewEdge) =>
-    `${name(byId().get(e.a) as OverviewNode)} – ${name(byId().get(e.b) as OverviewNode)} · ${e.ref}`;
+    `${name(byId().get(e.a) as OverviewNode)} – ${name(byId().get(e.b) as OverviewNode)} · ${
+      e.outcome === 'confirmed'
+        ? t('sages.overview.confirmedPassages', { count: String(e.passages ?? 1) })
+        : e.ref
+    }`;
   const inSmall = (id: string) => compactIds().has(id);
   const partBoxes = (part: 'main' | 'small') =>
     layout().boxes.filter((b) => b.compact === (part === 'small'));
@@ -274,6 +278,7 @@ function NetworkGraph(props: {
                   class="sages-graph-edge"
                   classList={{
                     'is-shown': SHOWN.has(e.outcome),
+                    'is-confirmed': e.outcome === 'confirmed',
                     'is-active': hovered() !== null && (e.a === hovered() || e.b === hovered()),
                   }}
                   x1={a()?.x}
@@ -372,11 +377,17 @@ function NetworkGraph(props: {
   return (
     <figure class="sages-graph">
       <figcaption>
-        {t('sages.overview.graphCaption', {
-          connections: props.number(props.overview.stats.connections),
-          names: props.number(props.overview.nodes.length),
-          groups: props.number(props.overview.stats.components),
-        })}
+        {t(
+          props.overview.stats.connectionsConfirmed > 0
+            ? 'sages.overview.graphCaptionBoth'
+            : 'sages.overview.graphCaption',
+          {
+            confirmed: props.number(props.overview.stats.connectionsConfirmed),
+            connections: props.number(props.overview.stats.connections),
+            names: props.number(props.overview.nodes.length),
+            groups: props.number(props.overview.stats.components),
+          },
+        )}
       </figcaption>
       {graph('main')}
       <Show when={smallCount() > 0}>
@@ -409,6 +420,11 @@ function NetworkGraph(props: {
         <li>
           <i class="key-edge" /> {t('sages.overview.key.stated')}
         </li>
+        <Show when={props.overview.stats.connectionsConfirmed > 0}>
+          <li>
+            <i class="key-edge is-confirmed" /> {t('sages.overview.key.confirmed')}
+          </li>
+        </Show>
       </ul>
     </figure>
   );

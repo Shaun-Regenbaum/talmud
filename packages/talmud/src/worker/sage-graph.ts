@@ -78,6 +78,38 @@ async function revision(db: D1Database, requested?: string) {
   return query.first<{ id: string; manifest_json: string; created_at: string }>();
 }
 
+type SourceStoreList = Extract<
+  Awaited<ReturnType<typeof resolveSourceStores>>,
+  { stores: unknown }
+>['stores'];
+
+// Edges that a second model confirmed, one entry per pair and relation, with how many passages say it.
+// A store that cannot be read adds nothing; the rest of the answer does not depend on it.
+async function readConfirmedEdges(stores: SourceStoreList) {
+  const found = new Map<string, { a: string; b: string; kind: string; weight: number }>();
+  for (const store of stores) {
+    try {
+      const rows = await store.db
+        .prepare(
+          `SELECT subject_id AS a, object_id AS b, json_extract(payload_json,'$.relation') AS kind, COUNT(*) AS weight FROM sage_graph_all_records WHERE revision_id=? AND kind='machine_verified_edge' GROUP BY a, b, kind`,
+        )
+        .bind(store.revision)
+        .all<{ a: string; b: string; kind: string; weight: number }>();
+      for (const e of rows.results) {
+        const symmetric = e.kind === 'spouse_of' || e.kind === 'sibling_of';
+        const [a, b] = symmetric && e.b < e.a ? [e.b, e.a] : [e.a, e.b];
+        const id = JSON.stringify([a, b, e.kind]);
+        const old = found.get(id);
+        if (old) old.weight += e.weight;
+        else found.set(id, { a, b, kind: e.kind, weight: e.weight });
+      }
+    } catch {
+      // Left out.
+    }
+  }
+  return [...found.values()];
+}
+
 sageGraph.get('/', async (c) => {
   const db = c.env.SAGE_GRAPH_DB;
   if (!db) return c.json({ error: 'Graph database is unavailable' }, 503);
@@ -98,7 +130,11 @@ sageGraph.get('/overview', async (c) => {
   // 200,000 records, so the answer is kept per snapshot. A saved snapshot never changes.
   const cache =
     typeof caches === 'undefined' ? null : (caches as unknown as { default: Cache }).default;
-  const key = new Request(`https://cache.invalid/sage-overview/${saved.id}`);
+  const stores = await resolveSourceStores(c.env, (name) => c.req.query(name));
+  const sourceStores = 'error' in stores ? [] : stores.stores;
+  const key = new Request(
+    `https://cache.invalid/sage-overview-v2/${saved.id}/${sourceStores.map((s) => s.revision).join(',')}`,
+  );
   const kept = await cache?.match(key);
   if (kept) {
     return new Response(kept.body, {
@@ -134,8 +170,32 @@ sageGraph.get('/overview', async (c) => {
   ]);
   const parse = (rows: { payload_json: string }[]) => rows.map((r) => JSON.parse(r.payload_json));
   const manifest = JSON.parse(saved.manifest_json) as { change?: string };
+  const hierarchy = (hierarchyData as unknown as { nodes: Record<string, HierarchyNode> }).nodes;
+  const registry: Record<
+    string,
+    { label: string; labelHe: string | null; generation: string | null }
+  > = {};
+  const confirmed = (await readConfirmedEdges(sourceStores)).map((e) => ({
+    a: canonicalSlug(e.a),
+    b: canonicalSlug(e.b),
+    weight: e.weight,
+  }));
+  for (const e of confirmed) {
+    for (const id of [e.a, e.b]) {
+      const h = hierarchy[id];
+      if (h && !registry[id]) {
+        registry[id] = {
+          label: h.canonical ?? id,
+          labelHe: h.canonicalHe ?? null,
+          generation: h.generation ?? null,
+        };
+      }
+    }
+  }
   const body = JSON.stringify(
     buildSageOverview({
+      confirmed,
+      registry,
       revision: saved.id,
       createdAt: saved.created_at,
       change: manifest.change ?? '',
@@ -305,30 +365,10 @@ sageGraph.get('/network', async (c) => {
       .bind(saved.id),
   ]);
   const text = (v: unknown) => (typeof v === 'string' && v ? v : null);
-  const crosschecked = new Map<string, { a: string; b: string; kind: string; weight: number }>();
-  for (const store of sourceStores) {
-    try {
-      const found = await store.db
-        .prepare(
-          `SELECT subject_id AS a, object_id AS b, json_extract(payload_json,'$.relation') AS kind, COUNT(*) AS weight FROM sage_graph_all_records WHERE revision_id=? AND kind='machine_verified_edge' GROUP BY a, b, kind`,
-        )
-        .bind(store.revision)
-        .all<{ a: string; b: string; kind: string; weight: number }>();
-      for (const e of found.results) {
-        const symmetric = e.kind === 'spouse_of' || e.kind === 'sibling_of';
-        const [a, b] = symmetric && e.b < e.a ? [e.b, e.a] : [e.a, e.b];
-        const id = JSON.stringify([a, b, e.kind]);
-        const old = crosschecked.get(id);
-        if (old) old.weight += e.weight;
-        else crosschecked.set(id, { a, b, kind: e.kind, weight: e.weight });
-      }
-    } catch {
-      // The network is still correct without this layer.
-    }
-  }
+  const crosschecked = await readConfirmedEdges(sourceStores);
   const body = JSON.stringify(
     buildSageNetwork({
-      crosscheckedEdges: [...crosschecked.values()],
+      crosscheckedEdges: crosschecked,
       revision: saved.id,
       hierarchy: (hierarchyData as unknown as { nodes: Record<string, HierarchyNode> }).nodes,
       isPerson: (_id, node) => isRabbinicHebrewName(node.canonicalHe),

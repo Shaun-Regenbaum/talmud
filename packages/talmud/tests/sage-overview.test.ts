@@ -129,3 +129,36 @@ describe('buildSageOverview', () => {
     expect(out.nodes).toEqual([]);
   });
 });
+
+describe('buildSageOverview with confirmed links', () => {
+  // Small synthetic inputs for pure logic only.
+  const input = {
+    ...base,
+    counts: [],
+    nodePayloads: [
+      node('rava', { identityResolved: true }),
+      node('abaye', { identityResolved: true }),
+    ],
+    edgePayloads: [edge('rava', 'abaye')],
+    registry: {
+      'rav-pappa': { label: 'Rav Pappa', labelHe: null, generation: 'amora-bavel-5' },
+    },
+  };
+  it('draws a confirmed link once, adds its sage, and skips a pair already linked', () => {
+    const out = buildSageOverview({
+      ...input,
+      confirmed: [
+        { a: 'abaye', b: 'rava', weight: 9 },
+        { a: 'rava', b: 'rav-pappa', weight: 3 },
+        { a: 'rava', b: 'rav-pappa', weight: 2 },
+        { a: 'rava', b: 'nobody', weight: 1 },
+      ],
+    });
+    expect(out.stats.connectionsConfirmed).toBe(1);
+    expect(out.edges.filter((e) => e.outcome === 'confirmed')).toEqual([
+      { a: 'rava', b: 'rav-pappa', mode: 'stated', outcome: 'confirmed', ref: '', passages: 5 },
+    ]);
+    expect(out.nodes.map((n) => n.id).sort()).toEqual(['abaye', 'rav-pappa', 'rava']);
+    expect(out.stats.connections).toBe(1);
+  });
+});
