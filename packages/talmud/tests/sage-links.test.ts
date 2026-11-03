@@ -22,6 +22,13 @@ describe('summarizeSageLinks', () => {
     expect(answeredByRava?.role).toBe('object');
   });
 
+  it('shows a disagreement once, whichever side it was read from', () => {
+    const opposes = links.filter((l) => l.relation === 'opposes');
+    const partners = opposes.map((l) => l.partner);
+    expect(new Set(partners).size).toBe(partners.length);
+    for (const l of opposes) expect(l.role).toBe('both');
+  });
+
   it('keeps a few quoted examples, each with a passage', () => {
     for (const l of links) {
       expect(l.examples.length).toBeLessThanOrEqual(MAX_EXAMPLES);
