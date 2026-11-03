@@ -25,7 +25,8 @@ export interface SageLink {
   examples: SageLinkExample[];
 }
 
-const SYMMETRIC = new Set(['spouse_of', 'sibling_of']);
+// Disagreement has no side to read it from: "A disagreed with B" and "B disagreed with A" are one thing here.
+const SYMMETRIC = new Set(['spouse_of', 'sibling_of', 'opposes']);
 export const MAX_EXAMPLES = 3;
 export const MAX_LINKS = 150;
 
