@@ -647,6 +647,18 @@ const CATALOG = {
     en: '{connections} checked connections between {names} names, in {groups} separate groups. Click a filled dot to open that sage.',
     he: '{connections} קשרים בדוקים בין {names} שמות, ב־{groups} קבוצות נפרדות. לחצו על נקודה מלאה כדי לפתוח את החכם.',
   },
+  'sages.overview.graphCaptionBoth': {
+    en: '{connections} checked connections and {confirmed} more read in the text and confirmed by a second model, between {names} names, in {groups} separate groups. Click a filled dot to open that sage.',
+    he: '{connections} קשרים בדוקים ועוד {confirmed} שנקראו במקור ואושרו במודל שני, בין {names} שמות, ב־{groups} קבוצות נפרדות. לחצו על נקודה מלאה כדי לפתוח את החכם.',
+  },
+  'sages.overview.confirmedPassages': {
+    en: 'confirmed, {count} passages',
+    he: 'אושר, {count} מקורות',
+  },
+  'sages.overview.key.confirmed': {
+    en: 'Read in the text, confirmed by a second model',
+    he: 'נקרא במקור ואושר במודל שני',
+  },
   'sages.overview.key.tanna': { en: 'Tanna (earlier sages)', he: 'תנא' },
   'sages.overview.key.amoraEy': { en: 'Amora in the Land of Israel', he: 'אמורא בארץ ישראל' },
   'sages.overview.key.amoraBavel': { en: 'Amora in Babylonia', he: 'אמורא בבבל' },

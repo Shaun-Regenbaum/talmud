@@ -606,6 +606,12 @@
   stroke-opacity: 0.55;
   stroke-dasharray: 4 3;
 }
+.sages-graph-edge.is-confirmed {
+  stroke: var(--ink-slate);
+  stroke-dasharray: none;
+  stroke-width: 1;
+  stroke-opacity: 0.35;
+}
 .sages-graph-edge.is-shown {
   stroke-dasharray: none;
   stroke-opacity: 0.9;
@@ -689,6 +695,10 @@
   margin-inline-end: 0.3rem;
   border-top: 1.5px dashed var(--muted);
   vertical-align: 0.2rem;
+}
+.key-edge.is-confirmed {
+  border-top: 2px solid var(--ink-slate);
+  opacity: 0.5;
 }
 .key-edge.is-shown {
   border-top-style: solid;
