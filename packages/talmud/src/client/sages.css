@@ -598,19 +598,19 @@
   stroke-width: 1.8;
 }
 .sages-graph-label.is-below {
-  font-size: 10.5px;
+  font-size: 14px;
 }
 .sages-graph-edge {
   stroke: var(--muted);
-  stroke-width: 1.2;
+  stroke-width: 1.6;
   stroke-opacity: 0.55;
   stroke-dasharray: 4 3;
 }
 .sages-graph-edge.is-confirmed {
   stroke: var(--ink-slate);
   stroke-dasharray: none;
-  stroke-width: 1;
-  stroke-opacity: 0.35;
+  stroke-width: 1.3;
+  stroke-opacity: 0.3;
 }
 .sages-graph-edge.is-shown {
   stroke-dasharray: none;
@@ -648,10 +648,10 @@
 }
 .sages-graph-label {
   fill: var(--fg);
-  font-size: 11px;
+  font-size: 15px;
   paint-order: stroke;
   stroke: var(--surface);
-  stroke-width: 3px;
+  stroke-width: 4px;
   pointer-events: none;
 }
 .sages-graph-key {
