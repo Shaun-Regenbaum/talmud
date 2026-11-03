@@ -12,7 +12,7 @@ import { placeLabels } from './sageOverviewLayout';
 // These links come from AI reading and are not checked, so the page does not draw them.
 const SHOWN_LAYERS = new Set<NetworkLayer>(['checked', 'crosschecked', 'curated']);
 const RING = 400;
-const SIDE = 190;
+const SIDE = 270;
 const TOP_NAMES = 18;
 
 type Pt = { x: number; y: number };
@@ -147,7 +147,8 @@ function Graph(props: { network: SageNetwork }): JSX.Element {
     const all = wanted.flatMap((x) => {
       const p = ringAt(x.i);
       if (!p) return [];
-      const text = nameOf(x.i);
+      // The bracketed part of a long name is left to the tooltip.
+      const text = nameOf(x.i).replace(/\s*\[[^\]]*\]/, '');
       const right = Math.cos(p.angle) >= 0;
       const width = text.length * 8.6;
       const x0 = p.x + Math.cos(p.angle) * 12;
