@@ -640,6 +640,8 @@ const CATALOG = {
   'sages.seen.sibling_of.object': { en: 'Sibling of', he: 'אח או אחות של' },
   'sages.seen.title': { en: 'Seen in the text', he: 'כפי שמופיע בטקסט' },
   'sages.seen.note': { en: 'Still being added to.', he: 'עדיין בתוספת.' },
+  'sages.seen.passage': { en: ' · 1 passage', he: ' · מקור אחד' },
+  'sages.seen.more': { en: 'Show {count} more', he: 'הציגו עוד {count}' },
   'sages.seen.passages': { en: ' · {count} passages', he: ' · {count} מקורות' },
   'sages.network.layers': { en: 'Which links to show', he: 'אילו קשרים להציג' },
   'sages.network.layer.checked': {

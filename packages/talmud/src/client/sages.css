@@ -1029,3 +1029,11 @@
   font-size: 0.85rem;
   white-space: nowrap;
 }
+.sage-seen-more {
+  margin-top: 0.4rem;
+}
+.sage-seen-more > summary {
+  cursor: pointer;
+  color: var(--ink-slate);
+  padding: 0.3rem 0;
+}
