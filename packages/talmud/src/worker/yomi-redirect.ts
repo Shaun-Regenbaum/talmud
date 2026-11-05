@@ -33,7 +33,7 @@ export async function yomiRedirectUrl(req: Request, now = new Date()): Promise<s
   const { year, month, day } = localDay(now, tz);
   const cacheKey = new Request(`https://yomi.internal/${year}-${month}-${day}`);
   try {
-    const cache = caches.default;
+    const cache = (caches as unknown as { default: Cache }).default;
     let res = await cache.match(cacheKey);
     if (!res) {
       const daf = await fetchYomiFor(year, month, day);
