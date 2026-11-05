@@ -34,9 +34,9 @@ export function cachedYomi(now = new Date()): YomiDaf | null {
   }
 }
 
-/** Ask Sefaria for today's daf and save the answer. Throws on failure. */
-export async function fetchYomi(now = new Date()): Promise<YomiDaf> {
-  const url = `https://www.sefaria.org/api/calendars?year=${now.getFullYear()}&month=${now.getMonth() + 1}&day=${now.getDate()}`;
+/** Ask Sefaria for the daf on a calendar day. No storage. Throws on failure. */
+export async function fetchYomiFor(year: number, month: number, day: number): Promise<YomiDaf> {
+  const url = `https://www.sefaria.org/api/calendars?year=${year}&month=${month}&day=${day}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Sefaria ${res.status}`);
   const data = (await res.json()) as {
@@ -51,6 +51,12 @@ export async function fetchYomi(now = new Date()): Promise<YomiDaf> {
   );
   const daf = parseYomiDisplay(item?.displayValue?.en);
   if (!daf) throw new Error('No Daf Yomi entry for today');
+  return daf;
+}
+
+/** Ask Sefaria for today's daf and save the answer. Throws on failure. */
+export async function fetchYomi(now = new Date()): Promise<YomiDaf> {
+  const daf = await fetchYomiFor(now.getFullYear(), now.getMonth() + 1, now.getDate());
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ day: dayStamp(now), ...daf }));
   } catch {
