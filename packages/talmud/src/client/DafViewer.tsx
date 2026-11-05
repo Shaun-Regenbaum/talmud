@@ -454,8 +454,12 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   });
 
   const ref = createMemo<Ref>(() => ({ tractate: tractate(), page: page() }));
-  const [daf] = createResource(ref, fetchDaf);
-  const [checkedGraph, { refetch: retryCheckedGraph }] = createResource(ref, (value) =>
+  // On the first visit of the day we do not yet know which daf to open. Hold
+  // the daf load until goToYomi answers, so Berakhot 2a never flashes first.
+  const [yomiPending, setYomiPending] = createSignal(wantsYomi && !savedYomi);
+  const loadRef = () => (yomiPending() ? false : ref());
+  const [daf] = createResource(loadRef, fetchDaf);
+  const [checkedGraph, { refetch: retryCheckedGraph }] = createResource(loadRef, (value) =>
     fetchCheckedGraph(value).catch(() => null),
   );
 
@@ -2728,6 +2732,7 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     } catch (err) {
       setYomiError(err instanceof Error ? err.message : String(err));
     } finally {
+      setYomiPending(false);
       setYomiLoading(false);
     }
   };
