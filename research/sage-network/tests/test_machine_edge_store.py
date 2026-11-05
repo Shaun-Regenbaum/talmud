@@ -156,6 +156,15 @@ class EdgeStoreTests(unittest.TestCase):
             edges.kept(dict(base, subject_sage='z'), candidates)
         self.assertFalse(edges.kept(dict(base, object_sage='a'), {'subject': ['a'], 'object': ['a']}))
 
+    def test_a_checker_that_commits_readily_must_agree_with_the_placed_sage(self):
+        # Made-up verdicts, for the rule only. The placed sage is the first candidate of each end.
+        base = {'supported': 'yes', 'direction': 'ok', 'subject_sage': 'a', 'object_sage': 'b', 'note': ''}
+        candidates = {'subject': ['a', 'a2'], 'object': ['b', 'b2']}
+        self.assertTrue(edges.kept(base, candidates, 'gemini'))
+        self.assertTrue(edges.kept(dict(base, subject_sage='a2'), candidates, 'claude'))
+        self.assertFalse(edges.kept(dict(base, subject_sage='a2'), candidates, 'gemini'))
+        self.assertFalse(edges.kept(dict(base, object_sage='b2'), candidates, 'gemini'))
+
     def test_pins_and_counts_come_from_the_selection(self):
         with self.assertRaisesRegex(ValueError, 'not the one that was pinned'):
             edges.selected_cases(self.selection, '0' * 64)
