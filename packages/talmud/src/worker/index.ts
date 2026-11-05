@@ -306,6 +306,7 @@ import {
   wholeDafEnrichmentIds,
 } from './workflow-warm';
 import { runYomiWarmCron } from './yomi-cron';
+import { yomiRedirectUrl } from './yomi-redirect';
 
 // `Bindings` and `JobMessage` now live in ./types (a neutral module so route
 // slices / telemetry / crons can import them without cycling through this entry
@@ -397,7 +398,17 @@ app.get('/api/health', (c) => c.json({ ok: true }));
 // and we hand "/" back to the asset pipeline. Only "/" is affected — every
 // other path keeps its existing behaviour (assets from the CDN, unknown paths
 // still 404 through the router, not an SPA catch-all).
-app.get('/', (c) => c.env.ASSETS.fetch(c.req.raw));
+app.get('/', async (c) => {
+  // A bare visit opens today's Daf Yomi. The redirect is per visitor (their
+  // timezone), so it must never be cached.
+  const to = await yomiRedirectUrl(c.req.raw);
+  if (to)
+    return new Response(null, {
+      status: 302,
+      headers: { location: to, 'cache-control': 'private, no-store' },
+    });
+  return c.env.ASSETS.fetch(c.req.raw);
+});
 
 /**
  * Code-mode MCP server (Streamable HTTP) at /mcp. Exposes two tools — `search`
