@@ -73,16 +73,24 @@ def parse_artifact(text):
     return artifact
 
 
-def kept(verdict, candidates):
+# A checker that tends to commit to a sage where others say "unsure" must agree with the sage the name run placed,
+# which is the first candidate of each end. Other families may choose any sage that was offered.
+FIRST_CANDIDATE_ONLY = ('gemini',)
+
+
+def kept(verdict, candidates, checker_family=None):
     """True when the check is clear on all three points."""
     require(verdict['supported'] in SUPPORTED and verdict['direction'] in DIRECTION, 'Unknown edge verdict')
     require(verdict.get('relation', RELATIONS[0]) in RELATIONS, 'Unknown relation in an edge verdict')
     for end in ('subject', 'object'):
         chosen = verdict[end + '_sage']
         require(chosen in candidates[end] or chosen in ('none', 'unsure'), 'A sage was chosen that was not offered')
-    return (verdict['supported'] == 'yes' and verdict['direction'] in ('ok', 'na')
-            and verdict['subject_sage'] in candidates['subject'] and verdict['object_sage'] in candidates['object']
-            and verdict['subject_sage'] != verdict['object_sage'])
+    clear = (verdict['supported'] == 'yes' and verdict['direction'] in ('ok', 'na')
+             and verdict['subject_sage'] in candidates['subject'] and verdict['object_sage'] in candidates['object']
+             and verdict['subject_sage'] != verdict['object_sage'])
+    if clear and checker_family in FIRST_CANDIDATE_ONLY:
+        clear = verdict['subject_sage'] == candidates['subject'][0] and verdict['object_sage'] == candidates['object'][0]
+    return clear
 
 
 def selected_cases(selection_text, selection_pin):
@@ -127,7 +135,7 @@ def records(artifact_text, selection, selection_pin, lookup):
             checked_n += 1
             key = (verdict['supported'], verdict['direction'])
             by_verdict[':'.join(key)] = by_verdict.get(':'.join(key), 0) + 1
-            if not kept(verdict, candidates):
+            if not kept(verdict, candidates, item['checker_family']):
                 continue
             data = connection['data']
             a, b = (data['direction']['subject'], data['direction']['object']) if data['direction']['status'] == 'supported' else data['participants']
