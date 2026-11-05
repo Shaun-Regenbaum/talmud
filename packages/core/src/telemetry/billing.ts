@@ -205,6 +205,8 @@ export async function beginBillingAttempt(
     }
   } catch (err) {
     if (err instanceof BudgetPausedError) throw err;
+    // Keep the real database error. Without it every failure looks the same.
+    console.error('[billing] admission failed', err instanceof Error ? err.message : String(err));
     throw new LLMError(503, 'Billing ledger unavailable', { cls: NEITHER });
   }
   return new BillingAttempt(env.BILLING_DB, id, env.BILLING_APP, hash, model, at);

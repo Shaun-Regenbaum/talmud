@@ -188,6 +188,7 @@ import {
   voiceGraphBlobShape,
 } from './kv-shapes';
 import { noteLintAttempt } from './lint-failures';
+import { stripJsonFence } from './llm-helpers';
 import { ALIGN_MARKS } from './mark-categories';
 import { MCP_EXECUTE_TIMEOUT_MS } from './mcp-limits';
 import { TALMUD_OPENAPI } from './mcp-openapi';
@@ -4216,7 +4217,7 @@ async function runExtractorFannedOut(
       // isn't cached with a section's moves silently missing.
       let p: { instances?: unknown[] };
       try {
-        p = JSON.parse(r.content) as { instances?: unknown[] };
+        p = JSON.parse(stripJsonFence(r.content)) as { instances?: unknown[] };
       } catch (err) {
         // finish_reason distinguishes a max_tokens truncation ('length' — the
         // section's moves outgrew the per-section cap) from model garbage.

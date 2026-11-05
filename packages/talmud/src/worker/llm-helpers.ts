@@ -31,6 +31,14 @@ export function extractJsonPayload(resp: unknown): string {
   return '';
 }
 
+/** Models sometimes wrap a JSON answer in a markdown fence (```json ... ```)
+ * even when asked for bare JSON. Remove one surrounding fence; leave anything
+ * else untouched so truly broken output still fails loudly. */
+export function stripJsonFence(text: string): string {
+  const m = text.trim().match(/^```[a-zA-Z]*\s*\n([\s\S]*?)\n?```$/);
+  return m ? m[1] : text;
+}
+
 export interface KimiMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;

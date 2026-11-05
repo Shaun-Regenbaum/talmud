@@ -64,15 +64,21 @@ export function admissionStatement(
   const day = `${at.slice(0, 10)}T00:00:00.000Z`;
   const hour = new Date(Date.parse(at) - 3_600_000).toISOString();
   const expiry = new Date(Date.parse(at) - HOLD_EXPIRY_MS).toISOString();
+  // Rows older than this add nothing: settled rows before `day` and unsettled
+  // holds before `expiry` both count as zero. Bounding by started_at lets the
+  // (app, started_at) index answer this; without it the planner walked every
+  // row the app ever wrote (about 119k) on each admission and overloaded D1.
+  const floor = day < expiry ? day : expiry;
   return env.BILLING_DB.prepare(`INSERT INTO spend_reservations
     (attempt_id, app, started_at, custom, held_nanos)
     SELECT ?, ?, ?, ?, ?
     WHERE ? + (SELECT COALESCE(SUM(COALESCE(settled_nanos,
         CASE WHEN started_at >= ? THEN held_nanos ELSE 0 END)), 0)
-      FROM spend_reservations WHERE app = ? AND (started_at >= ? OR settled_nanos IS NULL)) <= ?
+      FROM spend_reservations WHERE app = ? AND started_at >= ?
+        AND (started_at >= ? OR settled_nanos IS NULL)) <= ?
     AND (? = 0 OR ? + (SELECT COALESCE(SUM(COALESCE(settled_nanos,
         CASE WHEN started_at >= ? THEN held_nanos ELSE 0 END)), 0)
-      FROM spend_reservations WHERE app = ? AND custom = 1
+      FROM spend_reservations WHERE app = ? AND custom = 1 AND started_at >= ?
         AND (started_at >= ? OR settled_nanos IS NULL)) <= ?)`).bind(
     id,
     env.BILLING_APP,
@@ -82,12 +88,14 @@ export function admissionStatement(
     held,
     expiry,
     env.BILLING_APP,
+    floor,
     day,
     limits.daily,
     custom ? 1 : 0,
     held,
     expiry,
     env.BILLING_APP,
+    hour,
     hour,
     limits.custom,
   );
@@ -104,7 +112,7 @@ export async function reservationStatus(env: ReservationEnv, now = Date.now()) {
     COALESCE(SUM(CASE WHEN custom = 1 AND started_at >= ? THEN settled_nanos ELSE 0 END), 0) AS customSpent,
     COALESCE(SUM(CASE WHEN settled_nanos IS NULL AND started_at >= ? THEN held_nanos ELSE 0 END), 0) AS dailyHeld,
     COALESCE(SUM(CASE WHEN custom = 1 AND settled_nanos IS NULL AND started_at >= ? THEN held_nanos ELSE 0 END), 0) AS customHeld
-    FROM spend_reservations WHERE app = ? AND (started_at >= ? OR settled_nanos IS NULL)`)
+    FROM spend_reservations WHERE app = ? AND started_at >= ?`)
     .bind(day, hour, expiry, expiry, env.BILLING_APP, day < hour ? day : hour)
     .first<{ dailySpent: number; customSpent: number; dailyHeld: number; customHeld: number }>();
   if (!rows) throw new LLMError(503, 'Spending totals unavailable', { cls: NEITHER });
