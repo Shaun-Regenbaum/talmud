@@ -59,9 +59,12 @@ KINDS = v1.KINDS | {'source_reading_run'}
 # Every kind a store revision may hold, compact or checked; a contract 1 store refuses the checked ones.
 # Edges of machine readings that a second model checked (machine_edge_store.KINDS). A contract 2 store holds them too.
 EDGE_KINDS = {'machine_edge_release', 'machine_verified_edge'}
+# Which sage each name in a machine reading was placed on (machine_placement_store.KINDS). A contract 2 store holds them too.
+PLACEMENT_KINDS = {'machine_placement_release', 'machine_name_placement'}
 STORE_KINDS = KINDS | {'checked_reading', 'checked_person', 'checked_connection', 'checked_decision',
-                       'checked_coverage', 'checked_unit', 'checked_ownership'} | EDGE_KINDS
+                       'checked_coverage', 'checked_unit', 'checked_ownership'} | EDGE_KINDS | PLACEMENT_KINDS
 EDGE_FIELDS = {'parentRevision', 'description', 'sourceReadingStore', 'machineEdgeSelection', 'machineEdgeArtifact', 'records'}
+PLACEMENT_FIELDS = {'parentRevision', 'description', 'sourceReadingStore', 'machinePlacementSelection', 'machinePlacementArtifact', 'records'}
 CHANGE_FIELDS = {'parentRevision', 'description', 'sourceReadingStore', 'sourceReadingVersion', 'sourceReadingBundles',
                  'sourceReadingInputs', 'sourceReadingOwnership', 'legacyGraphRevision', 'records'}
 CHECKED_FIELDS = {'parentRevision', 'description', 'sourceReadingStore', 'checkedSelection', 'checkedRootApprovals',
@@ -205,6 +208,16 @@ def validate_changes(changes, rows, parent, checked_selections=()):
         expected = machine_edge_store.changes_for(block, changes['machineEdgeSelection'], pin, changes['machineEdgeArtifact'],
                                                   changes['parentRevision'], existing)
         require(changes == expected, 'Machine edge records differ from strict reconstruction')
+        return block
+    if 'machinePlacementSelection' in changes:
+        import machine_placement_store
+        require(set(changes) == PLACEMENT_FIELDS, 'A machine placement import cannot carry other changes')
+        require(changes['sourceReadingStore'] == block, 'Parent revision belongs to another source-reading store')
+        pin = digest(changes['machinePlacementSelection'])
+        require(pin in set(checked_selections), 'Machine placement release selection is not pinned by the caller')
+        expected = machine_placement_store.changes_for(block, changes['machinePlacementSelection'], pin, changes['machinePlacementArtifact'],
+                                                       changes['parentRevision'], existing)
+        require(changes == expected, 'Machine placement records differ from strict reconstruction')
         return block
     if 'machineSelection' in changes:
         import machine_source_store
@@ -361,7 +374,7 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                         and (machine_only or parent_receipt.get('scope', 'all') == 'all'),
                         'The parent revision needs its own read-back receipt')
     import checked_source_store
-    allowed = KINDS | ((checked_source_store.KINDS | EDGE_KINDS) if contract == 2 else set())
+    allowed = KINDS | ((checked_source_store.KINDS | EDGE_KINDS | PLACEMENT_KINDS) if contract == 2 else set())
     require(all(r['kind'] in allowed for r in found), 'Unexpected record kind in a source-reading store')
     import machine_source_store
     given = [checked] if isinstance(checked, dict) else list(checked or [])
@@ -373,6 +386,13 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                 'Each machine edge selection needs its text and external pin once')
         edge_cases[entry['pin']] = machine_edge_store.selected_cases(entry['selection'], entry['pin'])
     given = [c for c in given if not c.get('machine_edge')]
+    placement_cases = {}
+    for entry in [c for c in given if c.get('machine_placement')]:
+        import machine_placement_store
+        require(set(entry) == {'selection', 'pin', 'machine_placement'} and entry['pin'] not in placement_cases,
+                'Each machine placement selection needs its text and external pin once')
+        placement_cases[entry['pin']] = machine_placement_store.selected_cases(entry['selection'], entry['pin'])
+    given = [c for c in given if not c.get('machine_placement')]
     machine_inputs = [c for c in given if c.get('machine')]
     machine_cases = {}
     for entry in machine_inputs:
@@ -404,6 +424,25 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
             by_passage.setdefault(r['passage_id'], []).append(r)
     used, bundles, passages = set(), {}, {}
     for pid, group in by_passage.items():
+        if pid.startswith('mp1-'):
+            import machine_placement_store
+            envelope = [r for r in group if r['kind'] == 'machine_placement_release']
+            require(len(envelope) == 1, 'A machine placement release needs exactly one envelope')
+            data = envelope[0]['data']
+            require(data['selectionSha256'] in placement_cases, 'Machine placement releases need their pinned selection')
+            if not full and all(r['record_id'] in inherited for r in group):
+                continue  # unchanged since the parent, whose receipt covers it
+            path = artifacts / (data['artifact']['sha256'] + '.json')
+            require(path.exists(), 'Missing downloaded R2 artifact: ' + path.name)
+            raw = path.read_bytes()
+            require(hashlib.sha256(raw).hexdigest() == data['artifact']['sha256'] and len(raw) == data['artifact']['bytes'],
+                    'Downloaded R2 file differs from its envelope: ' + path.name)
+            by_id = {r['record_id']: r for r in found}
+            expected = machine_placement_store.records(raw.decode(), placement_cases[data['selectionSha256']], data['selectionSha256'], by_id.get)
+            require(sorted(group, key=lambda r: r['record_id']) == sorted(expected, key=lambda r: r['record_id']),
+                    'Stored machine placement release differs from its artifact: ' + pid)
+            bundles[pid] = data['artifact']['sha256']
+            continue
         if pid.startswith('mv1-'):
             import machine_edge_store
             envelope = [r for r in group if r['kind'] == 'machine_edge_release']
@@ -678,6 +717,44 @@ def prepare_edges(store, selection_path, selection_pin, artifact_path, parent_db
                 records=len(changes['records']), parentRevision=parent_revision)
 
 
+def prepare_placements(store, selection_path, selection_pin, artifact_path, parent_db, parent_revision, output):
+    """Changes and the R2 file for a release of name placements. The names must belong to machine readings
+    that the parent revision already holds."""
+    import machine_placement_store
+    selection_text = selection_path.read_text()
+    artifact_text = artifact_path.read_text()
+    selection = machine_placement_store.selected_cases(selection_text, selection_pin)
+    artifact = machine_placement_store.parse_artifact(artifact_text)
+    keys = set()
+    for placed_item in artifact['items']:
+        passage = placed_item['reading_passage_id']
+        keys.add('checked_reading:' + passage)
+        keys.update(f"checked_person:{passage}/{n['person']}" for n in placed_item['names'])
+    parent, existing = _read_rows(parent_db, parent_revision, sorted(keys))
+    block = parent.get('sourceReadingStore')
+    require(contract_of(block) == 2 and block['name'] == store, 'Upgrade the store before adding name placements')
+    require(parent['newest'], 'A store release must extend the newest verified revision')
+    rows = {k: item(r) for k, r in existing.items()}
+    own = ['machine_placement_release:' + machine_placement_store.PASSAGE_PREFIX + selection['artifactSha256']]
+    _, mine = _read_rows(parent_db, parent_revision, own)
+    rows.update({k: item(r) for k, r in mine.items()})
+    changes = machine_placement_store.changes_for(block, selection_text, selection_pin, artifact_text, parent_revision, rows)
+    output.mkdir(parents=True, exist_ok=False)
+    (output / 'artifacts').mkdir()
+    (output / 'artifacts' / (selection['artifactSha256'] + '.json')).write_text(artifact_text)
+    (output / 'changes.json').write_text(json.dumps(changes, ensure_ascii=False, indent=2) + '\n')
+    return dict(store=store, passages=selection['passages'], names=selection['names'], byStatus=selection['byStatus'],
+                records=len(changes['records']), parentRevision=parent_revision)
+
+
+def placement_inputs(selection_path, selection_pin):
+    """A machine placement selection for verify and readback."""
+    import machine_placement_store
+    text = selection_path.read_text()
+    require(machine_placement_store.sha(text) == selection_pin, 'Machine placement release selection is not the one that was pinned')
+    return dict(selection=text, pin=selection_pin, machine_placement=True)
+
+
 def edge_inputs(selection_path, selection_pin):
     """A machine edge selection for verify and readback."""
     import machine_edge_store
@@ -733,6 +810,12 @@ def main():
     for name in ('--artifact', '--parent-db', '--output'):
         p.add_argument(name, type=Path, required=True)
     p.add_argument('--parent-revision', required=True)
+    p = sub.add_parser('prepare-placements', help='Which sage each name in machine readings was placed on')
+    p.add_argument('--store', choices=sorted(STORES), required=True)
+    p.add_argument('--placement-selection', nargs=2, required=True, metavar=('SELECTION_JSON', 'SHA256'))
+    for name in ('--artifact', '--parent-db', '--output'):
+        p.add_argument(name, type=Path, required=True)
+    p.add_argument('--parent-revision', required=True)
     p = sub.add_parser('prepare-machine', help='Unreviewed machine readings, pinned by their own selection')
     p.add_argument('--store', choices=sorted(STORES), required=True)
     p.add_argument('--machine-selection', nargs=2, required=True, metavar=('SELECTION_JSON', 'SHA256'))
@@ -751,6 +834,8 @@ def main():
                        help='Repeat for every machine selection held by the revision, including inherited readings')
         p.add_argument('--edge-selection', nargs=2, action='append', metavar=('SELECTION_JSON', 'SHA256'),
                        help='Repeat for every checked machine edge release held by the revision')
+        p.add_argument('--placement-selection', nargs=2, action='append', metavar=('SELECTION_JSON', 'SHA256'),
+                       help='Repeat for every machine placement release held by the revision')
         if command == 'verify':
             p.add_argument('--parent-receipt', type=Path, help="The parent revision's read-back receipt, unless it is empty")
             p.add_argument('--machine-only', action='store_true',
@@ -765,6 +850,8 @@ def main():
         checked += [machine_inputs(Path(path), pin) for path, pin in args.machine_selection]
     if getattr(args, 'edge_selection', None) and args.command in ('verify', 'readback'):
         checked += [edge_inputs(Path(path), pin) for path, pin in args.edge_selection]
+    if getattr(args, 'placement_selection', None) and args.command in ('verify', 'readback'):
+        checked += [placement_inputs(Path(path), pin) for path, pin in args.placement_selection]
     checked = checked or None
     if args.command == 'route':
         parts, receipt = route(json.loads(args.capture.read_text()))
@@ -794,6 +881,9 @@ def main():
     elif args.command == 'prepare-edges':
         result = prepare_edges(args.store, Path(args.edge_selection[0]), args.edge_selection[1], args.artifact, args.parent_db,
                                args.parent_revision, args.output)
+    elif args.command == 'prepare-placements':
+        result = prepare_placements(args.store, Path(args.placement_selection[0]), args.placement_selection[1], args.artifact, args.parent_db,
+                                    args.parent_revision, args.output)
     elif args.command == 'prepare-machine':
         ownership = dict(manifest=json.loads(args.ownership.read_text()), expectedManifestSha256=args.ownership_hash)
         result = prepare_machine(args.store, Path(args.machine_selection[0]), args.machine_selection[1], args.artifacts,

@@ -114,7 +114,7 @@ class CheckedStoreTests(unittest.TestCase):
                 self.assertEqual({k: v for k, v in people[person['id']].items() if k not in ('format', 'readingId', 'decision')}, person)
             self.assertEqual([r['data']['sources'] for r in mine if r['kind'] == 'checked_ownership'], [artifact['ownership']])
             self.assertTrue(all((r['authority'], r['decision']) == ('screening', 'needs_review') for r in mine))
-        self.assertEqual(stores.STORE_KINDS, stores.KINDS | checked.KINDS | stores.EDGE_KINDS)
+        self.assertEqual(stores.STORE_KINDS, stores.KINDS | checked.KINDS | stores.EDGE_KINDS | stores.PLACEMENT_KINDS)
 
     def test_pins_come_only_from_roots_selection(self):
         cases = lambda selection, pin=None, approvals=None: checked.selected_cases(selection, pin or checked.sha(selection), approvals or self.approvals)
