@@ -654,6 +654,27 @@ const CATALOG = {
   'sages.seen.passage': { en: ' · 1 passage', he: ' · מקור אחד' },
   'sages.seen.more': { en: 'Show {count} more', he: 'הציגו עוד {count}' },
   'sages.seen.passages': { en: ' · {count} passages', he: ' · {count} מקורות' },
+  'sages.maybe.title': { en: 'Names that might be this sage', he: 'שמות שאולי הם החכם הזה' },
+  'sages.maybe.note': {
+    en: 'A name in the text can fit more than one sage. These were placed on someone else, or left open. Machine reading, not checked by a person.',
+    he: 'שם בטקסט יכול להתאים ליותר מחכם אחד. אלה שובצו אצל אחר או נשארו פתוחים. קריאת מכונה, לא נבדקה בידי אדם.',
+  },
+  'sages.maybe.which_one': {
+    en: 'Two models could not agree who “{name}” is.',
+    he: 'שני מודלים לא הסכימו מיהו “{name}”.',
+  },
+  'sages.maybe.one_model': {
+    en: '“{name}” was placed on {placed} by one model.',
+    he: '“{name}” שובץ אצל {placed} על ידי מודל אחד.',
+  },
+  'sages.maybe.ruled_out': {
+    en: '“{name}” was placed on {placed} by two models.',
+    he: '“{name}” שובץ אצל {placed} על ידי שני מודלים.',
+  },
+  'sages.maybe.why': { en: 'Why it might be this sage: ', he: 'למה אולי זה החכם הזה: ' },
+  'sages.maybe.whynot': { en: 'Why not: ', he: 'למה לא: ' },
+  'sages.maybe.also': { en: 'Also possible: ', he: 'אפשרויות נוספות: ' },
+  'sages.maybe.more': { en: 'Show {count} more', he: 'הציגו עוד {count}' },
   'sages.network.layers': { en: 'Which links to show', he: 'אילו קשרים להציג' },
   'sages.network.layer.checked': {
     en: 'Read and checked in the text ({count})',
