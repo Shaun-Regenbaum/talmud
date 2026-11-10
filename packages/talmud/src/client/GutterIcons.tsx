@@ -61,11 +61,12 @@ export function GutterIcons(props: GutterIconsProps): JSX.Element {
     }
     const rootRect = root.getBoundingClientRect();
     const rootTop = rootRect.top;
-    // When the daf is CSS-transformed (mobile fit-to-width) getBoundingClientRect
-    // reports visually-scaled coordinates, but GutterOverlay applies the
-    // published `top` as a layout value inside that same scaled frame — which
-    // scales it again. Cancel the scale (visual width / layout width). On
-    // desktop scale === 1, a no-op.
+    // When the daf is CSS-transformed (mobile fit-to-width, or the desktop
+    // text-size zoom) getBoundingClientRect reports visually-scaled
+    // coordinates, but GutterOverlay applies the published `top` as a layout
+    // value inside that same scaled frame — which scales it again. Cancel
+    // the scale (visual width / layout width). scale === 1 when nothing is
+    // transformed.
     const scale = root.offsetWidth > 0 ? rootRect.width / root.offsetWidth : 1;
 
     // Determining atEdge: on the anchor's visual line, does main text extend
