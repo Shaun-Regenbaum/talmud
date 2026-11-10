@@ -30,14 +30,15 @@ export function SageMaybeInText(props: {
   );
   const Row = (rowProps: { item: SageMaybe }): JSX.Element => {
     const item = rowProps.item;
-    const lead = t(`sages.maybe.${item.state}`, {
-      name: item.label,
-      placed: item.placedAs ? props.nameFor(item.placedAs) : '',
-    });
+    const lead = () =>
+      t(`sages.maybe.${item.state}`, {
+        name: item.label,
+        placed: item.placedAs ? props.nameFor(item.placedAs) : '',
+      });
     return (
       <li>
         <p class="sage-maybe-what">
-          {lead}{' '}
+          {lead()}{' '}
           <Show
             when={sefariaUrl(item.ref)}
             fallback={<span class="sage-seen-ref">{item.ref}</span>}
