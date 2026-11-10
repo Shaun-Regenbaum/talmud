@@ -1,4 +1,58 @@
 /* Layout for Talmud controls that consume the shared UI components. */
+
+/* Desktop text size. Segmented like the page stepper so it reads as a
+   reading control, not a dev toggle. Hidden on phones (the reader pinch-zooms). */
+.text-zoom {
+  display: inline-flex;
+  align-items: stretch;
+  height: var(--control-height);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--fg);
+  font: 500 13px / 1.4 var(--font-ui);
+  overflow: hidden;
+}
+.text-zoom-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  color: var(--muted);
+  border-inline-end: 1px solid var(--line);
+  user-select: none;
+}
+.text-zoom button {
+  border: 0;
+  border-inline-start: 1px solid var(--line);
+  background: transparent;
+  color: inherit;
+  padding: 0 10px;
+  font: inherit;
+  cursor: pointer;
+}
+.text-zoom .text-zoom-label + button {
+  border-inline-start: 0;
+}
+.text-zoom button:hover:not(:disabled) {
+  background: var(--surface-sunk);
+}
+.text-zoom button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.text-zoom-level {
+  min-width: 52px;
+  font-variant-numeric: tabular-nums;
+}
+.text-zoom-a-small {
+  font-size: 11px;
+}
+.text-zoom-a-large {
+  font-size: 16px;
+}
+.text-zoom-reset {
+  color: var(--accent);
+}
 .reader-shelf-close {
   min-width: 44px;
   min-height: 44px;

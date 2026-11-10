@@ -71,6 +71,16 @@ import MarksRegistryPanel, {
 } from './MarksRegistryPanel';
 import { MobileShelf } from './MobileShelf';
 import { PagePins } from './pagePins';
+import { TextZoomControl } from './TextZoomControl';
+import {
+  pageScaleFrame,
+  readingScale,
+  resetTextZoom,
+  textZoom,
+  textZoomKeyAction,
+  zoomIn,
+  zoomOut,
+} from './textZoom';
 import './reader-controls.css';
 import RunTreeDock from './RunTreeDock';
 import { recordStage } from './rendererActivity';
@@ -421,12 +431,18 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     return Math.min(520, Math.max(280, viewportW() - 56));
   };
 
-  // Mobile fit-to-width: the daf is rendered at its sacred 520px and then
-  // visually scaled down (CSS transform) so the whole page fits on load —
-  // the user pinch-zooms in from there. Desktop reflows via dafWidth instead,
-  // so scale stays 1. `surfaceW` is the measured available width of the
-  // scroll surface; `dafNaturalH` is the un-scaled rendered daf height,
-  // needed to size the wrapper so page flow below the daf is correct.
+  // Two scales share one frame, and only one applies at a time.
+  //   - Phones (≤767px): the daf stays at its sacred 520px and is visually
+  //     scaled down (CSS transform) so the whole page fits on load. The
+  //     reader pinch-zooms from there. The saved text size is not applied,
+  //     so pinch and pan stay native.
+  //   - Desktop: the page lays out at dafWidth (scale 1). The text-size
+  //     control then scales that finished page. The layout engine is not
+  //     re-run, so line breaks and the Tzurat HaDaf stay as computed. At
+  //     the default 100% the frame is untransformed.
+  // `surfaceW` is the measured width of the scroll surface; `dafNaturalH`
+  // is the un-scaled rendered height, needed so the wrapper reserves the
+  // scaled vertical space and content below the daf stays put.
   // NOTE: transforming the daf double-scales any overlay painted from
   // getBoundingClientRect deltas — paintRangeOverlay and GutterIcons both
   // divide by the measured ancestor scale to compensate.
@@ -1189,6 +1205,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     mq.addEventListener('change', update);
     onCleanup(() => mq.removeEventListener('change', update));
   });
+  // Tracked here so the scale frame follows text size, the phone fit, and resizes.
+  const scaleFrame = createMemo(() =>
+    pageScaleFrame(readingScale(isMobile(), dafScale(), textZoom()), dafWidth(), dafNaturalH()),
+  );
 
   // Mobile top drawer: the daf-picker / nav header starts collapsed to a slim
   // handle, since open it takes a large share of a phone screen. The handle
@@ -3519,10 +3539,37 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
   };
 
   // Keyboard nav — arrow keys go to prev/next page when not typing into an input.
+  // +/-/0 change the desktop text size. Ctrl/cmd + plus stays browser zoom.
   createEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement | null;
-      if (t && (t.tagName === 'SELECT' || t.tagName === 'INPUT' || t.isContentEditable)) return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'SELECT' ||
+          target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      if (!isMobile()) {
+        const zoom = textZoomKeyAction(e);
+        if (zoom === 'in') {
+          e.preventDefault();
+          zoomIn();
+          return;
+        }
+        if (zoom === 'out') {
+          e.preventDefault();
+          zoomOut();
+          return;
+        }
+        if (zoom === 'reset') {
+          e.preventDefault();
+          resetTextZoom();
+          return;
+        }
+      }
       // Hebrew reads right to left, so "forward" is the left arrow there.
       const forward = lang() === 'he' ? 'ArrowLeft' : 'ArrowRight';
       const back = lang() === 'he' ? 'ArrowRight' : 'ArrowLeft';
@@ -3712,6 +3759,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
           </button>
         </PageNavigation>
 
+        <Show when={!isMobile()}>
+          <TextZoomControl />
+        </Show>
+
         <Button
           type="button"
           variant="primary"
@@ -3837,32 +3888,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
                 keyed
               >
                 {(t) => (
-                  <div
-                    class="daf-scale-wrap"
-                    style={
-                      dafScale() < 1
-                        ? {
-                            width: `${Math.round(520 * dafScale())}px`,
-                            height:
-                              dafNaturalH() > 0
-                                ? `${Math.round(dafNaturalH() * dafScale())}px`
-                                : undefined,
-                          }
-                        : {}
-                    }
-                  >
+                  <div class="daf-scale-wrap" style={scaleFrame().wrap}>
                     <div
                       ref={setDafRootEl as (el: HTMLDivElement) => void}
-                      style={
-                        dafScale() < 1
-                          ? {
-                              position: 'relative',
-                              width: '520px',
-                              transform: `scale(${dafScale()})`,
-                              'transform-origin': 'top left',
-                            }
-                          : { position: 'relative' }
-                      }
+                      style={scaleFrame().inner}
                     >
                       <DafRenderer
                         main={t.main}

@@ -109,10 +109,11 @@ export function paintRangeOverlay(
   if (ranges.length === 0) return;
   const originRect = origin.getBoundingClientRect();
   // getClientRects() returns visually-scaled coordinates when an ancestor is
-  // CSS-transformed (mobile fit-to-width). The band divs are appended inside
-  // that same transformed frame, so writing scaled px would scale a second
-  // time. Divide deltas/dimensions by the effective scale (visual width /
-  // layout width) to cancel it. scale === 1 on desktop → no-op.
+  // CSS-transformed (mobile fit-to-width, or the desktop text-size zoom).
+  // The band divs are appended inside that same transformed frame, so
+  // writing scaled px would scale a second time. Divide deltas/dimensions
+  // by the effective scale (visual width / layout width) to cancel it.
+  // scale === 1 when nothing is transformed.
   const scale = origin.offsetWidth > 0 ? originRect.width / origin.offsetWidth : 1;
   for (let ri = 0; ri < ranges.length; ri++) {
     const rects = Array.from(ranges[ri].getClientRects()).filter(
