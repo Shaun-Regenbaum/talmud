@@ -31,6 +31,7 @@ import {
 } from '../lib/sage-graph/possible-era';
 import { shareReviewedRelationships } from '../lib/sage-graph/reviewed-relationships';
 import { type SageLinkRow, summarizeSageLinks } from '../lib/sage-graph/sage-links';
+import { type SageMaybeRow, summarizeSageMaybe } from '../lib/sage-graph/sage-maybe';
 import {
   applyReadingCoverage,
   type OwnedReadingUnit,
@@ -384,6 +385,79 @@ sageGraph.get('/sage-links/:slug', async (c) => {
     }
   }
   const body = JSON.stringify({ slug, links: summarizeSageLinks(slug, rows) });
+  if (cache) {
+    try {
+      c.executionCtx.waitUntil(
+        cache.put(
+          key,
+          new Response(body, {
+            headers: {
+              'content-type': 'application/json',
+              'cache-control': 'public, max-age=86400',
+            },
+          }),
+        ),
+      );
+    } catch {
+      // No request context to extend. The answer is still returned, only not kept.
+    }
+  }
+  return new Response(body, {
+    headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=300' },
+  });
+});
+
+// Names the text writes that might be this sage but were placed on someone else, or left open between two.
+// A father named only inside a son's name is never listed: there is nothing to choose between.
+sageGraph.get('/sage-maybe/:slug', async (c) => {
+  const slug = canonicalSlug(c.req.param('slug'));
+  if (!slug || slug.length > 120) return c.json({ error: 'Unknown sage' }, 400);
+  const stores = await resolveSourceStores(c.env, (name) => c.req.query(name));
+  if ('error' in stores) return c.json({ maybe: [] });
+  const cache =
+    typeof caches === 'undefined' ? null : (caches as unknown as { default: Cache }).default;
+  const key = new Request(
+    `https://cache.invalid/sage-maybe-v1/${encodeURIComponent(slug)}/${stores.stores.map((s) => s.revision).join(',')}`,
+  );
+  const kept = await cache?.match(key);
+  if (kept) {
+    return new Response(kept.body, {
+      headers: { 'content-type': 'application/json', 'cache-control': 'public, max-age=300' },
+    });
+  }
+  const rows: SageMaybeRow[] = [];
+  for (const store of stores.stores) {
+    try {
+      const found = await store.db
+        .prepare(
+          `SELECT ref, subject_id AS placed, json_extract(payload_json,'$.status') AS status, json_extract(payload_json,'$.label') AS label, json_extract(payload_json,'$.agreement') AS agreement, (SELECT json_extract(value,'$.why') FROM json_each(payload_json,'$.others') WHERE json_extract(value,'$.sage')=?1) AS why, (SELECT json_group_array(json_extract(value,'$.sage')) FROM json_each(payload_json,'$.others')) AS options FROM sage_graph_all_records WHERE revision_id=?2 AND kind='machine_name_placement' AND json_extract(payload_json,'$.form')='named' AND EXISTS (SELECT 1 FROM json_each(payload_json,'$.others') WHERE json_extract(value,'$.sage')=?1) LIMIT 1000`,
+        )
+        .bind(slug, store.revision)
+        .all<{
+          ref: string;
+          placed: string | null;
+          status: string;
+          label: string;
+          agreement: string;
+          why: string | null;
+          options: string;
+        }>();
+      for (const r of found.results) {
+        let options: string[] = [];
+        try {
+          options = (JSON.parse(r.options) as unknown[]).filter(
+            (o): o is string => typeof o === 'string',
+          );
+        } catch {
+          continue;
+        }
+        rows.push({ ...r, options });
+      }
+    } catch {
+      return c.json({ error: 'Source reading store is unavailable' }, 503);
+    }
+  }
+  const body = JSON.stringify({ slug, maybe: summarizeSageMaybe(slug, rows) });
   if (cache) {
     try {
       c.executionCtx.waitUntil(

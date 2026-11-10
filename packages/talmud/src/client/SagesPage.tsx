@@ -11,6 +11,7 @@ import { passageSearchName } from './passageSearchName';
 import { SageAutocomplete } from './SageAutocomplete';
 import { SageConnections } from './SageConnections';
 import { SageCoverageStrip } from './SageCoverageStrip';
+import { SageMaybeInText } from './SageMaybeInText';
 import { SagePair } from './SagePair';
 import { SageReviewedPair } from './SageReviewedPair';
 import { SageSeenInText } from './SageSeenInText';
@@ -395,6 +396,7 @@ function SageDetail(props: {
         onSelect={props.onSelect}
       />
       <SageSeenInText slug={props.slug} nameFor={props.nameFor} onSelect={props.onSelect} />
+      <SageMaybeInText slug={props.slug} nameFor={props.nameFor} onSelect={props.onSelect} />
       <Show when={unified()}>
         {(u) => (
           <section class="sages-background" aria-label={t('sages.background')}>

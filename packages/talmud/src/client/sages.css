@@ -1037,3 +1037,12 @@
   color: var(--ink-slate);
   padding: 0.3rem 0;
 }
+
+.sage-maybe-what {
+  margin: 0;
+}
+.sage-maybe-why {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}

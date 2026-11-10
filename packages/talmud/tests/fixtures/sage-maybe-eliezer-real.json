@@ -1,0 +1,518 @@
+{
+  "note": "Real rows from the staging Bavli store, revision source-readings-bavli-fbba85b3b30aa12d6959, for rabbi-eliezer-b-hyrcanus, 2026-11-10",
+  "rows": [
+    {
+      "ref": "Temurah 17b:10",
+      "placed": null,
+      "status": "which_one",
+      "label": "R. Eliezer (ר\"א)",
+      "agreement": "none",
+      "why": "Shmuel, an early Babylonian amora, explains the view of a tannaitic R. Eliezer on offspring and substitutes of an olah. The profile's links to Abaye and Shmuel in this passage fit R. Eliezer b. Hyrcanus.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    },
+    {
+      "ref": "Meilah 12a:2",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (abbreviated name, as written)",
+      "agreement": "one_model",
+      "why": "A tanna would be cited with 'tanya' or a baraita rather than 'amar', though the abbreviation could also stand for Eliezer.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    },
+    {
+      "ref": "Chullin 135a:11",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "A tannaitic Eliezer would be cited in a mishnah or baraita, not as 'והאמר ר\"א' with a rabbinic-level ruling.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-yonatan-b-elazar"]
+    },
+    {
+      "ref": "Shabbat 20a:4",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "ר\"א could expand to Eliezer, and the passage does not exclude him.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-pedat"]
+    },
+    {
+      "ref": "Menachot 17a:17",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א (the one who disqualifies in the mishna)",
+      "agreement": "one_model",
+      "why": "Printed texts often read 'ר\"א' as Rabbi Eliezer, a plausible alternative, but no passage evidence settles it.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-pedat"]
+    },
+    {
+      "ref": "Eruvin 34b:15",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א (R. Eliezer or R. Elazar; abbreviation left as written)",
+      "agreement": "one_model",
+      "why": "Possible if the abbreviation means Eliezer, but the passage gives no cue; he is a less likely Mishnah eruv ruling here.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-azaryah"]
+    },
+    {
+      "ref": "Sotah 4b:8",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "A tanna; Zerika, an amora, would not cite him as 'ר\"א' in this way.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Avodah Zarah 17a:15",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א בן דורדיא",
+      "agreement": "one_model",
+      "why": "The name Eliezer is abbreviated ר\"א, but Eliezer b. Hyrcanus has a different patronym and is not the man in this story.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Chagigah 23a:16",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "The sugya treats this as an amoraic ruling that is being tested, not a tannaitic dispute. Nothing points to him.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Temurah 4a:6",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "Rabbi Elazar (ר\"א)",
+      "agreement": "one_model",
+      "why": "The abbreviation ר\"א could stand for Eliezer, but the full name 'R. Elazar' in the following sources points elsewhere, and he is an earlier tanna.",
+      "options": ["rabbi-elazar-b-shamua", "rabbi-eliezer-b-hyrcanus", "rabbi-yonatan-b-elazar"]
+    },
+    {
+      "ref": "Niddah 9a:15",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "The abbreviation ר\"א could stand for Eliezer, but the passage's amoraic exchange with R. Yochanan points elsewhere.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    },
+    {
+      "ref": "Pesachim 16a:2",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "רבי אלעזר / ר\"א (s4)",
+      "agreement": "one_model",
+      "why": "Is a generation earlier; 'ר\"א' here as 'R. Elazar' fits the Meir circle better.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-pedat"]
+    },
+    {
+      "ref": "Kiddushin 9a:5",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (abbreviated sage, as written)",
+      "agreement": "one_model",
+      "why": "A tannaitic Eliezer would normally be written in full, and 'the law follows' rulings in this sugya concern amoraic opinions.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    },
+    {
+      "ref": "Bava Batra 13b:10",
+      "placed": "rabbi-elazar-b-azaryah",
+      "status": "placed",
+      "label": "ר\"א בן עזריה",
+      "agreement": "one_model",
+      "why": "His patronymic is ben Hyrcanus, not ben Azaryah; the text gives 'ben Azaryah'.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Sanhedrin 51a:10",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "The abbreviation could stand for Eliezer, but this ruling is attributed to the amora R. Elazar, and no tannaitic setting is indicated.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Moed Katan 24a:17",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א (abbreviated name)",
+      "agreement": "one_model",
+      "why": "Plausible as the Mishnah's Rabbi Eliezer, but the abbreviated name alone does not settle it.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Gittin 23a:13",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "Would be abbreviated ר\"א too, but the Gittin 'R. Elazar' dispute is less likely to be R. Eliezer.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-pedat"]
+    },
+    {
+      "ref": "Avodah Zarah 19a:15",
+      "placed": "rabbi-elazar-b-azaryah",
+      "status": "placed",
+      "label": "ר\"א בן עזריה",
+      "agreement": "one_model",
+      "why": "Father is Hyrcanus, not Azaryah.",
+      "options": ["rabbi-elazar-b-pedat", "rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Eruvin 81b:6",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "An abbreviated 'ר\"א' could stand for Eliezer, but a tanna is usually written in full as 'ר' אליעזר' in such a chain.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shimon"]
+    },
+    {
+      "ref": "Shabbat 113b:13",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (abbreviated)",
+      "agreement": "one_model",
+      "why": "A tanna; the dispute with the amora R. Shmuel b. Nachmani has no tannaitic setting.",
+      "options": ["rabbi-yonatan-b-elazar", "rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Keritot 6b:21",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "R. A. (as written 'ר\"א')",
+      "agreement": "one_model",
+      "why": "He was an early tanna and would normally be written 'R. Eliezer', not abbreviated 'ר\"א' in an amoraic formula.",
+      "options": ["rabbi-elazar-b-shamua", "rabbi-eliezer-b-hyrcanus", "rabbi-yonatan-b-elazar"]
+    },
+    {
+      "ref": "Chullin 38a:12",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "The name is abbreviated 'ר\"א', which could be Eliezer, but the Mishnah's context points to Elazar.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Yevamot 29b:6",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (abbreviation)",
+      "agreement": "one_model",
+      "why": "Would normally be written 'ר\"א' only for a tanna; here the context is an amoraic dispute over Beit Shammai's ma'amar.",
+      "options": ["rabbi-elazar-b-shamua", "rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Shabbat 94b:7",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (abbreviation, ambiguous)",
+      "agreement": "one_model",
+      "why": "He is the tanna whose view is being explained, not the amora commenting on the dispute.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Nazir 63a:5",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (abbreviated name)",
+      "agreement": "one_model",
+      "why": "A tanna would not be paired with Resh Lakish in an amoraic Gemara dispute over the source.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    },
+    {
+      "ref": "Arakhin 18a:17",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "The abbreviation could stand for Eliezer, but the Mishnah usually writes 'R. Eliezer' in full, and nothing here points to him.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-azaryah", "rabbi-elazar-b-shimon"]
+    },
+    {
+      "ref": "Chagigah 14a:8",
+      "placed": "rabbi-elazar-b-azaryah",
+      "status": "placed",
+      "label": "R. Elazar ben Azarya (ר\"א בן עזריה)",
+      "agreement": "one_model",
+      "why": "The text gives 'ben Azarya', not Eliezer b. Hyrcanus.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Yevamot 28a:12",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "He is a Shammaite-leaning tanna, but he is usually named R. Eliezer and is earlier than the R. Shimon and Abba Shaul named here.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shimon"]
+    },
+    {
+      "ref": "Gittin 26b:5",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א (abbreviation as written; holds that witnesses of delivery effect divorce)",
+      "agreement": "one_model",
+      "why": "He was an earlier tanna, not R. Meir's usual counterpart in this dispute, and the abbreviation reads as Elazar.",
+      "options": ["rabbi-elazar-b-pedat", "rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Avodah Zarah 25a:11",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "The abbreviation 'ר\"א' here appears in an amoraic context after R. Yochanan, so a tanna is less likely.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Bava Kamma 29b:12",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "A tannaitic figure; the passage gives no sign of a baraita or Mishnah ruling.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Avodah Zarah 14b:10",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "The abbreviation is usually R. Eliezer, written \"ר\"א\", though that is possible.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-pedat"]
+    },
+    {
+      "ref": "Nazir 34b:6",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "R. Elazar (written as ר\"א and as רבי אלעזר)",
+      "agreement": "one_model",
+      "why": "Spelled אלעזר in full; Eliezer b. Hyrcanus is not associated with the ribui-u-miut method, which is Akiva's.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-pedat", "rabbi-elazar-b-azaryah"]
+    },
+    {
+      "ref": "Megillah 28a:18",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (abbreviation, kept as written)",
+      "agreement": "one_model",
+      "why": "The abbreviation is more likely R. Elazar than R. Eliezer, and the Amoraic debate with R. Yitzchak and Rava points to a later period.",
+      "options": ["rabbi-elazar-b-shamua", "rabbi-eliezer-b-hyrcanus", "rabbi-yonatan-b-elazar"]
+    },
+    {
+      "ref": "Zevachim 45b:9",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (abbreviated name, not expanded)",
+      "agreement": "one_model",
+      "why": "He could be abbreviated ר\"א, but nothing in the passage points to a tannaitic dispute involving him.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    },
+    {
+      "ref": "Pesachim 81b:6",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "The abbreviation ר\"א here is a Land of Israel amora in the R. Yochanan circle, not the early tanna R. Eliezer.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    },
+    {
+      "ref": "Sanhedrin 83a:8",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (abbreviation, unexpanded)",
+      "agreement": "one_model",
+      "why": "The abbreviation could stand for Eliezer, but the chronology and Shmuel's citation habits favor Elazar.",
+      "options": ["rabbi-elazar-b-shamua", "rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Gittin 22b:5",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א, explaining speaker",
+      "agreement": "one_model",
+      "why": "A tanna, so he would be the authority being explained, not the amoraic speaker.",
+      "options": ["rabbi-yonatan-b-elazar", "rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Bava Metzia 29b:11",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א בן יעקב",
+      "agreement": "one_model",
+      "why": "His name does not carry the patronymic 'ben Yaakov'.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Nazir 43a:2",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (abbreviated name, not expanded)",
+      "agreement": "one_model",
+      "why": "He is a tanna, and the sequence of amoraic revisions (Rava, Rav Papa) suggests an amora. His name is normally written in full.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    },
+    {
+      "ref": "Eruvin 65a:14",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "R. A. (ר\"א, as written)",
+      "agreement": "one_model",
+      "why": "The abbreviation is for Elazar, and the passage is amoraic, so R. Eliezer is not indicated.",
+      "options": ["rabbi-elazar-b-shamua", "rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Sanhedrin 103b:3",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "Tanna of an earlier generation; would not be paired with R. Yochanan in an amoraic dispute.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Meilah 13b:8",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "R. Eliezer (ר\"א)",
+      "agreement": "one_model",
+      "why": "He was R. Akiva's teacher, not a follower of his method, so 'in R. Akiva's method' does not fit.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-azaryah"]
+    },
+    {
+      "ref": "Bava Kamma 74b:8",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "Paired with R. Yochanan as amoraic disputants, so a tanna is unlikely; the Eliezer reading is not supported.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    },
+    {
+      "ref": "Chagigah 27a:7",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א in s3 (Rabbi Eliezer or Rabbi Elazar)",
+      "agreement": "one_model",
+      "why": "A tanna of an earlier period; Abbahu's 'amar R. Elazar' formula points to an amora.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Sanhedrin 28b:23",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "R. Eleazar",
+      "agreement": "one_model",
+      "why": "His name is Eliezer, not Eleazar, and nothing in the passage points to him.",
+      "options": ["rabbi-elazar-b-azaryah", "rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Eruvin 52b:5",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "Abbreviation ר\"א could be Eliezer, but the Mishnah here more likely means Elazar.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shimon"]
+    },
+    {
+      "ref": "Chullin 33b:14",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "A tanna who is cited separately in the baraita; he could not be reporting Hoshaya, an amora.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-yonatan-b-elazar"]
+    },
+    {
+      "ref": "Gittin 46a:14",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א (abbreviation as written)",
+      "agreement": "one_model",
+      "why": "'ר\"א' could abbreviate Eliezer, but the Mishnah usually writes Eliezer in full and he belongs to an earlier generation.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-azaryah"]
+    },
+    {
+      "ref": "Shevuot 35a:16",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (Rabbi E., abbreviated)",
+      "agreement": "one_model",
+      "why": "A tanna; the abbreviation is more often used for the amora, and nothing in the passage ties it to him.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    },
+    {
+      "ref": "Chullin 140b:12",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א / Rabbi Elazar",
+      "agreement": "one_model",
+      "why": "He is the tanna whose position is being explained (\"כחו דרבי אליעזר\"), not the amoraic speaker.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-yonatan-b-elazar"]
+    },
+    {
+      "ref": "Meilah 3b:4",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א (the questioner, abbreviated name as written)",
+      "agreement": "one_model",
+      "why": "A tanna; amoraic bavi'a-style questions about Rabba and Rav Yosef do not fit him.",
+      "options": ["rabbi-elazar-b-shamua", "rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Sanhedrin 105b:17",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "R. El'azar (abbr. ר\"א)",
+      "agreement": "one_model",
+      "why": "The abbreviation ר\"א could stand for Eliezer, but the pairing with R. Yonatan points to an amoraic Elazar.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Chagigah 16a:11",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "Tannaitic, not a contemporary of R. Yochanan; the pairing with R. Yochanan points to an amora.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-yonatan-b-elazar"]
+    },
+    {
+      "ref": "Eruvin 20a:12",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "R. A. (ר\"א, R. Elazar or R. Eliezer as printed)",
+      "agreement": "one_model",
+      "why": "A tanna would normally appear in a mishnah or baraita, not as a bare 'amar' statement discussed by amoraim.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-yonatan-b-elazar"]
+    },
+    {
+      "ref": "Bava Kamma 45b:3",
+      "placed": "rabbi-elazar-b-shamua",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "Considered the likely candidate, but a mishnaic debate about 'protection' may involve R. Elazar instead.",
+      "options": ["rabbi-eliezer-b-hyrcanus"]
+    },
+    {
+      "ref": "Gittin 15a:13",
+      "placed": "rabbi-elazar-b-pedat",
+      "status": "placed",
+      "label": "ר\"א",
+      "agreement": "one_model",
+      "why": "Tannaitic Eliezer is normally named 'ר\"א' only in tannaitic contexts; this is an amoraic-style ruling cited in a later discussion.",
+      "options": ["rabbi-eliezer-b-hyrcanus", "rabbi-elazar-b-shamua"]
+    }
+  ]
+}
