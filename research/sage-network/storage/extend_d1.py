@@ -12,6 +12,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from prepare_d1 import encode
+from verify_d1 import load_sql
 from verify_d1 import verify
 import shared_records
 import identity_proposals
@@ -426,7 +427,7 @@ def prepare(export, manifest_path, changes_path, output, *, shared=False, checke
     with tempfile.TemporaryDirectory() as temporary, closing(sqlite3.connect(Path(temporary) / 'graph.sqlite')) as db:
         db.execute('PRAGMA journal_mode=OFF')
         db.execute('PRAGMA synchronous=OFF')
-        db.executescript(export.read_text())
+        load_sql(db, export)
         if shared:
             shared_records.ensure_schema(db)
         table = shared_records.record_table(db)

@@ -351,7 +351,8 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
             'Store revision ID or storage format differs')
     indexes = {spec['expectedManifestSha256']: pinned_index(spec) for spec in ownership_specs}
     with tempfile.TemporaryDirectory() as temporary, closing(sqlite3.connect(Path(temporary) / 'store.sqlite')) as db:
-        db.executescript(export.read_text())
+        from verify_d1 import load_sql
+        load_sql(db, export)
         raw = list(db.execute(f'SELECT {COLUMNS} FROM {record_table(db)} WHERE revision_id=? ORDER BY record_id',
                               (manifest['revision'],)))
         found = [item(r) for r in raw]
@@ -448,9 +449,9 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
             envelope = [r for r in group if r['kind'] == 'machine_edge_release']
             require(len(envelope) == 1, 'A machine edge release needs exactly one envelope')
             data = envelope[0]['data']
-            require(data['selectionSha256'] in edge_cases, 'Machine edge releases need their pinned selection')
             if not full and all(r['record_id'] in inherited for r in group):
-                continue  # unchanged since the parent, whose receipt covers it
+                continue  # unchanged since the parent, whose receipt covers it; its pinned selection is not needed again
+            require(data['selectionSha256'] in edge_cases, 'Machine edge releases need their pinned selection')
             path = artifacts / (data['artifact']['sha256'] + '.json')
             require(path.exists(), 'Missing downloaded R2 artifact: ' + path.name)
             raw = path.read_bytes()
