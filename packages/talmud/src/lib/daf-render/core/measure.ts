@@ -50,7 +50,7 @@ function makeHost(opts: DafOptions, amud: Amud, extraVars: Record<string, string
   return host;
 }
 
-function makeSideColumn(which: 'inner' | 'outer', html: string): HTMLDivElement {
+function makeSideColumn(which: 'inner' | 'outer', html: string, hasEnd = true): HTMLDivElement {
   const col = document.createElement('div');
   col.className = `daf-${which}`;
   const start = document.createElement('div');
@@ -58,7 +58,7 @@ function makeSideColumn(which: 'inner' | 'outer', html: string): HTMLDivElement 
   const mid = document.createElement('div');
   mid.className = 'daf-spacer daf-mid';
   const end = document.createElement('div');
-  end.className = 'daf-spacer daf-end';
+  end.className = hasEnd ? 'daf-spacer daf-end' : 'daf-spacer daf-end daf-empty';
   const text = document.createElement('div');
   text.className = 'daf-text';
   const span = document.createElement('span');
@@ -90,6 +90,16 @@ function makeMainColumn(html: string): { col: HTMLDivElement; text: HTMLSpanElem
   col.appendChild(outerMid);
   col.appendChild(text);
   return { col, text: span };
+}
+
+/** A floated image can hang below the last line of text; the span's own box
+ *  does not include it, so the column height has to count it separately. */
+function lowestImageBottom(root: HTMLElement): number {
+  let bottom = Number.NEGATIVE_INFINITY;
+  for (const img of root.querySelectorAll('img')) {
+    bottom = Math.max(bottom, img.getBoundingClientRect().bottom);
+  }
+  return bottom;
 }
 
 export interface CommentaryMeasure {
@@ -167,14 +177,14 @@ export function measureCommentary(params: {
   };
 
   const host = makeHost(params.options, params.amud, vars);
-  const col = makeSideColumn(params.which, params.html);
+  const col = makeSideColumn(params.which, params.html, endHeight > 0);
   host.appendChild(col);
   document.body.appendChild(host);
 
   const span = col.querySelector('.daf-text span') as HTMLSpanElement;
   const textRect = span.getBoundingClientRect();
   const hostRect = host.getBoundingClientRect();
-  const totalHeight = textRect.bottom - hostRect.top;
+  const totalHeight = Math.max(textRect.bottom, lowestImageBottom(span)) - hostRect.top;
 
   host.remove();
 
@@ -228,7 +238,7 @@ export function measureMainBottom(params: {
 
   const textRect = text.getBoundingClientRect();
   const hostRect = host.getBoundingClientRect();
-  const mainBottom = textRect.bottom - hostRect.top;
+  const mainBottom = Math.max(textRect.bottom, lowestImageBottom(text)) - hostRect.top;
 
   host.remove();
   return mainBottom;

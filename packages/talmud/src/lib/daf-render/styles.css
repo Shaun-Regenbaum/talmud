@@ -118,6 +118,12 @@
   margin-bottom: var(--daf-outer-start-gap, 0px);
 }
 
+/* An empty end spacer is removed: as a zero-height float it would still stop
+   any later float (a wrapped diagram) from sitting above the column's bottom. */
+.daf-root .daf-end.daf-empty {
+  display: none;
+}
+
 /* Vertical padding */
 /* biome-ignore lint/style/noDescendingSpecificity: disjoint properties — this sets margin-top; the earlier higher-specificity .daf-inner/.daf-outer .daf-mid rule sets width/clear */
 .daf-root .daf-mid,
@@ -195,6 +201,17 @@
   margin: 0.5em auto;
   max-width: 100%;
   height: auto;
+}
+
+/* Diagrams we could size (see core/images.ts) float to the start of the line
+   and the text wraps around them. Where the column is too narrow for text
+   beside the picture, the lines drop below it, which looks like the block
+   rule above. */
+.daf-root .daf-text img.daf-img {
+  float: inline-start;
+  margin: 2px 0 4px;
+  margin-inline-end: 0.7em;
+  max-width: none;
 }
 
 /* HebrewBooks wraps each Tosafot/commentary section in a block-level div with

@@ -1,4 +1,5 @@
 import { createEffect, createMemo, createSignal, type JSX, Show } from 'solid-js';
+import { type ImageFit, sizeCommentaryImages } from '../core/images';
 import { computeLayout, type LayoutResult } from '../core/layout';
 import { type PartialDafOptions, resolveOptions } from '../core/options';
 import type { Amud } from '../core/types';
@@ -35,13 +36,36 @@ if (typeof document !== 'undefined') {
     .then(() => setFontsReady(true));
 }
 
+// A zero-height end spacer still counts as a float, and CSS never places a
+// later float (a wrapped diagram) above an earlier one. Drop it when empty.
+const endClass = (height: number | undefined) =>
+  height ? 'daf-spacer daf-end' : 'daf-spacer daf-end daf-empty';
+
 export function DafRenderer(props: DafRendererProps): JSX.Element {
   const options = createMemo(() => resolveOptions(props.options));
+
+  // Diagrams get a fixed size (so measuring is exact) and wrap with the text.
+  // A floated picture wider than the line is pushed down the page, away from
+  // where it belongs, so it must fit the narrowest text column (a side
+  // column). There it leaves no room beside it, so the text drops under it.
+  // In the wide parts of the page the text wraps beside it.
+  const imageFit = (): ImageFit => {
+    const o = options();
+    const sideText = (o.contentWidth * (1 - o.mainWidth)) / 2 - o.padding.horizontal;
+    return {
+      maxWidth: sideText - 12, // room for the gap beside it, with a little slack
+      lineHeight: o.lineHeight.side,
+      charsPerLine: Math.floor(sideText / (0.55 * o.fontSize.side)),
+    };
+  };
+  const main = createMemo(() => sizeCommentaryImages(props.main, imageFit()));
+  const inner = createMemo(() => sizeCommentaryImages(props.inner, imageFit()));
+  const outer = createMemo(() => sizeCommentaryImages(props.outer, imageFit()));
 
   const layout = createMemo(() => {
     if (!fontsReady()) return null;
     return computeLayout(
-      { main: props.main, inner: props.inner, outer: props.outer },
+      { main: main(), inner: inner(), outer: outer() },
       options(),
       props.amud ?? 'a',
     );
@@ -157,18 +181,18 @@ export function DafRenderer(props: DafRendererProps): JSX.Element {
       <div class="daf-outer">
         <div class="daf-spacer daf-start" />
         <div class="daf-spacer daf-mid" />
-        <div class="daf-spacer daf-end" />
+        <div class={endClass(layout()?.spacers.outerEnd)} />
         <div class="daf-text">
-          <span innerHTML={props.outer} />
+          <span innerHTML={outer()} />
         </div>
       </div>
 
       <div class="daf-inner">
         <div class="daf-spacer daf-start" />
         <div class="daf-spacer daf-mid" />
-        <div class="daf-spacer daf-end" />
+        <div class={endClass(layout()?.spacers.innerEnd)} />
         <div class="daf-text">
-          <span innerHTML={props.inner} />
+          <span innerHTML={inner()} />
         </div>
       </div>
 
@@ -177,7 +201,7 @@ export function DafRenderer(props: DafRendererProps): JSX.Element {
         <div class="daf-spacer daf-inner-mid" />
         <div class="daf-spacer daf-outer-mid" />
         <div class="daf-text">
-          <span innerHTML={props.main} />
+          <span innerHTML={main()} />
         </div>
       </div>
     </div>
