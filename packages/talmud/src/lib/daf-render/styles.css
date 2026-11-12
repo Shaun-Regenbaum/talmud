@@ -124,6 +124,57 @@
   display: none;
 }
 
+/* Columns with diagrams and an end spacer: draw the narrow strip and the
+   halfway-width area below it as ONE float, so a diagram anchored beside the
+   strip can sit there (a float cannot be placed above an earlier float). The
+   float is as tall as both spacers and the gap between them, and its wrap
+   outline is an L: full width along the strip, halfway width below it. The
+   outline's narrow part sits on the float's own side of the page. */
+.daf-root .daf-merged .daf-end {
+  display: none;
+}
+.daf-root .daf-inner.daf-merged {
+  --daf-strip: var(--daf-inner);
+  --daf-below: var(--daf-inner-end);
+}
+.daf-root .daf-outer.daf-merged {
+  --daf-strip: var(--daf-outer);
+  --daf-below: var(--daf-outer-end);
+}
+.daf-root .daf-merged {
+  --daf-strip-bottom: calc(var(--daf-strip) + 2 * var(--daf-padding-vertical));
+  --daf-all-bottom: calc(var(--daf-strip-bottom) + var(--daf-below));
+  --daf-below-width: calc(
+    var(--daf-content-width) *
+    var(--daf-halfway-frac) +
+    var(--daf-padding-horizontal)
+  );
+}
+.daf-root .daf-merged .daf-mid {
+  height: calc(var(--daf-strip) + var(--daf-padding-vertical) + var(--daf-below));
+  margin-bottom: 0;
+}
+.daf-root .daf-merged.daf-fl-right .daf-mid {
+  shape-outside: polygon(
+    0 0,
+    100% 0,
+    100% var(--daf-all-bottom),
+    calc(100% - var(--daf-below-width)) var(--daf-all-bottom),
+    calc(100% - var(--daf-below-width)) var(--daf-strip-bottom),
+    0 var(--daf-strip-bottom)
+  );
+}
+.daf-root .daf-merged.daf-fl-left .daf-mid {
+  shape-outside: polygon(
+    0 0,
+    100% 0,
+    100% var(--daf-strip-bottom),
+    var(--daf-below-width) var(--daf-strip-bottom),
+    var(--daf-below-width) var(--daf-all-bottom),
+    0 var(--daf-all-bottom)
+  );
+}
+
 /* Vertical padding */
 /* biome-ignore lint/style/noDescendingSpecificity: disjoint properties — this sets margin-top; the earlier higher-specificity .daf-inner/.daf-outer .daf-mid rule sets width/clear */
 .daf-root .daf-mid,
@@ -209,9 +260,19 @@
    rule above. */
 .daf-root .daf-text img.daf-img {
   float: inline-start;
-  margin: 2px 0 4px;
+  margin: 0 0 4px;
   margin-inline-end: 0.7em;
   max-width: none;
+}
+/* The browser may put the float on the very line it comes in without moving
+   that line's text, so the picture would cover the line's end. A one-line gap
+   above it makes it start below that line. */
+.daf-root .daf-inner .daf-text img.daf-img,
+.daf-root .daf-outer .daf-text img.daf-img {
+  margin-top: var(--daf-line-height-side);
+}
+.daf-root .daf-main .daf-text img.daf-img {
+  margin-top: var(--daf-line-height-main);
 }
 
 /* HebrewBooks wraps each Tosafot/commentary section in a block-level div with

@@ -11,6 +11,10 @@ const png = (w: number, h: number) => {
   return btoa(String.fromCharCode(...b));
 };
 
+// The anchor marker sits just before each picture; most checks look at the picture alone.
+const ANCHOR = /<span class="daf-img-anchor"[^>]*><\/span>/g;
+const bare = (html: string) => html.replace(ANCHOR, '');
+
 describe('readImageSize', () => {
   it('reads PNG width and height', () => {
     const bin = atob(png(249, 130));
@@ -38,7 +42,7 @@ describe('sizeCommentaryImages', () => {
 
   it('keeps a small image at its own size and tags it', () => {
     const out = sizeCommentaryImages(html(100, 50), fit(200));
-    expect(out).toContain('class="daf-img" width="100" height="50"');
+    expect(out).toContain('class="daf-img" data-i="0" width="100" height="50"');
   });
   it('shrinks a wide image to the limit and keeps the ratio', () => {
     const out = sizeCommentaryImages(html(249, 130), fit(150));
@@ -46,7 +50,7 @@ describe('sizeCommentaryImages', () => {
   });
   it('leaves other tags and text alone', () => {
     const out = sizeCommentaryImages(html(100, 50), fit(200));
-    expect(out.startsWith('before <img')).toBe(true);
+    expect(out.startsWith('before <span class="daf-img-anchor"')).toBe(true);
     expect(out.endsWith('> after')).toBe(true);
   });
   it('leaves an image it cannot measure alone', () => {
@@ -55,7 +59,7 @@ describe('sizeCommentaryImages', () => {
   });
   it('replaces existing size attributes instead of doubling them', () => {
     const tag = `<img width="999" src="data:image/png;base64,${png(100, 50)}" class="x">`;
-    const out = sizeCommentaryImages(tag, fit(200));
+    const out = bare(sizeCommentaryImages(tag, fit(200)));
     expect(out.match(/width=/g)).toHaveLength(1);
     expect(out.match(/class=/g)).toHaveLength(1);
   });
@@ -68,12 +72,12 @@ describe('moving an image back when too little text follows', () => {
 
   it('leaves the image alone when enough text follows', () => {
     const html = `${words(10)} ${tag} ${words(30)}`;
-    const out = sizeCommentaryImages(html, fit);
+    const out = bare(sizeCommentaryImages(html, fit));
     expect(out.indexOf('<img')).toBe(html.indexOf('<img'));
   });
   it('moves it back so enough text follows, at a word break', () => {
     const html = `${words(40)} ${tag} end`;
-    const out = sizeCommentaryImages(html, fit);
+    const out = bare(sizeCommentaryImages(html, fit));
     const at = out.indexOf('<img');
     expect(at).toBeLessThan(html.indexOf('<img'));
     expect(out[at - 1]).toBe(' ');
@@ -93,12 +97,12 @@ describe('moving an image back when too little text follows', () => {
   });
   it('does not split a tag when moving back', () => {
     const html = `${words(20)} <span class="a b">${words(20)}</span> ${tag}`;
-    const out = sizeCommentaryImages(html, fit);
+    const out = bare(sizeCommentaryImages(html, fit));
     expect(out.match(/<span class="a b">/g)).toHaveLength(1);
     expect(out).not.toMatch(/<span[^>]*<img/);
   });
   it('moves to the start when there is not enough text before it', () => {
-    const out = sizeCommentaryImages(`ab ${tag} cd`, fit);
+    const out = bare(sizeCommentaryImages(`ab ${tag} cd`, fit));
     expect(out.startsWith('<img')).toBe(true);
   });
 });

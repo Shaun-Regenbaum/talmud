@@ -1,3 +1,4 @@
+import { mergedClasses } from './columns';
 import type { DafOptions } from './options';
 import type { Amud } from './types';
 
@@ -21,6 +22,7 @@ function computeCssVars(opts: DafOptions, amud: Amud): Record<string, string> {
     '--daf-content-width': `${opts.contentWidth}px`,
     '--daf-side-percent': `${sidePercent}%`,
     '--daf-halfway-percent': `${halfwayPercent}%`,
+    '--daf-halfway-frac': `${opts.halfway}`,
     '--daf-remainder-percent': `${remainderPercent}%`,
     '--daf-padding-vertical': `${opts.padding.vertical}px`,
     '--daf-padding-horizontal': `${opts.padding.horizontal}px`,
@@ -50,9 +52,14 @@ function makeHost(opts: DafOptions, amud: Amud, extraVars: Record<string, string
   return host;
 }
 
-function makeSideColumn(which: 'inner' | 'outer', html: string, hasEnd = true): HTMLDivElement {
+function makeSideColumn(
+  which: 'inner' | 'outer',
+  html: string,
+  hasEnd = true,
+  amud: Amud = 'a',
+): HTMLDivElement {
   const col = document.createElement('div');
-  col.className = `daf-${which}`;
+  col.className = `daf-${which}${mergedClasses(which, amud, hasEnd && html.includes('daf-img'))}`;
   const start = document.createElement('div');
   start.className = 'daf-spacer daf-start';
   const mid = document.createElement('div');
@@ -138,7 +145,7 @@ export type CommentaryException = 'none' | 'short' | 'other';
  *
  *   exception    — see CommentaryException. Default 'none'.
  */
-export function measureCommentary(params: {
+export interface SideParams {
   which: 'inner' | 'outer';
   html: string;
   options: DafOptions;
@@ -147,11 +154,10 @@ export function measureCommentary(params: {
   narrowBudget: number;
   endBudget: number;
   exception?: CommentaryException;
-}): CommentaryMeasure {
-  if (!params.html || typeof document === 'undefined') {
-    return { totalHeight: 0, narrowUsed: 0, endUsed: 0 };
-  }
+}
 
+/** Build the hidden host for one side column, with the given budgets, and attach it. */
+function mountSide(params: SideParams) {
   const midHeight = Number.isFinite(params.narrowBudget) ? Math.max(0, params.narrowBudget) : 99999;
   const endHeight = Number.isFinite(params.endBudget) ? Math.max(0, params.endBudget) : 99999;
 
@@ -177,9 +183,17 @@ export function measureCommentary(params: {
   };
 
   const host = makeHost(params.options, params.amud, vars);
-  const col = makeSideColumn(params.which, params.html, endHeight > 0);
+  const col = makeSideColumn(params.which, params.html, endHeight > 0, params.amud);
   host.appendChild(col);
   document.body.appendChild(host);
+  return { host, col, midHeight, endHeight };
+}
+
+export function measureCommentary(params: SideParams): CommentaryMeasure {
+  if (!params.html || typeof document === 'undefined') {
+    return { totalHeight: 0, narrowUsed: 0, endUsed: 0 };
+  }
+  const { host, col, midHeight, endHeight } = mountSide(params);
 
   const span = col.querySelector('.daf-text span') as HTMLSpanElement;
   const textRect = span.getBoundingClientRect();
@@ -191,6 +205,39 @@ export function measureCommentary(params: {
   const narrowUsed = Math.max(0, Math.min(totalHeight - params.startHeight, midHeight));
   const endUsed = Math.max(0, Math.min(totalHeight - params.startHeight - midHeight, endHeight));
   return { totalHeight, narrowUsed, endUsed };
+}
+
+export interface ImageLanding {
+  /** The picture's anchor sits below the narrow strip (or in a top area an exception frees up). */
+  wide: boolean;
+  /** How far below its anchor the picture ended up, in pixels. */
+  drop: number;
+}
+
+/**
+ * Where each sized diagram (`data-i`) goes in a side column laid out with the
+ * final spacer heights. The anchor marker, not the picture, says which part of
+ * the column the picture belongs in: a picture pushed down because it is too
+ * big would otherwise look like it belonged in the wide part.
+ */
+export function imageLandings(params: SideParams): Map<number, ImageLanding> {
+  const out = new Map<number, ImageLanding>();
+  if (!params.html || typeof document === 'undefined' || !params.html.includes('daf-img')) {
+    return out;
+  }
+  const { host, col, midHeight } = mountSide(params);
+  const hostTop = host.getBoundingClientRect().top;
+  const narrowEnd = params.startHeight + midHeight;
+  for (const img of col.querySelectorAll('.daf-text img.daf-img')) {
+    const i = Number((img as HTMLElement).dataset.i);
+    const anchor = col.querySelector(`.daf-img-anchor[data-i="${i}"]`);
+    const imgTop = img.getBoundingClientRect().top - hostTop;
+    const anchorTop = (anchor ?? img).getBoundingClientRect().top - hostTop;
+    const inTop = (params.exception ?? 'none') === 'other' && anchorTop < params.startHeight;
+    out.set(i, { wide: inTop || anchorTop >= narrowEnd - 1, drop: imgTop - anchorTop });
+  }
+  host.remove();
+  return out;
 }
 
 /**

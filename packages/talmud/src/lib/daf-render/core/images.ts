@@ -68,8 +68,10 @@ const IMG_TAG = /<img\b[^>]*>/gi;
 const DATA_SRC = /\ssrc\s*=\s*["']data:image\/(?:png|gif|jpe?g);base64,([A-Za-z0-9+/=]+)["']/i;
 
 export interface ImageFit {
-  /** Widest the picture may be, in pixels: it must fit the narrowest text column. */
+  /** Widest the picture may be, in pixels, where the text column is narrow. */
   maxWidth: number;
+  /** Widest it may be where the column is wider (the lower part of a side column). */
+  wideMaxWidth?: number;
   /** Line height of the commentary text, in pixels. */
   lineHeight: number;
   /** Roughly how many characters fit on one line of the narrowest column. */
@@ -123,12 +125,18 @@ function wordBreakBefore(html: string, end: number, chars: number): number {
  *
  * An image we cannot measure is left alone and keeps the plain block style.
  */
-export function sizeCommentaryImages(html: string, fit: ImageFit): string {
+export function sizeCommentaryImages(
+  html: string,
+  fit: ImageFit,
+  wide: ReadonlySet<number> = new Set(),
+): string {
   if (!html?.includes('<img')) return html;
   let out = html;
   IMG_TAG.lastIndex = 0;
   let m = IMG_TAG.exec(out);
+  let index = -1;
   while (m) {
+    index++;
     const tag = m[0];
     const at = m.index;
     const src = DATA_SRC.exec(tag);
@@ -138,12 +146,15 @@ export function sizeCommentaryImages(html: string, fit: ImageFit): string {
       m = IMG_TAG.exec(out);
       continue;
     }
-    const width = Math.max(1, Math.min(size.width, Math.round(fit.maxWidth)));
+    const limit = wide.has(index) ? Math.max(fit.maxWidth, fit.wideMaxWidth ?? 0) : fit.maxWidth;
+    const width = Math.max(1, Math.min(size.width, Math.round(limit)));
     const height = Math.max(1, Math.round((size.height * width) / size.width));
     const cleaned = tag
-      .replace(/\s(?:width|height|class)\s*=\s*("[^"]*"|'[^']*'|\S+)/gi, '')
+      .replace(/\s(?:width|height|class|data-i)\s*=\s*("[^"]*"|'[^']*'|\S+)/gi, '')
       .replace(/\/?>$/, '');
-    const sized = `${cleaned} class="daf-img" width="${width}" height="${height}">`;
+    // A zero-size marker goes first: it stays in the text line when the picture
+    // floats away, so we can tell where the picture was meant to be.
+    const sized = `<span class="daf-img-anchor" data-i="${index}"></span>${cleaned} class="daf-img" data-i="${index}" width="${width}" height="${height}">`;
 
     const end = at + tag.length;
     const wanted = Math.ceil(height / fit.lineHeight + 1) * fit.charsPerLine;
