@@ -46,14 +46,15 @@ export function DafRenderer(props: DafRendererProps): JSX.Element {
 
   // Diagrams get a fixed size (so measuring is exact) and wrap with the text.
   // A floated picture wider than the line is pushed down the page, away from
-  // where it belongs, so it must fit the narrowest text column (a side
-  // column). There it leaves no room beside it, so the text drops under it.
-  // In the wide parts of the page the text wraps beside it.
+  // where it belongs, so it must always fit the narrowest text column (a side
+  // column). We take about two thirds of it, which leaves a strip beside the
+  // picture for the text to run down. In the wide parts of the page there is
+  // much more room beside it.
   const imageFit = (): ImageFit => {
     const o = options();
     const sideText = (o.contentWidth * (1 - o.mainWidth)) / 2 - o.padding.horizontal;
     return {
-      maxWidth: sideText - 12, // room for the gap beside it, with a little slack
+      maxWidth: 0.62 * sideText,
       lineHeight: o.lineHeight.side,
       charsPerLine: Math.floor(sideText / (0.55 * o.fontSize.side)),
     };
