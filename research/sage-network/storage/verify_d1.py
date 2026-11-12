@@ -9,13 +9,27 @@ from prepare_d1 import encode
 from shared_records import FORMAT, record_table, verify_members
 
 
+def load_sql(db, path, chunk=64_000_000):
+    """Run a big SQL export in chunks of whole statements. One executescript string is capped near 1 GB."""
+    pending, size = [], 0
+    with open(path, encoding='utf-8') as handle:
+        for line in handle:
+            pending.append(line)
+            size += len(line)
+            if size >= chunk and sqlite3.complete_statement(''.join(pending[-50:])) and line.rstrip().endswith(';'):
+                db.executescript(''.join(pending))
+                pending, size = [], 0
+    if pending:
+        db.executescript(''.join(pending))
+
+
 def verify(export, manifest_path):
     manifest = json.loads(manifest_path.read_text())
     with tempfile.TemporaryDirectory() as temporary:
         db = sqlite3.connect(Path(temporary) / 'readback.sqlite')
         db.execute('PRAGMA journal_mode=OFF')
         db.execute('PRAGMA synchronous=OFF')
-        db.executescript(export.read_text())
+        load_sql(db, export)
         revision = db.execute('SELECT manifest_json,state FROM sage_graph_revisions WHERE id=?',
                               (manifest['revision'],)).fetchone()
         expected = {k: v for k, v in manifest.items() if k != 'revision'}
