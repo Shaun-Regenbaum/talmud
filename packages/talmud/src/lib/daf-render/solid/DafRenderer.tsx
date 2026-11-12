@@ -1,6 +1,7 @@
 import { createEffect, createMemo, createSignal, type JSX, Show } from 'solid-js';
-import { type ImageFit, sizeCommentaryImages } from '../core/images';
-import { computeLayout, type LayoutResult } from '../core/layout';
+import { mergedClasses } from '../core/columns';
+import type { LayoutResult } from '../core/layout';
+import { layoutWithImages } from '../core/layout-images';
 import { type PartialDafOptions, resolveOptions } from '../core/options';
 import type { Amud } from '../core/types';
 
@@ -45,32 +46,20 @@ export function DafRenderer(props: DafRendererProps): JSX.Element {
   const options = createMemo(() => resolveOptions(props.options));
 
   // Diagrams get a fixed size (so measuring is exact) and wrap with the text.
-  // A floated picture wider than the line is pushed down the page, away from
-  // where it belongs, so it must always fit the narrowest text column (a side
-  // column). We take about two thirds of it, which leaves a strip beside the
-  // picture for the text to run down. In the wide parts of the page there is
-  // much more room beside it.
-  const imageFit = (): ImageFit => {
-    const o = options();
-    const sideText = (o.contentWidth * (1 - o.mainWidth)) / 2 - o.padding.horizontal;
-    return {
-      maxWidth: 0.62 * sideText,
-      lineHeight: o.lineHeight.side,
-      charsPerLine: Math.floor(sideText / (0.55 * o.fontSize.side)),
-    };
-  };
-  const main = createMemo(() => sizeCommentaryImages(props.main, imageFit()));
-  const inner = createMemo(() => sizeCommentaryImages(props.inner, imageFit()));
-  const outer = createMemo(() => sizeCommentaryImages(props.outer, imageFit()));
-
-  const layout = createMemo(() => {
+  // Their size depends on where they land, so layout and sizing happen together.
+  const prepared = createMemo(() => {
     if (!fontsReady()) return null;
-    return computeLayout(
-      { main: main(), inner: inner(), outer: outer() },
+    return layoutWithImages(
+      { main: props.main, inner: props.inner, outer: props.outer },
       options(),
       props.amud ?? 'a',
     );
   });
+  const layout = createMemo(() => prepared()?.layout ?? null);
+  // Before fonts load there is no layout yet; show the text as it came.
+  const main = () => prepared()?.texts.main ?? props.main;
+  const inner = () => prepared()?.texts.inner ?? props.inner;
+  const outer = () => prepared()?.texts.outer ?? props.outer;
 
   createEffect(() => {
     const result = layout();
@@ -90,6 +79,7 @@ export function DafRenderer(props: DafRendererProps): JSX.Element {
       '--daf-content-width': `${opts.contentWidth}px`,
       '--daf-side-percent': `${sidePercent}%`,
       '--daf-halfway-percent': `${halfwayPercent}%`,
+      '--daf-halfway-frac': `${opts.halfway}`,
       '--daf-remainder-percent': `${remainderPercent}%`,
       '--daf-padding-vertical': `${opts.padding.vertical}px`,
       '--daf-padding-horizontal': `${opts.padding.horizontal}px`,
@@ -179,7 +169,9 @@ export function DafRenderer(props: DafRendererProps): JSX.Element {
         <div style={{ padding: '1rem', color: '#888', 'font-style': 'italic' }}>Loading fonts…</div>
       </Show>
 
-      <div class="daf-outer">
+      <div
+        class={`daf-outer${mergedClasses('outer', props.amud ?? 'a', !!layout()?.spacers.outerEnd && outer().includes('daf-img'))}`}
+      >
         <div class="daf-spacer daf-start" />
         <div class="daf-spacer daf-mid" />
         <div class={endClass(layout()?.spacers.outerEnd)} />
@@ -188,7 +180,9 @@ export function DafRenderer(props: DafRendererProps): JSX.Element {
         </div>
       </div>
 
-      <div class="daf-inner">
+      <div
+        class={`daf-inner${mergedClasses('inner', props.amud ?? 'a', !!layout()?.spacers.innerEnd && inner().includes('daf-img'))}`}
+      >
         <div class="daf-spacer daf-start" />
         <div class="daf-spacer daf-mid" />
         <div class={endClass(layout()?.spacers.innerEnd)} />
