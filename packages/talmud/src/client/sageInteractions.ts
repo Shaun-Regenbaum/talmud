@@ -214,6 +214,13 @@ export function sefariaUrl(ref: string): string | null {
   return `https://www.sefaria.org/${encodeURIComponent(book)}${loc ? `.${loc}` : ''}`;
 }
 
+/** A Bavli passage reference such as "Temurah 17b:10" as a link to that daf in our own reader. Other works return null. */
+export function dafUrl(ref: string): string | null {
+  const m = ref.match(/^([A-Z][A-Za-z' ]*?)\s+(\d+[ab])(?::\d+)*$/);
+  if (!m || /^(Jerusalem|Mishnah|Tosefta|Sifra|Sifrei|Midrash)/.test(m[1])) return null;
+  return `?tractate=${encodeURIComponent(m[1])}&page=${m[2]}#daf`;
+}
+
 /** Hebrew name as the text writes it, without vowel marks, with ר' spelled out, so "רַבִּי עֲקִיבָא" and "ר' עקיבא" match. */
 export function nameKey(he: string): string {
   return stripNikud(he)

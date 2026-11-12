@@ -2,7 +2,7 @@
 import { createResource, For, type JSX, Show } from 'solid-js';
 import type { SageMaybe } from '../lib/sage-graph/sage-maybe';
 import { lang, t } from './i18n';
-import { sefariaUrl } from './sageInteractions';
+import { dafUrl, sefariaUrl } from './sageInteractions';
 
 const VISIBLE = 6;
 
@@ -40,11 +40,22 @@ export function SageMaybeInText(props: {
         <p class="sage-maybe-what">
           {lead()}{' '}
           <Show
-            when={sefariaUrl(item.ref)}
-            fallback={<span class="sage-seen-ref">{item.ref}</span>}
+            when={dafUrl(item.ref)}
+            fallback={
+              <Show
+                when={sefariaUrl(item.ref)}
+                fallback={<span class="sage-seen-ref">{item.ref}</span>}
+              >
+                {(url) => (
+                  <a class="sage-seen-ref" href={url()} target="_blank" rel="noreferrer">
+                    {item.ref}
+                  </a>
+                )}
+              </Show>
+            }
           >
             {(url) => (
-              <a class="sage-seen-ref" href={url()} target="_blank" rel="noreferrer">
+              <a class="sage-seen-ref" href={url()}>
                 {item.ref}
               </a>
             )}
