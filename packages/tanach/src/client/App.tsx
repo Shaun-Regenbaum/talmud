@@ -1238,7 +1238,7 @@ export function App(): JSX.Element {
               class="lens-card"
               style={{
                 left: `${Math.min(Math.max(l().x, 170), window.innerWidth - 170)}px`,
-                top: `${l().y + 8}px`,
+                top: `${Math.min(l().y + 8, window.innerHeight * 0.28)}px`,
               }}
             >
               <Show when={note()}>
