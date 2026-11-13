@@ -29,6 +29,14 @@ import { formatGeneratedText, generatedTextFor } from '../lib/displayText';
 import { hebrewNumeral } from '../lib/hebrew.ts';
 import type { ParshaFlowSection, ParshaStudy, WeeklyParsha } from '../lib/parsha.ts';
 import { type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
+import {
+  type BookWords,
+  type LemmaIndex,
+  marksForVerse,
+  markVerseHtml,
+  rarityLabel,
+  uniquePlaces,
+} from '../lib/wordLens.ts';
 import { ChapterLoadProgress } from './ChapterLoadProgress.tsx';
 import { reportLoad, resetChapterLoad } from './chapterLoad.ts';
 import { Inspector } from './Inspector.tsx';
@@ -110,7 +118,12 @@ function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function buildParagraphs(verses: Verse[], nikud: boolean, labels?: Map<number, string>): string[] {
+function buildParagraphs(
+  verses: Verse[],
+  nikud: boolean,
+  labels?: Map<number, string>,
+  words?: { data: BookWords | null | undefined; chapter: number },
+): string[] {
   let joined = verses
     .map((v) => {
       const label = labels?.get(v.n);
@@ -118,7 +131,7 @@ function buildParagraphs(verses: Verse[], nikud: boolean, labels?: Map<number, s
       // point (.evt-pt); the label itself is positioned in the margin by App.
       const cls = label ? 'vnum evt-pt' : 'vnum';
       const attrs = label ? ` data-v="${v.n}" data-label="${escapeHtml(label)}"` : '';
-      return `<span class="vtext" data-vn="${v.n}"><span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span> ${v.he}</span>`;
+      return `<span class="vtext" data-vn="${v.n}"><span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span> ${markVerseHtml(v.he, marksForVerse(words?.data, words?.chapter ?? 0, v.n))}</span>`;
     })
     .join(' ');
   joined = joined
@@ -305,6 +318,30 @@ export function App(): JSX.Element {
       return null;
     }
   });
+  // Word lens: which words in this book are rare, and (on first tap) what each is.
+  const [bookWords] = createResource(
+    () => loc().book,
+    async (book) => {
+      try {
+        const res = await fetch(`/words/${encodeURIComponent(book)}.json`);
+        return res.ok ? ((await res.json()) as BookWords) : null;
+      } catch {
+        return null;
+      }
+    },
+  );
+  const [lens, setLens] = createSignal<{ lemma: string; x: number; y: number } | null>(null);
+  const [lemmaIndex] = createResource(
+    () => (lens() ? true : null),
+    async () => {
+      try {
+        const res = await fetch('/words/index.json');
+        return res.ok ? ((await res.json()) as LemmaIndex) : null;
+      } catch {
+        return null;
+      }
+    },
+  );
   const richSet = createMemo(
     () => new Set((sourcesIndex()?.verses ?? []).filter((v) => v.rich).map((v) => v.verse)),
   );
@@ -319,7 +356,10 @@ export function App(): JSX.Element {
     const labels = new Map(
       (events() ?? []).map((s) => [s.verse, generatedTextFor(loc().lang, s.en, s.he)] as const),
     );
-    return buildParagraphs(ch.verses, loc().nikud, labels);
+    return buildParagraphs(ch.verses, loc().nikud, labels, {
+      data: bookWords(),
+      chapter: loc().chapter,
+    });
   });
 
   // Margin anchors: measure each section-start verse number (.evt-pt) and pin its
@@ -514,9 +554,13 @@ export function App(): JSX.Element {
     const onPointerDown = (e: MouseEvent) => {
       if ((e.target as HTMLElement | null)?.closest('.xlate-pop')) return;
       setWordSel(null);
+      if (!(e.target as HTMLElement | null)?.closest('.rw, .lens-card')) setLens(null);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setWordSel(null);
+      if (e.key === 'Escape') {
+        setWordSel(null);
+        setLens(null);
+      }
     };
     window.addEventListener('mousedown', onPointerDown);
     window.addEventListener('keydown', onKey);
@@ -529,6 +573,7 @@ export function App(): JSX.Element {
   createEffect(() => {
     chapterKey();
     setWordSel(null);
+    setLens(null);
   });
 
   // Marked verses are painted as one continuous block per run of consecutive
@@ -647,6 +692,12 @@ export function App(): JSX.Element {
   const [source, setSource] = createSignal<{ verse: number; kind: SourceKind } | null>(null);
   const openSource = (verse: number, kind: SourceKind) => setSource({ verse, kind });
   const onTextClick = (e: MouseEvent) => {
+    const rw = (e.target as HTMLElement).closest<HTMLElement>('.rw');
+    if (rw?.dataset.lemma) {
+      const r = rw.getBoundingClientRect();
+      setLens({ lemma: rw.dataset.lemma, x: r.left + r.width / 2, y: r.bottom });
+      return;
+    }
     const num = (e.target as HTMLElement).closest('.vnum');
     if (!num) return;
     const vt = num.closest('.vtext') as HTMLElement | null;
@@ -1142,6 +1193,45 @@ export function App(): JSX.Element {
             </Show>
           </div>
         )}
+      </Show>
+
+      {/* Word lens card: how rare the tapped word is, and where else it appears */}
+      <Show when={lens()}>
+        {(l) => {
+          const lemma = () => lemmaIndex()?.[l().lemma];
+          return (
+            <div
+              class="lens-card"
+              style={{
+                left: `${Math.min(Math.max(l().x, 170), window.innerWidth - 170)}px`,
+                top: `${l().y + 8}px`,
+              }}
+            >
+              <Show when={lemma()} fallback={<span class="lens-muted">…</span>}>
+                {(m) => (
+                  <>
+                    <div class="lens-head">
+                      <span class="lens-he" dir="rtl">
+                        {m().h}
+                      </span>
+                      <span class="lens-gloss">{m().g}</span>
+                    </div>
+                    <div class="lens-count">
+                      {t('lensCount', loc().lang)} <b>{rarityLabel(m().c)}</b>
+                    </div>
+                    <Show when={uniquePlaces(m().o).length > 1}>
+                      <div class="lens-places">
+                        {uniquePlaces(m().o)
+                          .map((o) => o.replace('Genesis', 'Gen.'))
+                          .join(' · ')}
+                      </div>
+                    </Show>
+                  </>
+                )}
+              </Show>
+            </div>
+          );
+        }}
       </Show>
 
       {/* Inspector drawer (what's cached for this chapter + cost) */}

@@ -80,6 +80,7 @@ const messages = {
   align: { en: 'Alignment', he: 'התאמה' },
   inspect: { en: 'Inspect', he: 'בדיקה' },
   nikud: { en: 'Vowel marks', he: 'ניקוד' },
+  lensCount: { en: 'In the whole Tanach:', he: 'בכל התנ״ך:' },
   weekly: { en: "This week's reading", he: 'קריאת השבוע' },
 } as const;
 
