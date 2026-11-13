@@ -37,3 +37,14 @@ describe('word lens', () => {
     expect(markVerseHtml('אבר', marks)).toBe('אבר');
   });
 });
+
+describe('word lens notes', () => {
+  it('underlines a note word that is not rare and marks it as noted', () => {
+    const out = markVerseHtml(
+      'אבר בדק',
+      [],
+      [{ letters: 'בדק', k: 1, kind: 'other', headline: 'h', body: 'b', sources: [] }],
+    );
+    expect(out).toContain('class="rw rw-n" data-lemma="" data-w="בדק"');
+  });
+});

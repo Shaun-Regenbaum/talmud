@@ -30,10 +30,12 @@ import { hebrewNumeral } from '../lib/hebrew.ts';
 import type { ParshaFlowSection, ParshaStudy, WeeklyParsha } from '../lib/parsha.ts';
 import { type SourceKind, type SourceVerse, verseKinds } from '../lib/sources.ts';
 import {
+  type BookNotes,
   type BookWords,
   type LemmaIndex,
   marksForVerse,
   markVerseHtml,
+  noteFor,
   rarityLabel,
   uniquePlaces,
 } from '../lib/wordLens.ts';
@@ -122,7 +124,11 @@ function buildParagraphs(
   verses: Verse[],
   nikud: boolean,
   labels?: Map<number, string>,
-  words?: { data: BookWords | null | undefined; chapter: number },
+  words?: {
+    data: BookWords | null | undefined;
+    notes: BookNotes | null | undefined;
+    chapter: number;
+  },
 ): string[] {
   let joined = verses
     .map((v) => {
@@ -131,7 +137,7 @@ function buildParagraphs(
       // point (.evt-pt); the label itself is positioned in the margin by App.
       const cls = label ? 'vnum evt-pt' : 'vnum';
       const attrs = label ? ` data-v="${v.n}" data-label="${escapeHtml(label)}"` : '';
-      return `<span class="vtext" data-vn="${v.n}"><span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span> ${markVerseHtml(v.he, marksForVerse(words?.data, words?.chapter ?? 0, v.n))}</span>`;
+      return `<span class="vtext" data-vn="${v.n}"><span class="${cls}"${attrs}>${hebrewNumeral(v.n)}</span> ${markVerseHtml(v.he, marksForVerse(words?.data, words?.chapter ?? 0, v.n), words?.notes?.notes[`${words.chapter}:${v.n}`])}</span>`;
     })
     .join(' ');
   joined = joined
@@ -330,9 +336,27 @@ export function App(): JSX.Element {
       }
     },
   );
-  const [lens, setLens] = createSignal<{ lemma: string; x: number; y: number } | null>(null);
+  const [bookNotes] = createResource(
+    () => loc().book,
+    async (book) => {
+      try {
+        const res = await fetch(`/words/notes/${encodeURIComponent(book)}.json`);
+        return res.ok ? ((await res.json()) as BookNotes) : null;
+      } catch {
+        return null;
+      }
+    },
+  );
+  const [lens, setLens] = createSignal<{
+    lemma: string;
+    letters: string;
+    k: number;
+    verse: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const [lemmaIndex] = createResource(
-    () => (lens() ? true : null),
+    () => (lens()?.lemma ? true : null),
     async () => {
       try {
         const res = await fetch('/words/index.json');
@@ -358,6 +382,7 @@ export function App(): JSX.Element {
     );
     return buildParagraphs(ch.verses, loc().nikud, labels, {
       data: bookWords(),
+      notes: bookNotes(),
       chapter: loc().chapter,
     });
   });
@@ -693,9 +718,17 @@ export function App(): JSX.Element {
   const openSource = (verse: number, kind: SourceKind) => setSource({ verse, kind });
   const onTextClick = (e: MouseEvent) => {
     const rw = (e.target as HTMLElement).closest<HTMLElement>('.rw');
-    if (rw?.dataset.lemma) {
+    if (rw?.dataset.w) {
       const r = rw.getBoundingClientRect();
-      setLens({ lemma: rw.dataset.lemma, x: r.left + r.width / 2, y: r.bottom });
+      const vn = Number((rw.closest('.vtext') as HTMLElement | null)?.dataset.vn);
+      setLens({
+        lemma: rw.dataset.lemma ?? '',
+        letters: rw.dataset.w,
+        k: Number(rw.dataset.k) || 1,
+        verse: vn,
+        x: r.left + r.width / 2,
+        y: r.bottom,
+      });
       return;
     }
     const num = (e.target as HTMLElement).closest('.vnum');
@@ -1195,10 +1228,11 @@ export function App(): JSX.Element {
         )}
       </Show>
 
-      {/* Word lens card: how rare the tapped word is, and where else it appears */}
+      {/* Word lens card: a checked note on the word (if any), then how rare it is */}
       <Show when={lens()}>
         {(l) => {
           const lemma = () => lemmaIndex()?.[l().lemma];
+          const note = () => noteFor(bookNotes(), loc().chapter, l().verse, l().letters, l().k);
           return (
             <div
               class="lens-card"
@@ -1207,27 +1241,48 @@ export function App(): JSX.Element {
                 top: `${l().y + 8}px`,
               }}
             >
-              <Show when={lemma()} fallback={<span class="lens-muted">…</span>}>
-                {(m) => (
-                  <>
-                    <div class="lens-head">
-                      <span class="lens-he" dir="rtl">
-                        {m().h}
-                      </span>
-                      <span class="lens-gloss">{m().g}</span>
-                    </div>
-                    <div class="lens-count">
-                      {t('lensCount', loc().lang)} <b>{rarityLabel(m().c)}</b>
-                    </div>
-                    <Show when={uniquePlaces(m().o).length > 1}>
-                      <div class="lens-places">
-                        {uniquePlaces(m().o)
-                          .map((o) => o.replace('Genesis', 'Gen.'))
-                          .join(' · ')}
-                      </div>
-                    </Show>
-                  </>
+              <Show when={note()}>
+                {(n) => (
+                  <div class="lens-note">
+                    <div class="lens-headline">{n().headline}</div>
+                    <p class="lens-body">{n().body}</p>
+                    <For each={n().sources}>
+                      {(src) => (
+                        <div class="lens-src">
+                          <div class="lens-src-ref">{src.ref}</div>
+                          <div class="lens-src-says">{src.says}</div>
+                          <div class="lens-src-quote" dir="rtl">
+                            {src.quote}
+                          </div>
+                        </div>
+                      )}
+                    </For>
+                  </div>
                 )}
+              </Show>
+              <Show when={l().lemma}>
+                <Show when={lemma()} fallback={<span class="lens-muted">…</span>}>
+                  {(m) => (
+                    <div classList={{ 'lens-rare': !!note() }}>
+                      <div class="lens-head">
+                        <span class="lens-he" dir="rtl">
+                          {m().h}
+                        </span>
+                        <span class="lens-gloss">{m().g}</span>
+                      </div>
+                      <div class="lens-count">
+                        {t('lensCount', loc().lang)} <b>{rarityLabel(m().c)}</b>
+                      </div>
+                      <Show when={uniquePlaces(m().o).length > 1}>
+                        <div class="lens-places">
+                          {uniquePlaces(m().o)
+                            .map((o) => o.replace('Genesis', 'Gen.'))
+                            .join(' · ')}
+                        </div>
+                      </Show>
+                    </div>
+                  )}
+                </Show>
               </Show>
             </div>
           );

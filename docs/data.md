@@ -68,3 +68,7 @@ What does not exist yet: a way to write a human correction directly into the cac
 ## Rare-word concordance (tanach)
 
 `packages/tanach/static/words/` is built by `packages/tanach/scripts/build-words.mjs` from the Open Scriptures Hebrew Bible (word tags, CC BY 4.0) and the Open Scriptures Hebrew Lexicon (Hebrew spelling and short meaning for each Strong's number). It lists every word whose dictionary form appears ten times or fewer in the Tanach, proper names excluded. The reader underlines those words and shows the count and the other places. Rebuild with `node scripts/build-words.mjs <oshb-dir> <HebrewStrong.xml>`; the sources are not committed.
+
+### Word notes (tanach)
+
+`static/words/notes/<Book>.json` holds notes about single words, built by `scripts/build-word-notes.mjs`. Each note rests on quoted passages from classical commentary. A note ships only if (1) every quote was found on Sefaria by a checker, and (2) a second model, different from the one that wrote the note, judged that the quote is about the word, supports the note, and is worth showing. Notes are generated and checked outside this repo; the build script takes the working folder as its argument.
