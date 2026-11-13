@@ -64,3 +64,7 @@ What does not exist yet: a way to write a human correction directly into the cac
 - Do not redistribute Kollel Iyun HaDaf content as a standalone set.
 - Do not add generated notes to the repository as fixtures unless they are real captured output with provenance.
 - Do not invent a sage, a place, or an alias to make a test pass.
+
+## Rare-word concordance (tanach)
+
+`packages/tanach/static/words/` is built by `packages/tanach/scripts/build-words.mjs` from the Open Scriptures Hebrew Bible (word tags, CC BY 4.0) and the Open Scriptures Hebrew Lexicon (Hebrew spelling and short meaning for each Strong's number). It lists every word whose dictionary form appears ten times or fewer in the Tanach, proper names excluded. The reader underlines those words and shows the count and the other places. Rebuild with `node scripts/build-words.mjs <oshb-dir> <HebrewStrong.xml>`; the sources are not committed.
