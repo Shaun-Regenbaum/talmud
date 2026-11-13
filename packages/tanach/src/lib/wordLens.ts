@@ -17,6 +17,21 @@ export interface BookWords {
   words: Record<string, WordMark[]>;
 }
 
+/** A checked note about one word in one verse, with the passages it rests on. */
+export interface WordNote {
+  letters: string;
+  k: number;
+  kind: string;
+  headline: string;
+  body: string;
+  sources: { ref: string; quote: string; says: string }[];
+}
+
+export interface BookNotes {
+  book: string;
+  notes: Record<string, WordNote[]>;
+}
+
 export interface Lemma {
   /** Hebrew dictionary form, with vowels. */
   h: string;
@@ -50,10 +65,21 @@ const WORD_SPLIT = /([\s־]+)/;
  * Only text outside tags is touched. Returns the HTML unchanged when there
  * are no marks.
  */
-export function markVerseHtml(html: string, marks: WordMark[] | undefined): string {
-  if (!marks || marks.length === 0) return html;
+export function markVerseHtml(
+  html: string,
+  marks: WordMark[] | undefined,
+  notes?: WordNote[],
+): string {
+  if ((!marks || marks.length === 0) && (!notes || notes.length === 0)) return html;
   const want = new Map<string, string>();
-  for (const [cons, k, lemma] of marks) want.set(`${cons}#${k}`, lemma);
+  for (const [cons, k, lemma] of marks ?? []) want.set(`${cons}#${k}`, lemma);
+  // A word with a note is underlined even when it is not rare.
+  const noted = new Set<string>();
+  for (const n of notes ?? []) {
+    const key = `${n.letters}#${n.k}`;
+    noted.add(key);
+    if (!want.has(key)) want.set(key, '');
+  }
   const seen = new Map<string, number>();
   return html
     .split(/(<[^>]*>)/)
@@ -67,9 +93,11 @@ export function markVerseHtml(html: string, marks: WordMark[] | undefined): stri
           if (!cons) return tok;
           const k = (seen.get(cons) ?? 0) + 1;
           seen.set(cons, k);
-          const lemma = want.get(`${cons}#${k}`);
-          if (!lemma) return tok;
-          return `<span class="rw" data-lemma="${lemma}" data-w="${cons}" data-k="${k}">${tok}</span>`;
+          const key = `${cons}#${k}`;
+          const lemma = want.get(key);
+          if (lemma === undefined) return tok;
+          const cls = noted.has(key) ? 'rw rw-n' : 'rw';
+          return `<span class="${cls}" data-lemma="${lemma}" data-w="${cons}" data-k="${k}">${tok}</span>`;
         })
         .join('');
     })
@@ -83,6 +111,17 @@ export function marksForVerse(
   verse: number,
 ): WordMark[] | undefined {
   return words?.words[`${chapter}:${verse}`];
+}
+
+/** The note for one word occurrence in a verse, if there is one. */
+export function noteFor(
+  notes: BookNotes | null | undefined,
+  chapter: number,
+  verse: number,
+  letters: string,
+  k: number,
+): WordNote | undefined {
+  return notes?.notes[`${chapter}:${verse}`]?.find((n) => n.letters === letters && n.k === k);
 }
 
 /** The places a word appears, one entry per verse, in book order as stored. */
