@@ -5334,6 +5334,15 @@ export function isExperimentalLlmWarm(job: { mark_id?: string; enrichment_id?: s
 }
 
 /**
+ * HTTP status for a deliberate "AI is paused" refusal on /api/run. It is 429,
+ * not 503, to match the budget pause: Cloudflare counts every 503 as a server
+ * failure, so a credits or cost-control pause (a chosen state, not an outage)
+ * made the edge 5xx alert fire when a cold page fanned out many runs. The
+ * client reads `paused` / `aiUnavailable` from the body, never this status.
+ */
+const AI_PAUSED_STATUS = 429;
+
+/**
  * Cost-control pause: a configurable set of expensive producers (the
  * `PAUSED_PRODUCERS` env var — comma/space-separated mark/enrichment ids) is
  * held back from generating on cold, non-explicit reader loads to cap spend
@@ -5583,7 +5592,7 @@ app.post('/api/run', async (c) => {
         aiUnavailable: true as const,
         reason: 'cost-control' as const,
       },
-      503,
+      AI_PAUSED_STATUS,
     );
   }
 
@@ -5605,7 +5614,7 @@ app.post('/api/run', async (c) => {
           aiUnavailable: true as const,
           reason: down.reason,
         },
-        503,
+        AI_PAUSED_STATUS,
       );
     }
   }

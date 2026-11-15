@@ -291,6 +291,36 @@ describe('POST /api/run — contract', () => {
     expect({ ...body, retryAfter: 'NORMALIZED' }).toMatchSnapshot();
   });
 
+  // A chosen pause is not a server failure: Cloudflare counts every 503 as one,
+  // which made the edge 5xx alert fire on a cold page. Both refusals are 429 and
+  // keep the body the reader's banner keys off.
+  it('f. cost-control pause: 429 with the paused envelope, nothing enqueued', async () => {
+    const { env, send } = makeEnv();
+    (env as unknown as { PAUSED_PRODUCERS: string }).PAUSED_PRODUCERS = 'tidbit.essay';
+    const { status, json } = await postRun(env, {
+      enrichment_id: 'tidbit.essay',
+      tractate: 'Berakhot',
+      page: '5a',
+    });
+    expect(status).toBe(429);
+    expect(json).toMatchObject({ paused: true, aiUnavailable: true, reason: 'cost-control' });
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('g. provider pause (ai-down sentinel): 429 with the paused envelope, nothing enqueued', async () => {
+    const { env, send } = makeEnv({
+      'ai-down:v1': JSON.stringify({ reason: 'key-limit', at: Date.now() }),
+    });
+    const { status, json } = await postRun(env, {
+      mark_id: 'argument',
+      tractate: 'Berakhot',
+      page: '5a',
+    });
+    expect(status).toBe(429);
+    expect(json).toMatchObject({ paused: true, aiUnavailable: true, reason: 'key-limit' });
+    expect(send).not.toHaveBeenCalled();
+  });
+
   it('rejects a body without tractate/page or without any producer id', async () => {
     const { env } = makeEnv();
     const noDaf = await postRun(env, { mark_id: 'argument' });
