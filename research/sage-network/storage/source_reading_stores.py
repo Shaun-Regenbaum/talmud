@@ -407,7 +407,9 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
     machine_envelopes = [r for r in all_envelopes if r['data'].get('origin') == machine_source_store.ORIGIN]
     require(machine_only or {r['data']['selectionSha256'] for r in envelopes} <= set(selections),
             "Checked readings need root's pinned selection for every stored selection")
-    require({r['data']['selectionSha256'] for r in machine_envelopes} <= set(machine_cases),
+    # A reading inherited unchanged from the verified parent is checked as that parent's exact record version, so its
+    # old selection file is only needed when the whole store is rebuilt (full).
+    require({r['data']['selectionSha256'] for r in machine_envelopes if full or r['record_id'] not in inherited} <= set(machine_cases),
             'Machine readings need their pinned selection for every stored selection')
     raw_results = [r['data']['supersedes']['rawResultHash'] for r in all_envelopes]
     require(len(raw_results) == len(set(raw_results)), 'Two checked versions of one raw result')
@@ -430,9 +432,9 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
             envelope = [r for r in group if r['kind'] == 'machine_placement_release']
             require(len(envelope) == 1, 'A machine placement release needs exactly one envelope')
             data = envelope[0]['data']
-            require(data['selectionSha256'] in placement_cases, 'Machine placement releases need their pinned selection')
             if not full and all(r['record_id'] in inherited for r in group):
-                continue  # unchanged since the parent, whose receipt covers it
+                continue  # unchanged since the parent, whose receipt covers it; its pinned selection is not needed again
+            require(data['selectionSha256'] in placement_cases, 'Machine placement releases need their pinned selection')
             path = artifacts / (data['artifact']['sha256'] + '.json')
             require(path.exists(), 'Missing downloaded R2 artifact: ' + path.name)
             raw = path.read_bytes()
@@ -473,10 +475,10 @@ def _read_back(export, manifest_path, artifacts, ownership_specs, parent_receipt
                 require(all(r['record_id'] in inherited for r in group),
                         'A machine-only verification found a new reading that is not a machine reading: ' + pid)
                 continue
+            if not full and all(r['record_id'] in inherited for r in group):
+                continue  # unchanged since the parent, whose receipt covers it; its old selection is not needed again
             cases = (machine_cases if is_machine else selections)[selection_pin]
             require(data['jobId'] in cases, 'Checked reading is absent from its pinned selection')
-            if not full and all(r['record_id'] in inherited for r in group):
-                continue  # unchanged since the parent, whose receipt covers it
             path = artifacts / (data['artifact']['sha256'] + '.json')
             require(path.exists(), 'Missing downloaded R2 artifact: ' + path.name)
             raw = path.read_bytes()
