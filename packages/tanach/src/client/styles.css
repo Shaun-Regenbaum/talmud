@@ -733,6 +733,17 @@ body {
   font-size: 12.5px;
   opacity: 0.8;
 }
+.lens-place {
+  all: unset;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: rgba(253, 248, 238, 0.4);
+  text-underline-offset: 2px;
+}
+.lens-place:hover,
+.lens-place:focus-visible {
+  text-decoration-color: currentColor;
+}
 .lens-muted {
   opacity: 0.6;
 }

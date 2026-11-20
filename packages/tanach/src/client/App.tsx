@@ -670,6 +670,7 @@ export function App(): JSX.Element {
     const hovered = iconHoverVerse();
     const pv = new Set(placeVerses());
     const focus = hoveredFocus() ?? parshaFocus();
+    const jump = jumpTo();
     paragraphs();
     reflow();
     requestAnimationFrame(() => {
@@ -690,7 +691,10 @@ export function App(): JSX.Element {
           chapterNow <= focus.endChapter &&
           vn >= (chapterNow === focus.startChapter ? focus.startVerse : 1) &&
           (chapterNow === focus.endChapter ? vn <= focus.endVerse : true);
-        if (inNote || inSource || inIconHover || inParshaFocus || pv.has(vn)) e.classList.add('hl');
+        const inJump =
+          jump && jump.book === loc().book && jump.chapter === chapterNow && jump.verse === vn;
+        if (inNote || inSource || inIconHover || inParshaFocus || inJump || pv.has(vn))
+          e.classList.add('hl');
       });
       paintVerseHighlights();
     });
@@ -917,6 +921,38 @@ export function App(): JSX.Element {
     setPlaceVerses([]);
     setSelectedPlaceId(undefined);
   };
+  // A place named in a word card ("Isaiah 34:11") opens that verse: switch to
+  // its chapter, scroll to it and keep it highlighted for a few seconds.
+  const [jumpTo, setJumpTo] = createSignal<{ book: string; chapter: number; verse: number } | null>(
+    null,
+  );
+  let jumpTimer: ReturnType<typeof setTimeout> | undefined;
+  const openPlace = (ref: string) => {
+    const m = /^(.+) (\d+):(\d+)$/.exec(ref);
+    if (!m || !BOOKS.some((b) => b.name === m[1])) return;
+    const target = { book: m[1], chapter: Number(m[2]), verse: Number(m[3]) };
+    setLens(null);
+    setJumpTo(target);
+    clearTimeout(jumpTimer);
+    jumpTimer = setTimeout(() => setJumpTo(null), 6000);
+    if (target.book !== loc().book || target.chapter !== loc().chapter) {
+      update({ book: target.book, chapter: target.chapter });
+    }
+  };
+  // Once the target chapter is on screen, scroll to the verse.
+  createEffect(() => {
+    const j = jumpTo();
+    const chapter = data();
+    paragraphs();
+    if (!j || !chapter || chapter.book !== j.book || chapter.chapter !== j.chapter) return;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        scrollBand
+          ?.querySelector(`.vtext[data-vn="${j.verse}"]`)
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+      ),
+    );
+  });
   // Clear the place highlight when the geography pill closes or the chapter changes.
   createEffect(() => {
     chapterKey();
@@ -1275,9 +1311,20 @@ export function App(): JSX.Element {
                       </div>
                       <Show when={uniquePlaces(m().o).length > 1}>
                         <div class="lens-places">
-                          {uniquePlaces(m().o)
-                            .map((o) => o.replace('Genesis', 'Gen.'))
-                            .join(' · ')}
+                          <For each={uniquePlaces(m().o)}>
+                            {(o, i) => (
+                              <>
+                                <Show when={i() > 0}> · </Show>
+                                <button
+                                  type="button"
+                                  class="lens-place"
+                                  onClick={() => openPlace(o)}
+                                >
+                                  {o.replace('Genesis', 'Gen.')}
+                                </button>
+                              </>
+                            )}
+                          </For>
                         </div>
                       </Show>
                     </div>
