@@ -217,6 +217,9 @@ export async function handleMcpRequest(
     // the initialize handshake. Keep the legacy error body and supported list.
     if (response.status === 404 && error?.startsWith('Bad Request: Unsupported protocol version')) {
       response = new Response(response.body, { status: 400, headers: response.headers });
+      // The full message is cut off at 120 characters in the stored row, before
+      // the part that matters. Record a short one that names the version sent.
+      error = `Bad Request: Unsupported protocol version (client sent ${c.req.header('mcp-protocol-version') ?? 'none'})`;
     }
   }
   record(response.status, error);

@@ -38,7 +38,12 @@ describe('MCP transport rejections', () => {
     expect(res.status).toBe(400);
     const body = (await res.json()) as { error: { message: string } };
     expect(body.error.message).toContain('Unsupported protocol version');
-    expect(events).toEqual([{ status: 400, error: body.error.message }]);
+    expect(events).toEqual([
+      {
+        status: 400,
+        error: 'Bad Request: Unsupported protocol version (client sent 2026-07-28)',
+      },
+    ]);
   });
 
   it('keeps malformed JSON and missing content type as client errors', async () => {
