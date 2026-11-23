@@ -23,6 +23,7 @@ import {
   onCleanup,
   onMount,
   Show,
+  untrack,
 } from 'solid-js';
 import { BOOKS, SECTIONS, type Section } from '../lib/books.ts';
 import { formatGeneratedText, generatedTextFor } from '../lib/displayText';
@@ -308,14 +309,39 @@ export function App(): JSX.Element {
     if (scroll) window.scrollTo(0, 0);
   };
 
-  const chapterKey = createMemo(() => ({ book: loc().book, chapter: loc().chapter }), undefined, {
-    equals: (a, b) => a.book === b.book && a.chapter === b.chapter,
-  });
+  // A bare URL (no ?book=) means "show me this week": hold the text fetch until
+  // the weekly portion resolves, then jump to where it starts. A link with an
+  // explicit book/chapter is never redirected.
+  const [awaitingDefault, setAwaitingDefault] = createSignal(
+    !new URLSearchParams(window.location.search).has('book'),
+  );
+  const chapterKey = createMemo(
+    () => (awaitingDefault() ? false : { book: loc().book, chapter: loc().chapter }),
+    undefined,
+    {
+      equals: (a, b) => a === b || (!!a && !!b && a.book === b.book && a.chapter === b.chapter),
+    },
+  );
   const [data, { refetch: retryText }] = createResource(chapterKey, (key) =>
     fetchChapter(key).catch(() => null),
   );
   const [events] = createResource(chapterKey, fetchEvents);
   const [parsha] = createResource(fetchParsha);
+  createEffect(() => {
+    if (!awaitingDefault() || parsha.loading) return;
+    const weekly = parsha();
+    if (weekly) {
+      const next = { ...untrack(loc), book: weekly.book, chapter: weekly.chapter };
+      // Replace, not push: Back should leave the site, not return to a blank default.
+      const p = new URLSearchParams({ book: next.book, chapter: String(next.chapter) });
+      if (!next.nikud) p.set('nikud', '0');
+      if (next.lang === 'he') p.set('lang', 'he');
+      window.history.replaceState(null, '', `?${p.toString()}`);
+      setLoc(next);
+    }
+    // If the calendar is unreachable we fall back to Genesis 1, as before.
+    setAwaitingDefault(false);
+  });
   const [sourcesIndex] = createResource(chapterKey, async (k) => {
     try {
       const res = await fetch(`/api/sources-index/${encodeURIComponent(k.book)}/${k.chapter}`);
