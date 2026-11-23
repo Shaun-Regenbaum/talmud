@@ -93,6 +93,13 @@ describe('data points', () => {
     expect(mcpOutcome({ timedOut: false, error: 'boom', status: 200 })).toBe('error');
     expect(mcpOutcome({ timedOut: false, status: 500 })).toBe('http-error');
     expect(mcpOutcome({ timedOut: false, status: 200 })).toBe('ok');
+    expect(
+      mcpOutcome({
+        timedOut: false,
+        status: 400,
+        error: 'Bad Request: Unsupported protocol version (supported versions: 2025-11-25)',
+      }),
+    ).toBe('version-probe');
   });
 });
 

@@ -102,10 +102,15 @@ export function hitDataPoint(r: HitRecord): AnalyticsEngineDataPoint {
   };
 }
 
-export type McpOutcome = 'ok' | 'error' | 'timeout' | 'http-error';
+/** 'version-probe' is a client trying a newer MCP version than we speak. The 400
+ *  is the answer it expects before it falls back to initialize, so it is not a failure. */
+export type McpOutcome = 'ok' | 'error' | 'timeout' | 'http-error' | 'version-probe';
 
 export function mcpOutcome(ev: Pick<McpEvent, 'timedOut' | 'error' | 'status'>): McpOutcome {
   if (ev.timedOut) return 'timeout';
+  if (ev.status === 400 && ev.error?.startsWith('Bad Request: Unsupported protocol version')) {
+    return 'version-probe';
+  }
   if (ev.status >= 400) return 'http-error';
   if (ev.error) return 'error';
   return 'ok';
