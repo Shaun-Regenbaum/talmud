@@ -135,7 +135,7 @@ export const SQL = {
     `FROM ${ds} WHERE index1 = 'hit' AND blob2 = 'mcp' AND timestamp > NOW() - INTERVAL '${days}' DAY GROUP BY route, status ORDER BY hits DESC LIMIT 200`,
   mcpErrors: (ds: string) =>
     `SELECT timestamp, blob2 AS method, double3 AS status, blob3 AS tool, blob4 AS outcome, blob8 AS error ` +
-    `FROM ${ds} WHERE index1 = 'mcp' AND blob4 <> 'ok' AND timestamp > NOW() - INTERVAL '7' DAY ORDER BY timestamp DESC LIMIT 20`,
+    `FROM ${ds} WHERE index1 = 'mcp' AND blob4 NOT IN ('ok', 'version-probe') AND timestamp > NOW() - INTERVAL '7' DAY ORDER BY timestamp DESC LIMIT 20`,
 };
 
 // ---------------------------------------------------------------------------
@@ -197,7 +197,7 @@ export function aggregateMcpByDay(rows: Row[]): {
     row.calls += calls;
     const outcome = str(r.outcome);
     if (outcome === 'timeout') row.timeouts += calls;
-    else if (outcome !== 'ok') row.errors += calls;
+    else if (outcome !== 'ok' && outcome !== 'version-probe') row.errors += calls;
     byDay.set(date, row);
   }
   return {
