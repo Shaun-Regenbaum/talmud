@@ -23,18 +23,19 @@ export function TutorialBanner(): JSX.Element {
         style={{
           display: 'flex',
           'align-items': 'center',
-          gap: '10px',
+          'justify-content': 'center',
+          gap: '10px 14px',
           'flex-wrap': 'wrap',
+          position: 'relative',
           margin: '0 0 0.6rem',
-          padding: '8px 12px',
+          padding: '10px 36px',
           border: '1px solid var(--line)',
           'border-radius': '8px',
           background: 'var(--surface-sunk)',
+          'text-align': 'center',
         }}
       >
-        <span
-          style={{ flex: '1 1 auto', 'font-size': '13px', color: 'var(--fg)', 'min-width': '0' }}
-        >
+        <span style={{ 'font-size': '13px', color: 'var(--fg)', 'min-width': '0' }}>
           {t('tutorial.banner.text')}
         </span>
         <button
@@ -65,6 +66,9 @@ export function TutorialBanner(): JSX.Element {
             'font-size': '18px',
             'line-height': 1,
             padding: '2px 6px',
+            position: 'absolute',
+            top: '6px',
+            'inset-inline-end': '6px',
           }}
         >
           ×
