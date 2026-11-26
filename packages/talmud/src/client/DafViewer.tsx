@@ -1224,6 +1224,10 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
     // down — otherwise the coach's scroll-into-view would slam it shut again.
     if (props.embedded) return;
     const onScroll = () => {
+      // On iPhone, focusing the page box scrolls the page to make room for the
+      // keyboard. Folding the header then hides the box, focus is lost, and the
+      // keyboard never opens. Stay open while a header control has focus.
+      if (document.activeElement?.closest('.ui-reader-header')) return;
       if (window.scrollY > 16) collapseHeader();
     };
     window.addEventListener('scroll', onScroll, { passive: true });
