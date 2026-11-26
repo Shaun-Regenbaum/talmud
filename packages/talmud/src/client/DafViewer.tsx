@@ -3713,8 +3713,17 @@ export default function DafViewer(props: DafViewerProps = {}): JSX.Element {
             min={2}
             value={pageNum()}
             onInput={(e) => setPageNum(Number(e.currentTarget.value))}
-            onFocus={() => setPerekOpen(true)}
-            onClick={() => setPerekOpen(true)}
+            onFocus={(e) => {
+              setPerekOpen(true);
+              // Select the number so typing replaces it. Otherwise "55" typed
+              // after the "2" left by a tractate change reads as 255 and jumps
+              // to the tractate's last page.
+              e.currentTarget.select();
+            }}
+            onClick={(e) => {
+              setPerekOpen(true);
+              e.currentTarget.select();
+            }}
           />
           <Show when={perekOpen() && perakim().length > 0}>
             {/* Second way to a page: pick a chapter. Mousedown is held so the
