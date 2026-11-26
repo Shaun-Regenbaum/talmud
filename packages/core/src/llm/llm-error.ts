@@ -27,6 +27,16 @@ export const NEITHER: FailureClass = { retryable: false, fallbackWorthy: false }
 export const TRANSIENT: FailureClass = { retryable: true, fallbackWorthy: true };
 /** Timeout / abort: don't re-hit the same stalled endpoint, but do fail over. */
 export const TIMEOUT: FailureClass = { retryable: false, fallbackWorthy: true };
+/** The API key or prepaid balance refused to spend. Do not retry that
+ *  credential (another attempt fails the same way). A later model on a
+ *  different provider may still succeed — see nextFallbackIndex. */
+export const SWITCH_PROVIDER: FailureClass = { retryable: false, fallbackWorthy: true };
+
+// OpenRouter's own wording for "this key / this balance cannot spend". A bare
+// 403 (real auth failure) must not match. Kept here, next to the retry
+// decision, so the transport does not import the reader-facing classifier.
+const SHARED_CREDENTIAL_RE =
+  /key limit exceeded|insufficient credits|out of credits|requires more credits|add more (credits|using)/i;
 
 export class LLMError extends Error {
   readonly status: number;
@@ -79,4 +89,48 @@ export function isRetryable(err: unknown): boolean {
 /** Worth handing off to the next model in the fallback chain. */
 export function isFallbackWorthy(err: unknown): boolean {
   return err instanceof LLMError ? err.fallbackWorthy : classifyForeignError(err).fallbackWorthy;
+}
+
+/** OpenRouter refused because this key, or the prepaid balance behind it,
+ *  cannot spend. Status 402 is that refusal even when the body is empty.
+ *  The message covers a 403/429 that says "Key limit exceeded" — a bare 403
+ *  does not match. */
+export function isSharedCredentialFailure(err: unknown): boolean {
+  if (err instanceof LLMError && err.status === 402) return true;
+  const msg = err instanceof Error ? err.message : typeof err === 'string' ? err : '';
+  return SHARED_CREDENTIAL_RE.test(msg);
+}
+
+/** Class for an OpenRouter HTTP failure. A key cap or an empty balance is not
+ *  retried — the next call on that key fails the same way — but it is worth
+ *  handing to a different provider. */
+export function openRouterFailureClass(status: number, body: string): FailureClass {
+  if (status === 402 || SHARED_CREDENTIAL_RE.test(body)) return SWITCH_PROVIDER;
+  return classifyStatus(status);
+}
+
+/** OpenRouter models share one API key. Workers AI (`@cf/`) does not. */
+export function sameModelProvider(a: string, b: string): boolean {
+  const provider = (id: string) =>
+    id.startsWith('@cf/') ? 'workers-ai' : id.startsWith('openrouter/') ? 'openrouter' : 'other';
+  return provider(a) === provider(b);
+}
+
+/** Next chain index after `failedAt`, or -1 to surface `err`.
+ *  A shared-credential refusal skips every later model on that same
+ *  credential instead of calling them. Any other fallback-worthy error walks
+ *  to the immediate next model, including one on the same provider (a stalled
+ *  model is not a dead key). */
+export function nextFallbackIndex(
+  chain: readonly string[],
+  failedAt: number,
+  err: unknown,
+): number {
+  if (!isFallbackWorthy(err)) return -1;
+  const skipSame = isSharedCredentialFailure(err);
+  for (let j = failedAt + 1; j < chain.length; j++) {
+    if (skipSame && sameModelProvider(chain[failedAt] ?? '', chain[j] ?? '')) continue;
+    return j;
+  }
+  return -1;
 }

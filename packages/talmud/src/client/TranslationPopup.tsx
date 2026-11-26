@@ -1,3 +1,4 @@
+import { noteAiResponse } from '@corpus/ui/aiStatus';
 import { createEffect, createSignal, type JSX, onCleanup, Show } from 'solid-js';
 import { lang, t } from './i18n';
 
@@ -88,10 +89,14 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
         lang: lang(),
       }),
     })
-      .then((r) => r.json() as Promise<{ translation: string; cached?: boolean; error?: string }>)
+      .then((r) => r.json() as Promise<{ translation?: string; error?: string; reason?: string }>)
       .then((data) => {
-        if (data.error) {
-          setError(data.error);
+        // Never render the server's error string. A provider failure used to
+        // include the upstream body (an OpenRouter key-management URL). The
+        // banner reads `reason`; the popup shows the catalog line.
+        if (data.error || !data.translation) {
+          noteAiResponse(data);
+          setError(t('translation.unavailable'));
           setLoading(false);
           return;
         }
@@ -99,8 +104,8 @@ export function TranslationPopup(props: TranslationPopupProps): JSX.Element {
         setTranslation(data.translation);
         setLoading(false);
       })
-      .catch((err) => {
-        setError(String(err));
+      .catch(() => {
+        setError(t('translation.unavailable'));
         setLoading(false);
       });
   });

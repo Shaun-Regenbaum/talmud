@@ -2,12 +2,14 @@
  * The word-level translation endpoint: POST /api/translate, plus the Sefaria
  * English context, lexicon and alignment helpers only it uses.
  *
- * Moved here from index.ts unchanged. Registration order is preserved, and
+ * Moved here from index.ts. Registration order is preserved, and
  * tests/worker-route-table.test.ts pins it.
  */
 
-import { type LLMModelId, runLLM } from '@corpus/core/llm/llm';
+import { runLLM } from '@corpus/core/llm/llm';
 import type { Hono } from 'hono';
+import { noteAiDown, readAiDown } from '../ai-down';
+import { aiUnavailableJson } from '../ai-failure';
 import { keyForTranslate } from '../cache-keys';
 import { stripHtmlServer } from '../html-text';
 import {
@@ -15,7 +17,14 @@ import {
   getSefariaSegmentsCached,
   type SefariaSegments,
 } from '../source-cache';
-import { classifyError, recordTelemetry } from '../telemetry';
+import { recordTelemetry } from '../telemetry';
+import {
+  TRANSLATE_CACHE_TTL_S,
+  TRANSLATE_FALLBACK_TTL_S,
+  TRANSLATE_MODELS,
+  type TranslateProvider,
+  walkTranslateModels,
+} from '../translate-fallback';
 import type { Bindings } from '../types';
 import { lookupGloss } from '../word-glosses';
 
@@ -228,7 +237,7 @@ export function registerTranslateRoutes(app: Hono<{ Bindings: Bindings }>): void
     const dictGloss = targetLang === 'en' ? lookupGloss(word) : undefined;
     if (dictGloss) {
       if (cache) {
-        await cache.put(cacheKey, dictGloss, { expirationTtl: 60 * 60 * 24 * 30 });
+        await cache.put(cacheKey, dictGloss, { expirationTtl: TRANSLATE_CACHE_TTL_S });
       }
       recordTelemetry(c, {
         endpoint: 'translate',
@@ -240,10 +249,6 @@ export function registerTranslateRoutes(app: Hono<{ Bindings: Bindings }>): void
         ok: true,
       });
       return c.json({ translation: dictGloss, cached: false, _model: 'dict' });
-    }
-
-    if (!c.env.AI) {
-      return c.json({ error: 'AI binding not available' }, 503);
     }
 
     // Resolve the Sefaria-aligned segment. Prefer the `segIdx` the client
@@ -291,85 +296,93 @@ export function registerTranslateRoutes(app: Hono<{ Bindings: Bindings }>): void
       : 'You translate single Talmudic Aramaic or Hebrew words into clear modern Hebrew (עברית מודרנית) so an Israeli reader can understand them. Return ONLY the Hebrew translation — a single word or short phrase, no quotation marks, no explanation, no punctuation. If the word is a proper name (a Rabbi or place), return its conventional Hebrew form.\n\n';
     const system = (targetLang === 'he' ? heSystem : enSystem) + TRANSLATE_IDIOM_GUIDANCE;
 
-    // DeepSeek V4 Flash primary (frontier-adjacent Hebrew morphology at
-    // $0.14/$0.28 per 1M; reasoning auto-disabled in llm.ts for low latency).
-    // Kimi K2.5 thinking fallback when DeepSeek returns empty or errors.
-    const translateModels: Array<{ id: LLMModelId; label: string; kimi?: boolean }> = [
-      { id: 'openrouter/deepseek/deepseek-v4-flash', label: 'deepseek-v4-flash' },
-      { id: '@cf/moonshotai/kimi-k2.5', label: 'kimi-k2.5', kimi: true },
-    ];
+    const userParts: string[] = [];
 
-    const attempts: string[] = [];
-    for (const m of translateModels) {
-      try {
-        const userParts: string[] = [];
+    // 1. Sefaria-aligned segment (primary context — Hebrew + English side by side).
+    if (alignedHe && alignedEn) {
+      userParts.push(
+        `Aligned Sefaria segment (the block of the daf this ${isPhrase ? 'phrase' : 'word'} sits in):\nHebrew/Aramaic: ${alignedHe}\nEnglish:        ${alignedEn}`,
+      );
+    } else if (fallbackEnglish) {
+      userParts.push(
+        `Passage context (English translation of the surrounding daf):\n${fallbackEnglish}`,
+      );
+    }
 
-        // 1. Sefaria-aligned segment (primary context — Hebrew + English side by side).
-        if (alignedHe && alignedEn) {
-          userParts.push(
-            `Aligned Sefaria segment (the block of the daf this ${isPhrase ? 'phrase' : 'word'} sits in):\nHebrew/Aramaic: ${alignedHe}\nEnglish:        ${alignedEn}`,
-          );
-        } else if (fallbackEnglish) {
-          userParts.push(
-            `Passage context (English translation of the surrounding daf):\n${fallbackEnglish}`,
-          );
-        }
+    // 2. Surrounding rendered-daf text — ±N words around the user's selection.
+    //    Anchors the request to a specific position on the page.
+    if (hebrewBefore || hebrewAfter) {
+      userParts.push(
+        `On-page surrounding text (from the rendered daf, immediately around the selection):\n…${hebrewBefore} «${word}» ${hebrewAfter}…`,
+      );
+    }
 
-        // 2. Surrounding rendered-daf text — ±N words around the user's selection.
-        //    Anchors the request to a specific position on the page.
-        if (hebrewBefore || hebrewAfter) {
-          userParts.push(
-            `On-page surrounding text (from the rendered daf, immediately around the selection):\n…${hebrewBefore} «${word}» ${hebrewAfter}…`,
-          );
-        }
+    // 3. Lexicon (authoritative dictionary entries).
+    if (lexiconContext) {
+      userParts.push(`Lexicon definitions (from Sefaria's BDB/Jastrow/Klein):\n${lexiconContext}`);
+    }
 
-        // 3. Lexicon (authoritative dictionary entries).
-        if (lexiconContext) {
-          userParts.push(
-            `Lexicon definitions (from Sefaria's BDB/Jastrow/Klein):\n${lexiconContext}`,
-          );
-        }
+    // 4. The target.
+    userParts.push(`${isPhrase ? 'Phrase' : 'Word'} to translate: ${word}`);
+    const prompt = userParts.join('\n\n');
 
-        // 4. The target.
-        userParts.push(`${isPhrase ? 'Phrase' : 'Word'} to translate: ${word}`);
+    // A key-cap sentinel means every OpenRouter model will 403. Skip them and
+    // go straight to Workers AI; the sentinel is not cleared by that success
+    // (Gemma working does not mean the key recovered).
+    const down = await readAiDown(cache);
+    const blocked = new Set<TranslateProvider>();
+    const openRouterDown = down?.reason === 'key-limit' || down?.reason === 'credits';
+    if (openRouterDown && down) blocked.add('openrouter');
 
+    const outcome = await walkTranslateModels({
+      models: TRANSLATE_MODELS,
+      blocked,
+      workersAi: Boolean(c.env.AI),
+      seed: openRouterDown && down ? { reason: down.reason } : null,
+      run: async (m) => {
         const r = await runLLM(c.env, {
           model: m.id,
           messages: [
             { role: 'system', content: system },
-            { role: 'user', content: userParts.join('\n\n') },
+            { role: 'user', content: prompt },
           ],
-          max_tokens: m.kimi ? 400 : isPhrase ? 120 : 30,
+          max_tokens: isPhrase ? 120 : 30,
           temperature: 0.1,
           thinking: false,
           tag: 'translate',
           attribution: { kind: 'translate', tractate, page },
         });
-        const translation = r.content.trim().replace(/^["']|["']$/g, '');
-        if (!translation) {
-          attempts.push(`${m.label}: empty response`);
-          continue;
-        }
+        return r.content;
+      },
+    });
 
-        if (cache) {
-          await cache.put(cacheKey, translation, { expirationTtl: 60 * 60 * 24 * 30 });
-        }
-        recordTelemetry(c, {
-          endpoint: 'translate',
-          tractate,
-          page,
-          cache_hit: false,
-          model: m.label,
-          ms: Date.now() - t0,
-          ok: true,
-        });
-        return c.json({ translation, cached: false, _model: m.label });
-      } catch (err) {
-        attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
-        console.warn(`[translate] ${m.label} failed:`, err);
+    if (outcome.ok) {
+      if (cache) {
+        const ttl =
+          outcome.provider === 'workers-ai' ? TRANSLATE_FALLBACK_TTL_S : TRANSLATE_CACHE_TTL_S;
+        await cache.put(cacheKey, outcome.translation, { expirationTtl: ttl });
       }
+      if (outcome.credentialFailure) {
+        c.executionCtx.waitUntil(noteAiDown(cache, outcome.credentialFailure));
+      }
+      recordTelemetry(c, {
+        endpoint: 'translate',
+        tractate,
+        page,
+        cache_hit: false,
+        model: outcome.label,
+        ms: Date.now() - t0,
+        ok: true,
+      });
+      return c.json({ translation: outcome.translation, cached: false, _model: outcome.label });
     }
 
+    // Provider bodies (and the key-management URL they have carried) stay in
+    // the log. The client gets the fixed one-liner.
+    console.warn(`[translate] failed: ${outcome.detail}`);
+    if (outcome.failure.reason === 'key-limit' || outcome.failure.reason === 'credits') {
+      c.executionCtx.waitUntil(noteAiDown(cache, outcome.failure.reason));
+    }
     recordTelemetry(c, {
       endpoint: 'translate',
       tractate,
@@ -377,8 +390,8 @@ export function registerTranslateRoutes(app: Hono<{ Bindings: Bindings }>): void
       cache_hit: false,
       ms: Date.now() - t0,
       ok: false,
-      error_kind: classifyError(attempts.join(' ')),
+      error_kind: outcome.failure.reason,
     });
-    return c.json({ error: 'All translation models failed', attempts }, 502);
+    return aiUnavailableJson(c, outcome.failure);
   });
 }

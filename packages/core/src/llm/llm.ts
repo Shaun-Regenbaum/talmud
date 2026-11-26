@@ -25,7 +25,7 @@
 import { type BillingAttempt, type BillingEnv, beginBillingAttempt } from '../telemetry/billing';
 import { gatewayActive, rawAiBinding, runWithRetry } from './ai-gateway';
 import { BudgetPausedError, checkBudget, type EmailBinding, recordSpend } from './budget';
-import { isFallbackWorthy, LLMError, NEITHER, TIMEOUT } from './llm-error';
+import { LLMError, NEITHER, nextFallbackIndex, openRouterFailureClass, TIMEOUT } from './llm-error';
 import { costSplitUsd, normalizeUsage } from './pricing';
 import { readProviderJson } from './provider-json';
 import { DEFAULT_FALLBACK_CHAIN, DEFAULT_MODEL } from './settings';
@@ -254,9 +254,13 @@ export function resolveChain(env: LLMEnv, opts: LLMCallOptions): LLMModelId[] {
 
 /**
  * runLLM: try the resolved primary model first, then walk the fallback chain.
- * The first model that doesn't throw a retryable error wins. Non-retryable
- * errors (4xx that aren't 429, schema validation, etc.) bubble up immediately
- * without trying fallback.
+ * The first model that doesn't throw a fallback-worthy error wins. Errors that
+ * are neither retryable nor fallback-worthy (a 4xx that isn't a quota refusal,
+ * schema validation, our own budget pause) bubble up immediately.
+ *
+ * A shared-credential refusal — the OpenRouter key's spend cap, or an empty
+ * prepaid balance — does not walk the rest of that key. Later models on a
+ * different provider (Workers AI) are still tried. See nextFallbackIndex.
  */
 export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResult> {
   // Budget gate (./budget): refuse before spending when a pause is latched. The
@@ -271,18 +275,21 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
   const chain = resolveChain(env, opts);
 
   let lastErr: unknown = null;
-  for (let i = 0; i < chain.length; i++) {
+  let tried = 0;
+  let i = 0;
+  while (i < chain.length) {
     const model = chain[i];
     try {
+      tried++;
       const result = await withHardTimeout(
         callOnce(env, model, opts),
         MODEL_CALL_HARD_TIMEOUT_MS,
         model,
       );
-      await recordLLMCost(env, model, i + 1, result, opts);
+      await recordLLMCost(env, model, tried, result, opts);
       // Feed the spend budget (./budget) so the next checkBudget sees this call.
       await recordSpend(env, { model: result.model, usage: result.usage, custom });
-      return { ...result, attempts: i + 1 };
+      return { ...result, attempts: tried };
     } catch (err) {
       lastErr = err;
       const detail = String((err as Error)?.message ?? err);
@@ -290,11 +297,19 @@ export async function runLLM(env: LLMEnv, opts: LLMCallOptions): Promise<LLMResu
       // observability can see the cascade. Without this, a successful
       // fallback hides upstream errors and a final fallback failure
       // reports only the LAST model's error, not what actually started
-      // the cascade.
+      // the cascade. The raw provider body stays in this log; callers must
+      // not copy it into a client response.
       console.warn(
         `[runLLM] ${model} attempt ${i + 1}/${chain.length} failed: ${detail.slice(0, 300)}`,
       );
-      if (!isFallbackWorthy(err) || i === chain.length - 1) throw err;
+      const next = nextFallbackIndex(chain, i, err);
+      if (next === -1) throw err;
+      if (next > i + 1) {
+        console.warn(
+          `[runLLM] skipping ${chain.slice(i + 1, next).join(', ')} after a shared-credential failure on ${model}`,
+        );
+      }
+      i = next;
     }
   }
   throw lastErr ?? new LLMError(500, 'runLLM: no models in chain', { cls: NEITHER });
@@ -746,7 +761,13 @@ async function callOpenRouterGateway(
       if (!r.ok) {
         await billing?.finish('failed', `http-${r.status}`);
         const text = await r.text().catch(() => '');
-        throw new LLMError(r.status, `OpenRouter HTTP ${r.status}: ${text.slice(0, 500)}`);
+        // Quota / key-cap bodies are SWITCH_PROVIDER: not retried on this key
+        // (runWithRetry), and nextFallbackIndex will not walk another
+        // openrouter/* model. The body is kept on the error for the server
+        // log only.
+        throw new LLMError(r.status, `OpenRouter HTTP ${r.status}: ${text.slice(0, 500)}`, {
+          cls: openRouterFailureClass(r.status, text),
+        });
       }
       if (!opts.stream) {
         try {

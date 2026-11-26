@@ -6,9 +6,11 @@
  * file; the prompt + the two pure helpers (split/​sanitize) move with it.
  */
 
+import { classifyAiUnavailable } from '@corpus/core/llm/ai-status';
 import { runLLM } from '@corpus/core/llm/llm';
 import type { Hono } from 'hono';
 import { stripEchoParens } from '../client/hebraize';
+import { aiUnavailableJson } from './ai-failure';
 import { keyForHebraize } from './cache-keys';
 import { readJsonBody } from './http-helpers';
 import type { Bindings } from './types';
@@ -130,7 +132,12 @@ export function registerHebraizeRoutes(app: Hono<{ Bindings: Bindings }>): void 
       }
       return c.json({ hebraized: leading + out + trailing });
     } catch (err) {
-      return c.json({ error: String(err).slice(0, 300) }, 502);
+      // The provider body has included an OpenRouter key-management URL. Log
+      // it; the client gets the fixed one-liner. A key cap is fallback-worthy
+      // onto Gemma inside runLLM (different provider), so this catch is the
+      // case where that hop failed too.
+      console.warn('[hebraize] failed:', err);
+      return aiUnavailableJson(c, classifyAiUnavailable(err) ?? { reason: 'provider' });
     }
   });
 }

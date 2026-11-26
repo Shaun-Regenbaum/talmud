@@ -2371,6 +2371,10 @@ const CATALOG = {
 
   // — Translation popup —
   'translation.loading': { en: 'Translating…', he: 'מתרגם…' },
+  'translation.unavailable': {
+    en: 'Translation is unavailable right now. Please try again later.',
+    he: 'התרגום אינו זמין כרגע. נסו שוב מאוחר יותר.',
+  },
   'translation.mobileHint': {
     en: 'Tap another word within {max} words to translate a region · tap again to close',
     he: 'הקישו על מילה נוספת בטווח {max} מילים לתרגום קטע · הקישו שוב לסגירה',
