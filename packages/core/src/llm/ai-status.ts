@@ -84,6 +84,29 @@ export function isAiUnavailable(err: unknown): boolean {
  * same `reason`; this is the plain-text fallback (logs, non-UI clients, the
  * inline message a card shows before the banner mounts).
  */
+/** Seconds for a Retry-After header. Budget pauses know their lift time
+ *  (`retryAfter` is epoch ms). A key cap or an empty balance does not tell us
+ *  when it resets, so the delay is long enough that a client does not
+ *  immediately retry a refusal that will not clear in seconds. */
+export function retryAfterSeconds(u: AiUnavailable): number {
+  if (typeof u.retryAfter === 'number') {
+    return Math.max(1, Math.ceil((u.retryAfter - Date.now()) / 1000));
+  }
+  switch (u.reason) {
+    case 'key-limit':
+    case 'credits':
+    case 'daily-cap':
+    case 'cost-control':
+      return 3600;
+    case 'hourly-cap':
+      return 600;
+    case 'rate-limit':
+      return 60;
+    case 'provider':
+      return 30;
+  }
+}
+
 export function aiUnavailableMessage(reason: AiUnavailableReason): string {
   switch (reason) {
     case 'credits':

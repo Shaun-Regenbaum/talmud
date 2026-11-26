@@ -3,13 +3,15 @@
 // route-slice: registerCommentaryRoutes(app) wires the two endpoints, and
 // fetchCommentaryWorks is re-exported for the other in-file callers.
 
+import { classifyAiUnavailable } from '@corpus/core/llm/ai-status';
 import { type LLMModelId, runLLM } from '@corpus/core/llm/llm';
 import type { Hono } from 'hono';
 import { z } from 'zod';
+import { aiUnavailableJson } from './ai-failure';
 import { keyForCommentaryText, keyForCommentaryWorks } from './cache-keys';
 import { kvGetJSONAs } from './kv-json';
 import { getSefariaSegmentsCached } from './source-cache';
-import { classifyError, recordTelemetry } from './telemetry';
+import { recordTelemetry } from './telemetry';
 import type { Bindings } from './types';
 
 interface CommentaryComment {
@@ -248,7 +250,7 @@ export function registerCommentaryRoutes(app: Hono<{ Bindings: Bindings }>): voi
       { id: '@cf/google/gemma-4-26b-a4b-it', label: 'gemma-4-26b' },
     ];
 
-    const attempts: string[] = [];
+    let lastErr: unknown = null;
     for (const m of models) {
       try {
         const r = await runLLM(c.env, {
@@ -267,10 +269,7 @@ export function registerCommentaryRoutes(app: Hono<{ Bindings: Bindings }>): voi
           },
         });
         const translation = r.content.trim().replace(/^["']|["']$/g, '');
-        if (!translation) {
-          attempts.push(`${m.label}: empty`);
-          continue;
-        }
+        if (!translation) continue;
         if (cache) {
           await cache.put(cacheKey, translation, { expirationTtl: 60 * 60 * 24 * 365 });
         }
@@ -285,9 +284,11 @@ export function registerCommentaryRoutes(app: Hono<{ Bindings: Bindings }>): voi
         });
         return c.json({ translation, cached: false, _model: m.label });
       } catch (err) {
-        attempts.push(`${m.label}: ${String(err).slice(0, 200)}`);
+        lastErr = err;
+        console.warn(`[commentary-translate] ${m.label} failed:`, err);
       }
     }
+    const unavailable = classifyAiUnavailable(lastErr) ?? { reason: 'provider' as const };
     recordTelemetry(c, {
       endpoint: 'translate',
       tractate: body.tractate,
@@ -295,8 +296,8 @@ export function registerCommentaryRoutes(app: Hono<{ Bindings: Bindings }>): voi
       cache_hit: false,
       ms: Date.now() - t0,
       ok: false,
-      error_kind: classifyError(attempts.join(' ')),
+      error_kind: unavailable.reason,
     });
-    return c.json({ error: 'All translation models failed', attempts }, 502);
+    return aiUnavailableJson(c, unavailable);
   });
 }

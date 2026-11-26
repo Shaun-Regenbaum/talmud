@@ -4,6 +4,7 @@ import {
   aiUnavailableMessage,
   classifyAiUnavailable,
   isAiUnavailable,
+  retryAfterSeconds,
 } from '../src/llm/ai-status.ts';
 import { BudgetPausedError } from '../src/llm/budget.ts';
 import { LLMError } from '../src/llm/llm-error.ts';
@@ -86,5 +87,23 @@ describe('classifyAiUnavailable', () => {
       'provider',
     ];
     for (const r of reasons) expect(aiUnavailableMessage(r).length).toBeGreaterThan(10);
+  });
+});
+
+describe('retryAfterSeconds', () => {
+  it('uses a budget pause lift time when we know it', () => {
+    const sec = retryAfterSeconds({ reason: 'daily-cap', retryAfter: Date.now() + 90_000 });
+    expect(sec).toBeGreaterThanOrEqual(89);
+    expect(sec).toBeLessThanOrEqual(90);
+  });
+
+  it('backs off a key cap by an hour when the reset time is unknown', () => {
+    expect(retryAfterSeconds({ reason: 'key-limit' })).toBe(3600);
+    expect(retryAfterSeconds({ reason: 'credits' })).toBe(3600);
+  });
+
+  it('backs off a rate limit by a minute and an outage by half a minute', () => {
+    expect(retryAfterSeconds({ reason: 'rate-limit' })).toBe(60);
+    expect(retryAfterSeconds({ reason: 'provider' })).toBe(30);
   });
 });

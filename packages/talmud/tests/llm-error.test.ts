@@ -3,8 +3,12 @@ import {
   classifyStatus,
   isFallbackWorthy,
   isRetryable,
+  isSharedCredentialFailure,
   LLMError,
   NEITHER,
+  nextFallbackIndex,
+  openRouterFailureClass,
+  SWITCH_PROVIDER,
   TIMEOUT,
 } from '@corpus/core/llm/llm-error';
 import { describe, expect, it } from 'vitest';
@@ -79,6 +83,51 @@ describe('foreign error classification (errors we did not construct)', () => {
     const e = new Error('schema validation failed: missing field');
     expect(isRetryable(e)).toBe(false);
     expect(isFallbackWorthy(e)).toBe(false);
+  });
+});
+
+describe('shared-credential failures', () => {
+  const chain = ['openrouter/deepseek/a', 'openrouter/deepseek/b', '@cf/google/gemma-4-26b-a4b-it'];
+  const keyLimit = new LLMError(
+    403,
+    'OpenRouter HTTP 403: {"error":{"message":"Key limit exceeded (weekly limit). Manage it using https://openrouter.ai/settings/keys"}}',
+    { cls: SWITCH_PROVIDER },
+  );
+
+  it('does not retry a key cap, but will hand off to another provider', () => {
+    expect(keyLimit.retryable).toBe(false);
+    expect(keyLimit.fallbackWorthy).toBe(true);
+    expect(isSharedCredentialFailure(keyLimit)).toBe(true);
+  });
+
+  it('classes a key-cap body as switch-provider even when the status is 429', () => {
+    expect(openRouterFailureClass(429, 'Key limit exceeded (weekly limit)')).toEqual(
+      SWITCH_PROVIDER,
+    );
+    expect(openRouterFailureClass(402, 'Insufficient credits')).toEqual(SWITCH_PROVIDER);
+    expect(openRouterFailureClass(403, 'forbidden')).toEqual(NEITHER);
+    expect(openRouterFailureClass(429, 'rate limited')).toEqual({
+      retryable: true,
+      fallbackWorthy: true,
+    });
+  });
+
+  it('skips later models on the same key and keeps a Workers AI hop', () => {
+    expect(nextFallbackIndex(chain, 0, keyLimit)).toBe(2);
+    expect(nextFallbackIndex(['openrouter/a', 'openrouter/b'], 0, keyLimit)).toBe(-1);
+  });
+
+  it('still walks the next model on the same provider for an ordinary upstream error', () => {
+    const down = new LLMError(503, 'OpenRouter HTTP 503: upstream');
+    expect(isSharedCredentialFailure(down)).toBe(false);
+    expect(nextFallbackIndex(chain, 0, down)).toBe(1);
+    const stalled = new LLMError(408, 'hard-timed-out', { cls: TIMEOUT });
+    expect(nextFallbackIndex(chain, 0, stalled)).toBe(1);
+  });
+
+  it('stops on a plain 4xx', () => {
+    expect(nextFallbackIndex(chain, 0, new LLMError(400, 'bad request'))).toBe(-1);
+    expect(isFallbackWorthy(new LLMError(400, 'bad request'))).toBe(false);
   });
 });
 
