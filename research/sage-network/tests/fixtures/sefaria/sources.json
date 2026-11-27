@@ -78,6 +78,20 @@
       "note": "reformatted for the linter; the parsed JSON equals the original reply"
     },
     {
+      "fixture": "shape-sifra.json",
+      "url": "https://www.sefaria.org/api/shape/Sifra",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "d7fe81f30990539528d1b41e08563282df25e18c001befb66292aef6fa0f5358",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
+      "fixture": "index-sifra.json",
+      "url": "https://www.sefaria.org/api/v2/raw/index/Sifra",
+      "fetched": "2026-10-20",
+      "originalReplySha256": "168beef5cace7ab356ed1bfc9b7976a36fc52028cdf64955af1ac53e9a21fbec",
+      "note": "reformatted for the linter; the parsed JSON equals the original reply"
+    },
+    {
       "fixture": "text-replies.json",
       "note": "extract of eight real v3 text replies; text bodies removed, other kept fields unchanged; each entry carries the hash of its full original reply"
     }
