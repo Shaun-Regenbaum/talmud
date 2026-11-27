@@ -33,7 +33,7 @@
     "@modelcontextprotocol/sdk": "^1.30.0",
     "daf-renderer": "^1.1.4",
     "hono": "^4.13.7",
-    "node-html-parser": "^7.1.0",
+    "node-html-parser": "^9.0.4",
     "solid-js": "^1.9.15",
     "zod": "^4.6.5"
   },
