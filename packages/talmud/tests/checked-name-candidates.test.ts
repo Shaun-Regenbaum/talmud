@@ -6,7 +6,7 @@ import bridgeFixture from '../../../research/sage-network/tests/fixtures/index-i
 import graphParent from '../../../research/sage-network/tests/fixtures/name-candidates-import-parent.json';
 import { decodeCheckedPassage } from '../src/lib/sage-graph/checked-readings';
 import { checkedNameSuggestion, LISTED_ENTRIES } from '../src/lib/sage-graph/name-candidates';
-import { POSSIBLE_ERA_SCOPE_SQL } from '../src/lib/sage-graph/possible-era';
+import { DECISION_GUARD_SQL, POSSIBLE_ERA_SCOPE_SQL } from '../src/lib/sage-graph/possible-era';
 import { canonicalJson, type StoredRow, sha256 } from '../src/lib/sage-graph/source-reading-store';
 import type { SourcePerson } from '../src/lib/sage-graph/types';
 import { RABBI_PLACES } from '../src/worker/rabbi-places';
@@ -242,14 +242,17 @@ interface Statement {
   first: () => Promise<unknown>;
   all: () => Promise<{ results: unknown[]; success: boolean }>;
 }
-function binding(d: DatabaseSync, failScope = false) {
+/** reads: when given, counts every all() by its SQL, so a test can see how often each query runs. */
+function binding(d: DatabaseSync, failScope = false, reads?: Map<string, number>) {
   const statement = (sql: string, v: string[] = []): Statement => ({
     bind: (...a) => statement(sql, a),
     first: async () => d.prepare(sql).get(...v) ?? null,
-    all: async () =>
-      sql === POSSIBLE_ERA_SCOPE_SQL && failScope
+    all: async () => {
+      reads?.set(sql, (reads.get(sql) ?? 0) + 1);
+      return sql === DECISION_GUARD_SQL && failScope
         ? { results: [], success: false }
-        : { results: d.prepare(sql).all(...v), success: true },
+        : { results: d.prepare(sql).all(...v), success: true };
+    },
   });
   return { prepare: (sql: string) => statement(sql) };
 }
@@ -298,16 +301,22 @@ it('serves the suggestion on the existing checked person card', async () => {
       SOURCE_READINGS_OTHER_DB: binding(other),
     };
     const { passageId, localId } = parts(record('רמי בר חמא'));
-    const card = async (revision: string) => {
+    const card = async (revision: string, reads?: Map<string, number>) => {
       const response = await sageGraph.request(
         `/person?id=${encodeURIComponent(`reading:${passageId}/${localId}`)}&revision=${revision}&bavliRevision=${store.revision}&otherRevision=${fixture.stores.other.revision}`,
         {},
-        env,
+        reads ? { ...env, SAGE_GRAPH_DB: binding(graph, false, reads) } : env,
       );
       expect(response.status).toBe(200);
       return (await response.json()) as SourcePerson;
     };
-    const shown = await card(gid);
+    const reads = new Map<string, number>();
+    const shown = await card(gid, reads);
+    // The suggestion and the profile share one read of the current decisions; the full era scope is never read.
+    expect([reads.get(DECISION_GUARD_SQL), reads.get(POSSIBLE_ERA_SCOPE_SQL)]).toEqual([
+      1,
+      undefined,
+    ]);
     expect(shown.initialReading!.checked).toBeTruthy();
     expect(shown.initialReading!.nameSuggestion?.candidate?.id).toBe('rav-rami-bar-hama');
     expect(shown.conditionalProfile).toMatchObject({
@@ -397,12 +406,12 @@ it('serves the exact Yitzhak bridge without choosing from short-name alternative
       { sourceReadingStore: fixture.stores.other.block },
       [],
     );
-    const card = async (revision: string, failScope = false) => {
+    const card = async (revision: string, failScope = false, reads?: Map<string, number>) => {
       const response = await sageGraph.request(
         `/person?id=${encodeURIComponent(`reading:${key}`)}&revision=${revision}&bavliRevision=${store.revision}&otherRevision=${fixture.stores.other.revision}`,
         {},
         {
-          SAGE_GRAPH_DB: binding(graph, failScope),
+          SAGE_GRAPH_DB: binding(graph, failScope, reads),
           SOURCE_READINGS_BAVLI_DB: binding(bavli),
           SOURCE_READINGS_OTHER_DB: binding(other),
         },
@@ -410,7 +419,13 @@ it('serves the exact Yitzhak bridge without choosing from short-name alternative
       expect(response.status).toBe(200);
       return (await response.json()) as SourcePerson;
     };
-    const shown = await card(gid);
+    const reads = new Map<string, number>();
+    const shown = await card(gid, false, reads);
+    // The suggestion, the link and the profile share one read of the current decisions.
+    expect([reads.get(DECISION_GUARD_SQL), reads.get(POSSIBLE_ERA_SCOPE_SQL)]).toEqual([
+      1,
+      undefined,
+    ]);
     expect(shown.initialReading?.nameSuggestion?.candidate).toBeUndefined();
     expect(shown.initialReading?.nameSuggestion?.registryEntries?.total).toBe(9);
     expect(shown.conditionalProfile).toMatchObject({
